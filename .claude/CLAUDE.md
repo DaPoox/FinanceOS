@@ -85,3 +85,5 @@ Comment all classes, functions, and non-obvious logic blocks. Comments explain i
 - Error handling: @.claude/docs/ErrorHandling.md
 - Dependency injection: @.claude/docs/DI.md
 - Agent workflow: @.claude/docs/workflow.md
+- Design System: @.claude/docs/DesignSystem.md
+- Gitflow: @.claude/.docs/Gitflow.md
