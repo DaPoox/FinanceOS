@@ -1,82 +1,98 @@
 package com.daprox.financeos.presentation.core.designsystem
 
-import androidx.compose.material3.lightColorScheme
+import androidx.compose.material3.darkColorScheme
 import androidx.compose.ui.graphics.Color
 
 // ── Raw palette ──────────────────────────────────────────────────────────────
-// Named by hue and shade. Reference these internally; never expose raw values
-// to feature composables — they should use MaterialTheme.colorScheme roles.
+// Obsidian base — surfaces built through tonal stacking, no borders.
 
-internal val Emerald600 = Color(0xFF059669)
-internal val Emerald100 = Color(0xFFD1FAE5)
-internal val Emerald900 = Color(0xFF064E3B)
+internal val Obsidian           = Color(0xFF0F1417) // background
+internal val ObsidianLowest     = Color(0xFF0A0D10)
+internal val ObsidianLow        = Color(0xFF171C1F) // surface-container-low (card boundary)
+internal val ObsidianContainer  = Color(0xFF1C2226)
+internal val ObsidianHigh       = Color(0xFF222930) // surface-container-high
+internal val ObsidianHighest    = Color(0xFF2B333B) // surface-container-highest (chips, pips)
 
-internal val Blue600 = Color(0xFF2563EB)
-internal val Blue100 = Color(0xFFDBEAFE)
-internal val Blue900 = Color(0xFF1E3A8A)
+// Text — off-white per the "no pure white" rule.
+internal val Mist               = Color(0xFFDFE3E7) // on-surface
+internal val MistDim            = Color(0xFF8E9BA4) // on-surface-variant
+internal val MistFaint          = Color(0xFF3A4650) // outline
 
-internal val Violet500 = Color(0xFF8B5CF6)
-internal val Violet100 = Color(0xFFEDE9FE)
-internal val Violet900 = Color(0xFF4C1D95)
+// Primary — Emerald, vibrant jewel tone on dark.
+internal val Emerald400         = Color(0xFF6EE591) // primary (tone ~80 for dark)
+internal val EmeraldDark        = Color(0xFF003919) // on-primary
+internal val EmeraldContainer   = Color(0xFF005227) // primary-container
+internal val EmeraldLight       = Color(0xFFA7F3D0) // on-primary-container
 
-internal val Slate900 = Color(0xFF0F172A)
-internal val Slate700 = Color(0xFF334155)
-internal val Slate400 = Color(0xFF94A3B8)
-internal val Slate200 = Color(0xFFE2E8F0)
-internal val Slate100 = Color(0xFFF1F5F9)
-internal val Slate50  = Color(0xFFF8FAFC)
+// Secondary — Sapphire.
+internal val Sapphire300        = Color(0xFF93C5FD)
+internal val SapphireDark       = Color(0xFF1E3A8A)
+internal val SapphireContainer  = Color(0xFF1D4ED8)
+internal val SapphireLight      = Color(0xFFDBEAFE)
 
-internal val White = Color(0xFFFFFFFF)
+// Tertiary — Violet.
+internal val Violet300          = Color(0xFFC4B5FD)
+internal val VioletDark         = Color(0xFF2E1065)
+internal val VioletContainer    = Color(0xFF4C1D95)
+internal val VioletLight        = Color(0xFFEDE9FE)
 
-internal val Red600  = Color(0xFFDC2626)
-internal val Red100  = Color(0xFFFEE2E2)
-internal val Red900  = Color(0xFF7F1D1D)
+// Error — red, lightened for dark backgrounds.
+internal val Red400             = Color(0xFFF87171)
+internal val RedDark            = Color(0xFF7F1D1D)
+internal val RedContainer       = Color(0xFF991B1B)
+internal val RedLight           = Color(0xFFFEE2E2)
 
-// ── Semantic color scheme (light only) ───────────────────────────────────────
-// The app targets light mode only per the design spec. Mapped to Material3 roles
-// so all M3 components pick up brand colors automatically.
+// ── Dark color scheme ────────────────────────────────────────────────────────
+// The app is dark-first per the "Emerald Ledger" design system.
+// Hierarchy is conveyed through tonal stacking — no borders, no shadows except
+// the diffused primary glow on the FAB.
 
-internal val FinanceOSLightColorScheme = lightColorScheme(
-    // Primary — Emerald (brand green, CTAs, key interactive elements)
-    primary            = Emerald600,
-    onPrimary          = White,
-    primaryContainer   = Emerald100,
-    onPrimaryContainer = Emerald900,
+internal val FinanceOSDarkColorScheme = darkColorScheme(
+    // Primary — Emerald
+    primary            = Emerald400,
+    onPrimary          = EmeraldDark,
+    primaryContainer   = EmeraldContainer,
+    onPrimaryContainer = EmeraldLight,
 
-    // Secondary — Blue (secondary actions, info hierarchy)
-    secondary            = Blue600,
-    onSecondary          = White,
-    secondaryContainer   = Blue100,
-    onSecondaryContainer = Blue900,
+    // Secondary — Sapphire
+    secondary            = Sapphire300,
+    onSecondary          = SapphireDark,
+    secondaryContainer   = SapphireContainer,
+    onSecondaryContainer = SapphireLight,
 
-    // Tertiary — Violet (highlights, badges, decorative elements)
-    tertiary            = Violet500,
-    onTertiary          = White,
-    tertiaryContainer   = Violet100,
-    onTertiaryContainer = Violet900,
+    // Tertiary — Violet
+    tertiary            = Violet300,
+    onTertiary          = VioletDark,
+    tertiaryContainer   = VioletContainer,
+    onTertiaryContainer = VioletLight,
 
-    // Backgrounds & surfaces
-    background        = White,
-    onBackground      = Slate900,
-    surface           = White,
-    onSurface         = Slate900,
-    surfaceVariant    = Slate100,
-    onSurfaceVariant  = Slate700,
-    surfaceTint       = Emerald600,
+    // Surfaces — tonal stacking from the Obsidian base
+    background           = Obsidian,
+    onBackground         = Mist,
+    surface              = Obsidian,
+    onSurface            = Mist,
+    surfaceVariant       = ObsidianContainer,
+    onSurfaceVariant     = MistDim,
+    surfaceContainerLowest  = ObsidianLowest,
+    surfaceContainerLow     = ObsidianLow,
+    surfaceContainer        = ObsidianContainer,
+    surfaceContainerHigh    = ObsidianHigh,
+    surfaceContainerHighest = ObsidianHighest,
+    surfaceTint          = Emerald400,
 
-    // Outlines
-    outline        = Slate200,
-    outlineVariant = Slate100,
+    // Outlines — subtle, for the rare cases a boundary is needed
+    outline        = MistFaint,
+    outlineVariant = ObsidianHigh,
 
     // Errors
-    error            = Red600,
-    onError          = White,
-    errorContainer   = Red100,
-    onErrorContainer = Red900,
+    error            = Red400,
+    onError          = RedDark,
+    errorContainer   = RedContainer,
+    onErrorContainer = RedLight,
 
-    // Inverse / scrim
-    scrim            = Slate900,
-    inverseSurface   = Slate900,
-    inverseOnSurface = Slate50,
-    inversePrimary   = Emerald100,
+    // Inverse
+    scrim            = Color.Black,
+    inverseSurface   = Mist,
+    inverseOnSurface = Obsidian,
+    inversePrimary   = EmeraldContainer,
 )
