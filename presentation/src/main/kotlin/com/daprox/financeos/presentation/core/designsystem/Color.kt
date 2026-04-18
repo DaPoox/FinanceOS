@@ -1,82 +1,97 @@
 package com.daprox.financeos.presentation.core.designsystem
 
-import androidx.compose.material3.lightColorScheme
+import androidx.compose.material3.darkColorScheme
 import androidx.compose.ui.graphics.Color
 
 // ── Raw palette ──────────────────────────────────────────────────────────────
-// Named by hue and shade. Reference these internally; never expose raw values
-// to feature composables — they should use MaterialTheme.colorScheme roles.
+// Surfaces — tonal stacking, no borders.
+internal val Neutral1000 = Color(0xFF0A0D10)
+internal val Neutral950  = Color(0xFF0F1417) // background
+internal val Neutral900  = Color(0xFF171C1F) // surface-container-low (card boundary)
+internal val Neutral850  = Color(0xFF1C2226)
+internal val Neutral800  = Color(0xFF222930) // surface-container-high
+internal val Neutral750  = Color(0xFF2B333B) // surface-container-highest (chips, pips)
 
-internal val Emerald600 = Color(0xFF059669)
-internal val Emerald100 = Color(0xFFD1FAE5)
-internal val Emerald900 = Color(0xFF064E3B)
+// Text — off-white per the "no pure white" rule.
+internal val Slate200 = Color(0xFFDFE3E7) // on-surface
+internal val Slate400 = Color(0xFF8E9BA4) // on-surface-variant
+internal val Slate700 = Color(0xFF3A4650) // outline
 
-internal val Blue600 = Color(0xFF2563EB)
-internal val Blue100 = Color(0xFFDBEAFE)
-internal val Blue900 = Color(0xFF1E3A8A)
+// Primary — Green (Emerald jewel tone).
+internal val Green400  = Color(0xFF6EE591) // primary
+internal val Green950  = Color(0xFF003919) // on-primary
+internal val Green900  = Color(0xFF005227) // primary-container
+internal val Green200  = Color(0xFFA7F3D0) // on-primary-container
 
-internal val Violet500 = Color(0xFF8B5CF6)
-internal val Violet100 = Color(0xFFEDE9FE)
-internal val Violet900 = Color(0xFF4C1D95)
+// Secondary — Blue (Sapphire).
+internal val Blue300  = Color(0xFF93C5FD)
+internal val Blue900  = Color(0xFF1E3A8A)
+internal val Blue700  = Color(0xFF1D4ED8)
+internal val Blue100  = Color(0xFFDBEAFE)
 
-internal val Slate900 = Color(0xFF0F172A)
-internal val Slate700 = Color(0xFF334155)
-internal val Slate400 = Color(0xFF94A3B8)
-internal val Slate200 = Color(0xFFE2E8F0)
-internal val Slate100 = Color(0xFFF1F5F9)
-internal val Slate50  = Color(0xFFF8FAFC)
+// Tertiary — Purple (Violet).
+internal val Purple300 = Color(0xFFC4B5FD)
+internal val Purple950 = Color(0xFF2E1065)
+internal val Purple900 = Color(0xFF4C1D95)
+internal val Purple100 = Color(0xFFEDE9FE)
 
-internal val White = Color(0xFFFFFFFF)
+// Error — Red, lightened for dark backgrounds.
+internal val Red400 = Color(0xFFF87171)
+internal val Red900 = Color(0xFF7F1D1D)
+internal val Red800 = Color(0xFF991B1B)
+internal val Red100 = Color(0xFFFEE2E2)
 
-internal val Red600  = Color(0xFFDC2626)
-internal val Red100  = Color(0xFFFEE2E2)
-internal val Red900  = Color(0xFF7F1D1D)
+// ── Dark color scheme ────────────────────────────────────────────────────────
+// The app is dark-first per the "Emerald Ledger" design system.
+// Hierarchy is conveyed through tonal stacking — no borders, no shadows except
+// the diffused primary glow on the FAB.
 
-// ── Semantic color scheme (light only) ───────────────────────────────────────
-// The app targets light mode only per the design spec. Mapped to Material3 roles
-// so all M3 components pick up brand colors automatically.
+internal val FinanceOSDarkColorScheme = darkColorScheme(
+    // Primary — Green
+    primary            = Green400,
+    onPrimary          = Green950,
+    primaryContainer   = Green900,
+    onPrimaryContainer = Green200,
 
-internal val FinanceOSLightColorScheme = lightColorScheme(
-    // Primary — Emerald (brand green, CTAs, key interactive elements)
-    primary            = Emerald600,
-    onPrimary          = White,
-    primaryContainer   = Emerald100,
-    onPrimaryContainer = Emerald900,
+    // Secondary — Blue
+    secondary            = Blue300,
+    onSecondary          = Blue900,
+    secondaryContainer   = Blue700,
+    onSecondaryContainer = Blue100,
 
-    // Secondary — Blue (secondary actions, info hierarchy)
-    secondary            = Blue600,
-    onSecondary          = White,
-    secondaryContainer   = Blue100,
-    onSecondaryContainer = Blue900,
+    // Tertiary — Purple
+    tertiary            = Purple300,
+    onTertiary          = Purple950,
+    tertiaryContainer   = Purple900,
+    onTertiaryContainer = Purple100,
 
-    // Tertiary — Violet (highlights, badges, decorative elements)
-    tertiary            = Violet500,
-    onTertiary          = White,
-    tertiaryContainer   = Violet100,
-    onTertiaryContainer = Violet900,
-
-    // Backgrounds & surfaces
-    background        = White,
-    onBackground      = Slate900,
-    surface           = White,
-    onSurface         = Slate900,
-    surfaceVariant    = Slate100,
-    onSurfaceVariant  = Slate700,
-    surfaceTint       = Emerald600,
+    // Surfaces — tonal stacking from Neutral950 base
+    background              = Neutral950,
+    onBackground            = Slate200,
+    surface                 = Neutral950,
+    onSurface               = Slate200,
+    surfaceVariant          = Neutral850,
+    onSurfaceVariant        = Slate400,
+    surfaceContainerLowest  = Neutral1000,
+    surfaceContainerLow     = Neutral900,
+    surfaceContainer        = Neutral850,
+    surfaceContainerHigh    = Neutral800,
+    surfaceContainerHighest = Neutral750,
+    surfaceTint             = Green400,
 
     // Outlines
-    outline        = Slate200,
-    outlineVariant = Slate100,
+    outline        = Slate700,
+    outlineVariant = Neutral800,
 
     // Errors
-    error            = Red600,
-    onError          = White,
-    errorContainer   = Red100,
-    onErrorContainer = Red900,
+    error            = Red400,
+    onError          = Red900,
+    errorContainer   = Red800,
+    onErrorContainer = Red100,
 
-    // Inverse / scrim
-    scrim            = Slate900,
-    inverseSurface   = Slate900,
-    inverseOnSurface = Slate50,
-    inversePrimary   = Emerald100,
+    // Inverse
+    scrim            = Color.Black,
+    inverseSurface   = Slate200,
+    inverseOnSurface = Neutral950,
+    inversePrimary   = Green900,
 )

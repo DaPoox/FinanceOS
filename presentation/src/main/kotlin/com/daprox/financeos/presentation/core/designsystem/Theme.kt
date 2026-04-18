@@ -6,15 +6,12 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
 
 // Root theme composable. All screens and previews must be wrapped in FinanceOSTheme.
-// The app targets light mode only — darkTheme is kept for future flexibility.
+// The app is dark-first per the "Emerald Ledger" design system.
 @Composable
-fun FinanceOSTheme(
-    darkTheme: Boolean = false,
-    content: @Composable () -> Unit
-) {
+fun FinanceOSTheme(content: @Composable () -> Unit) {
     CompositionLocalProvider(LocalSpacing provides FinanceOSSpacing()) {
         MaterialTheme(
-            colorScheme = if (darkTheme) FinanceOSLightColorScheme else FinanceOSLightColorScheme,
+            colorScheme = FinanceOSDarkColorScheme,
             typography  = FinanceOSTypography,
             shapes      = FinanceOSShapes,
             content     = content,
