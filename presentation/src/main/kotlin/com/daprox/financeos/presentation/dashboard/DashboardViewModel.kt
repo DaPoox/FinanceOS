@@ -1,13 +1,32 @@
 package com.daprox.financeos.presentation.dashboard
 
 import androidx.lifecycle.ViewModel
+import com.daprox.financeos.presentation.dashboard.model.ProgressBarUi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
 class DashboardViewModel : ViewModel() {
 
-    private val _state = MutableStateFlow(DashboardUiState())
+    private val _state = MutableStateFlow(
+        DashboardUiState(
+            // Mock budget data — will be replaced with domain use case calls later.
+            progressBars = listOf(
+                ProgressBarUi(
+                    label = "MOIS",
+                    formattedAmount = "2 400 €",
+                    progress = 0.62f,
+                    isGradient = false,
+                ),
+                ProgressBarUi(
+                    label = "SEMAINE",
+                    formattedAmount = "480 €",
+                    progress = 0.45f,
+                    isGradient = true,
+                ),
+            ),
+        )
+    )
     val state = _state.asStateFlow()
 
     fun onAction(action: DashboardUiAction) {

@@ -68,6 +68,14 @@ Output format:
 Execute the approved plan step by step.  
 After each step, state what was done in one line before moving to the next.
 
+After ALL steps are done and the build passes, stage every created/modified file:
+
+```bash
+git add <file1> <file2> ...   # list files explicitly — never git add -A or git add .
+```
+
+Do NOT commit. Staging is the final action after each execution block.
+
 If during execution a decision arises that is not covered by the existing docs:
 - Stop
 - Describe the decision and the options
