@@ -95,6 +95,8 @@ Report result:
 - Deviations from plan: none / [describe]
 ```
 
+**→ Stop here. Do not commit. Wait for explicit instruction to commit.**
+
 ---
 
 ## Confirmation Gates

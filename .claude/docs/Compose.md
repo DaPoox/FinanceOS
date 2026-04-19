@@ -7,6 +7,22 @@ Zero business logic. Zero data transformation. Minimal side effects.
 
 ---
 
+## Scaffold
+
+Always consume `innerPadding` from the `Scaffold` content lambda and pass it to the main composable:
+
+```kotlin
+Scaffold(
+    bottomBar = { ... }
+) { innerPadding ->
+    MainContent(modifier = Modifier.padding(innerPadding))
+}
+```
+
+Never ignore `innerPadding` — dropping it causes content to render behind system bars and the bottom nav.
+
+---
+
 ## Screen Structure
 
 Every screen is two composables in **one file** (`<Screen>Screen.kt`).

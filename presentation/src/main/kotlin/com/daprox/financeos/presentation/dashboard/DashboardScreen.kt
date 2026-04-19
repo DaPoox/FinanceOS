@@ -2,6 +2,7 @@ package com.daprox.financeos.presentation.dashboard
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -34,8 +35,8 @@ fun DashboardScreen(
                 onTabSelected = { onAction(DashboardUiAction.OnTabSelected(it)) },
             )
         }
-    ) {
+    ) { innerPadding ->
         // Content built section by section — empty for now.
-        Box(Modifier.fillMaxSize())
+        Box(Modifier.fillMaxSize().padding(innerPadding))
     }
 }
