@@ -207,17 +207,17 @@ fun DonutChart(
                         if (tapAngle < 0f) tapAngle += 360f
 
                         // Walk the arc layout and find the hit segment.
-                        val drawableDeg = 360f - segments.size * gapAngleDegrees
+                        // Segments fill the full 360° — gap is only visual on the selected arc.
+                        // Use the full sweep for hit testing (more forgiving UX).
                         var cursor = 0f
                         segments.forEachIndexed { index, _ ->
-                            val sweep    = fractionAnims[index].value * drawableDeg
-                            val arcStart = cursor + gapAngleDegrees / 2f
-                            val arcEnd   = arcStart + (sweep - gapAngleDegrees).coerceAtLeast(0f)
-                            if (tapAngle in arcStart..arcEnd) {
+                            val sweep  = fractionAnims[index].value * 360f
+                            val arcEnd = cursor + sweep
+                            if (tapAngle in cursor..arcEnd) {
                                 onSegmentClick(index)
                                 return@detectTapGestures
                             }
-                            cursor += sweep + gapAngleDegrees
+                            cursor += sweep
                         }
                     }
                 },
@@ -240,17 +240,23 @@ fun DonutChart(
                 )
 
                 // ── Segments ──────────────────────────────────────────────────
-                val drawableDeg = 360f - segments.size * gapAngleDegrees
-                var startAngle  = -90f  // 12 o'clock
+                // Segments fill the full 360° with no universal gap.
+                // The selected segment gets a gap carved from its own arc (half on each side)
+                // driven by its lift animation — so gap and lift animate together.
+                var startAngle = -90f  // 12 o'clock
 
                 segments.forEachIndexed { index, segment ->
-                    val sweep    = fractionAnims[index].value * drawableDeg
-                    val arcStart = startAngle + gapAngleDegrees / 2f
-                    val arcSweep = (sweep - gapAngleDegrees).coerceAtLeast(0f)
+                    val liftProgress = liftAnims[index].value
+                    val sweep        = fractionAnims[index].value * 360f
 
-                    // Bisector of this arc — the direction it lifts toward.
+                    // Gap opens only on the selected arc, proportional to lift progress.
+                    val halfGap  = liftProgress * (gapAngleDegrees / 2f)
+                    val arcStart = startAngle + halfGap
+                    val arcSweep = (sweep - halfGap * 2f).coerceAtLeast(0f)
+
+                    // Bisector direction for the outward lift translate.
                     val bisectorRad = Math.toRadians((arcStart + arcSweep / 2f).toDouble()).toFloat()
-                    val lift        = liftAnims[index].value * liftPx
+                    val lift        = liftProgress * liftPx
 
                     withTransform(
                         transformBlock = {
@@ -271,7 +277,7 @@ fun DonutChart(
                         )
                     }
 
-                    startAngle += sweep + gapAngleDegrees
+                    startAngle += sweep  // advance by full sweep — gap is visual only
                 }
             }
 

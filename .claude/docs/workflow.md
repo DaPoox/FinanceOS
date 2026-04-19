@@ -103,7 +103,9 @@ Report result:
 - Deviations from plan: none / [describe]
 ```
 
-**→ Stop here. Do not commit. Wait for explicit instruction to commit.**
+**→ Stop here. Do not commit or push. Wait for explicit instruction.**
+
+Commit and push are separate, explicit steps. Authorization to commit does NOT imply authorization to push. Authorization given for one task does NOT carry over to the next task. Each task requires its own explicit instruction.
 
 ---
 

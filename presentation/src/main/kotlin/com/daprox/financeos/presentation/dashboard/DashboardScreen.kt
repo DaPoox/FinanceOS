@@ -59,6 +59,7 @@ fun DashboardScreen(
             )
             BudgetDonutSection(
                 categories            = state.categories,
+                totalFormattedAmount  = state.totalCategoryAmount,
                 selectedCategoryIndex = state.selectedCategoryIndex,
                 showAmounts           = state.showCategoryAmounts,
                 onCategoryClick       = { onAction(DashboardUiAction.OnCategorySelected(it)) },

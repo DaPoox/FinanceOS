@@ -50,6 +50,7 @@ import com.daprox.financeos.presentation.dashboard.model.CategoryUi
 @Composable
 fun BudgetDonutSection(
     categories: List<CategoryUi>,
+    totalFormattedAmount: String,
     modifier: Modifier = Modifier,
     selectedCategoryIndex: Int? = null,
     showAmounts: Boolean = true,
@@ -82,6 +83,7 @@ fun BudgetDonutSection(
             centerContent        = {
                 DonutCenterLabel(
                     categories           = categories,
+                    totalFormattedAmount = totalFormattedAmount,
                     selectedIndex        = selectedCategoryIndex,
                     showAmounts          = showAmounts,
                 )
@@ -104,6 +106,7 @@ fun BudgetDonutSection(
 @Composable
 private fun DonutCenterLabel(
     categories: List<CategoryUi>,
+    totalFormattedAmount: String,
     selectedIndex: Int?,
     showAmounts: Boolean,
 ) {
@@ -111,7 +114,7 @@ private fun DonutCenterLabel(
 
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         if (selected != null) {
-            // Selected category — name + value
+            // Selected category — name + amount or percentage
             Text(
                 text = selected.label,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -124,11 +127,17 @@ private fun DonutCenterLabel(
                 style = TextStyle(fontWeight = FontWeight.Bold, fontSize = 16.sp),
             )
         } else {
-            // No selection — show "BUDGET" header + total placeholder
+            // No selection — show total spend
             Text(
-                text = "BUDGET",
+                text = "TOTAL",
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 10.sp, letterSpacing = 1.sp),
+            )
+            Spacer(Modifier.height(2.dp))
+            Text(
+                text = totalFormattedAmount,
+                color = MaterialTheme.colorScheme.onSurface,
+                style = TextStyle(fontWeight = FontWeight.Bold, fontSize = 16.sp),
             )
         }
     }
@@ -179,11 +188,18 @@ private fun CategoryPip(
                 .background(category.color),
         )
         Spacer(Modifier.width(8.dp))
-        Text(
-            text = "${category.label}  ${category.formattedPercentage}",
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            style = TextStyle(fontWeight = FontWeight.Medium, fontSize = 12.sp),
-        )
+        Column {
+            Text(
+                text = category.label,
+                color = MaterialTheme.colorScheme.onSurface,
+                style = TextStyle(fontWeight = FontWeight.Medium, fontSize = 12.sp),
+            )
+            Text(
+                text = category.formattedPercentage,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = TextStyle(fontWeight = FontWeight.Normal, fontSize = 11.sp),
+            )
+        }
     }
 }
 
@@ -196,7 +212,8 @@ private fun CategoryPip(
 private fun BudgetDonutSectionPreview() {
     FinanceOSTheme {
         BudgetDonutSection(
-            categories = previewCategories(),
+            categories           = previewCategories(),
+            totalFormattedAmount = "3 000 €",
             selectedCategoryIndex = 0,
         )
     }
@@ -206,7 +223,10 @@ private fun BudgetDonutSectionPreview() {
 @Composable
 private fun BudgetDonutSectionNoSelectionPreview() {
     FinanceOSTheme {
-        BudgetDonutSection(categories = previewCategories())
+        BudgetDonutSection(
+            categories           = previewCategories(),
+            totalFormattedAmount = "3 000 €",
+        )
     }
 }
 

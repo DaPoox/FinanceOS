@@ -37,6 +37,7 @@ class DashboardViewModel : ViewModel() {
                 CategoryUi("Transport",     "600 €",   "20 %", 0.20f, androidx.compose.ui.graphics.Color(0xFFC4B5FD)),
                 CategoryUi("Loisirs",       "450 €",   "15 %", 0.15f, androidx.compose.ui.graphics.Color(0xFFF87171)),
             ),
+            totalCategoryAmount = "3 000 €",
         )
     )
     val state = _state.asStateFlow()
