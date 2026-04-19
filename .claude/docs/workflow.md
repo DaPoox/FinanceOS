@@ -68,6 +68,14 @@ Output format:
 Execute the approved plan step by step.  
 After each step, state what was done in one line before moving to the next.
 
+After ALL steps are done and the build passes, stage every created/modified file:
+
+```bash
+git add <file1> <file2> ...   # list files explicitly — never git add -A or git add .
+```
+
+Do NOT commit. Staging is the final action after each execution block.
+
 If during execution a decision arises that is not covered by the existing docs:
 - Stop
 - Describe the decision and the options
@@ -94,6 +102,10 @@ Report result:
 - Build: OK / FAILED (paste error)
 - Deviations from plan: none / [describe]
 ```
+
+**→ Stop here. Do not commit or push. Wait for explicit instruction.**
+
+Commit and push are separate, explicit steps. Authorization to commit does NOT imply authorization to push. Authorization given for one task does NOT carry over to the next task. Each task requires its own explicit instruction.
 
 ---
 

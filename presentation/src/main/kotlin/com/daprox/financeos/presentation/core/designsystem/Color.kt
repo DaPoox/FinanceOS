@@ -14,7 +14,8 @@ internal val Neutral750  = Color(0xFF2B333B) // surface-container-highest (chips
 
 // Text — off-white per the "no pure white" rule.
 internal val Slate200 = Color(0xFFDFE3E7) // on-surface
-internal val Slate400 = Color(0xFF8E9BA4) // on-surface-variant
+internal val Slate400 = Color(0xFF8E9BA4)
+internal val Slate500 = Color(0xFF64748B) // on-surface-variant (inactive nav, muted labels)
 internal val Slate700 = Color(0xFF3A4650) // outline
 
 // Primary — Green (Emerald jewel tone).
@@ -71,7 +72,7 @@ internal val FinanceOSDarkColorScheme = darkColorScheme(
     surface                 = Neutral950,
     onSurface               = Slate200,
     surfaceVariant          = Neutral850,
-    onSurfaceVariant        = Slate400,
+    onSurfaceVariant        = Slate500,
     surfaceContainerLowest  = Neutral1000,
     surfaceContainerLow     = Neutral900,
     surfaceContainer        = Neutral850,
