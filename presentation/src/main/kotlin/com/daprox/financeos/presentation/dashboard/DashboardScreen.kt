@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.daprox.financeos.presentation.core.designsystem.component.DashboardTopBar
 import com.daprox.financeos.presentation.core.designsystem.component.FinanceOSBottomNav
 import org.koin.androidx.compose.koinViewModel
 
@@ -29,6 +30,7 @@ fun DashboardScreen(
     onAction: (DashboardUiAction) -> Unit,
 ) {
     Scaffold(
+        topBar = { DashboardTopBar() },
         bottomBar = {
             FinanceOSBottomNav(
                 selectedTab = state.selectedTab,
