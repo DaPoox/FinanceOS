@@ -11,6 +11,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.daprox.financeos.presentation.core.designsystem.component.BudgetDonutSection
 import com.daprox.financeos.presentation.core.designsystem.component.DashboardTopBar
 import com.daprox.financeos.presentation.core.designsystem.component.DualProgressBarsSection
 import com.daprox.financeos.presentation.core.designsystem.component.FinanceOSBottomNav
@@ -55,6 +56,13 @@ fun DashboardScreen(
             NetWorthCard(
                 netWorth = state.netWorth,
                 modifier = Modifier.padding(top = 12.dp),
+            )
+            BudgetDonutSection(
+                categories            = state.categories,
+                selectedCategoryIndex = state.selectedCategoryIndex,
+                showAmounts           = state.showCategoryAmounts,
+                onCategoryClick       = { onAction(DashboardUiAction.OnCategorySelected(it)) },
+                modifier              = Modifier.padding(top = 12.dp),
             )
         }
     }
