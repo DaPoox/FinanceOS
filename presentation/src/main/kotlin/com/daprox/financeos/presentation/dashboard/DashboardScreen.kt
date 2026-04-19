@@ -12,10 +12,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.daprox.financeos.presentation.core.designsystem.component.BudgetDonutSection
+import com.daprox.financeos.presentation.core.designsystem.component.DashboardFab
 import com.daprox.financeos.presentation.core.designsystem.component.DashboardTopBar
 import com.daprox.financeos.presentation.core.designsystem.component.DualProgressBarsSection
 import com.daprox.financeos.presentation.core.designsystem.component.FinanceOSBottomNav
+import com.daprox.financeos.presentation.core.designsystem.component.LiquiditySection
 import com.daprox.financeos.presentation.core.designsystem.component.NetWorthCard
+import com.daprox.financeos.presentation.core.designsystem.component.RecentTransactionsSection
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -42,9 +45,12 @@ fun DashboardScreen(
                 selectedTab = state.selectedTab,
                 onTabSelected = { onAction(DashboardUiAction.OnTabSelected(it)) },
             )
-        }
+        },
+        floatingActionButton = {
+            DashboardFab(onClick = { onAction(DashboardUiAction.OnAddTransactionClick) })
+        },
     ) { innerPadding ->
-        // Content column — sections added one by one as the dashboard is built out.
+        // Content column — sections ordered top to bottom as per Figma.
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -53,10 +59,12 @@ fun DashboardScreen(
                 .padding(horizontal = 16.dp, vertical = 12.dp),
         ) {
             DualProgressBarsSection(progressBars = state.progressBars)
+
             NetWorthCard(
                 netWorth = state.netWorth,
                 modifier = Modifier.padding(top = 12.dp),
             )
+
             BudgetDonutSection(
                 categories            = state.categories,
                 totalFormattedAmount  = state.totalCategoryAmount,
@@ -64,6 +72,16 @@ fun DashboardScreen(
                 showAmounts           = state.showCategoryAmounts,
                 onCategoryClick       = { onAction(DashboardUiAction.OnCategorySelected(it)) },
                 modifier              = Modifier.padding(top = 12.dp),
+            )
+
+            LiquiditySection(
+                items    = state.liquidityItems,
+                modifier = Modifier.padding(top = 12.dp),
+            )
+
+            RecentTransactionsSection(
+                transactions = state.recentTransactions,
+                modifier     = Modifier.padding(top = 12.dp, bottom = 16.dp),
             )
         }
     }

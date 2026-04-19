@@ -2,8 +2,10 @@ package com.daprox.financeos.presentation.dashboard
 
 import androidx.lifecycle.ViewModel
 import com.daprox.financeos.presentation.dashboard.model.CategoryUi
+import com.daprox.financeos.presentation.dashboard.model.LiquidityItemUi
 import com.daprox.financeos.presentation.dashboard.model.NetWorthUi
 import com.daprox.financeos.presentation.dashboard.model.ProgressBarUi
+import com.daprox.financeos.presentation.dashboard.model.TransactionUi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -38,6 +40,25 @@ class DashboardViewModel : ViewModel() {
                 CategoryUi("Loisirs",       "450 €",   "15 %", 0.15f, androidx.compose.ui.graphics.Color(0xFFF87171)),
             ),
             totalCategoryAmount = "3 000 €",
+            liquidityItems = listOf(
+                LiquidityItemUi(
+                    label = "DISPONIBLE",
+                    formattedAmount = "3 240 €",
+                    subtitle = "Compte courant",
+                ),
+                LiquidityItemUi(
+                    label = "ÉPARGNE",
+                    formattedAmount = "8 500 €",
+                    subtitle = "Livret A",
+                ),
+            ),
+            recentTransactions = listOf(
+                TransactionUi("1", "Carrefour",  "Alimentation", "Aujourd'hui", "- 87,50 €",  true,  androidx.compose.ui.graphics.Color(0xFF93C5FD)),
+                TransactionUi("2", "Salaire",    "Revenus",      "15 avr.",     "+ 2 800 €",  false, androidx.compose.ui.graphics.Color(0xFF6EE591)),
+                TransactionUi("3", "Netflix",    "Loisirs",      "14 avr.",     "- 17,99 €",  true,  androidx.compose.ui.graphics.Color(0xFFC4B5FD)),
+                TransactionUi("4", "RATP",       "Transport",    "13 avr.",     "- 1,90 €",   true,  androidx.compose.ui.graphics.Color(0xFFF87171)),
+                TransactionUi("5", "Freelance",  "Revenus",      "12 avr.",     "+ 650 €",    false, androidx.compose.ui.graphics.Color(0xFF6EE591)),
+            ),
         )
     )
     val state = _state.asStateFlow()
@@ -52,6 +73,9 @@ class DashboardViewModel : ViewModel() {
                 val newIndex = if (current.selectedCategoryIndex == action.index) null else action.index
                 current.copy(selectedCategoryIndex = newIndex)
             }
+
+            // Navigation to add-transaction screen — wired when that screen is built.
+            is DashboardUiAction.OnAddTransactionClick -> Unit
         }
     }
 }
