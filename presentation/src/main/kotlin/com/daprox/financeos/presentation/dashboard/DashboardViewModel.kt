@@ -1,6 +1,7 @@
 package com.daprox.financeos.presentation.dashboard
 
 import androidx.lifecycle.ViewModel
+import com.daprox.financeos.presentation.dashboard.model.NetWorthUi
 import com.daprox.financeos.presentation.dashboard.model.ProgressBarUi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -10,7 +11,11 @@ class DashboardViewModel : ViewModel() {
 
     private val _state = MutableStateFlow(
         DashboardUiState(
-            // Mock budget data — will be replaced with domain use case calls later.
+            // Mock data — will be replaced with domain use case calls later.
+            netWorth = NetWorthUi(
+                label = "NET WORTH",
+                formattedAmount = "12 450 €",
+            ),
             progressBars = listOf(
                 ProgressBarUi(
                     label = "MOIS",

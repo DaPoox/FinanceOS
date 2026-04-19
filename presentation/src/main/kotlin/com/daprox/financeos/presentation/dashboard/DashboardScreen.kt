@@ -14,6 +14,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.daprox.financeos.presentation.core.designsystem.component.DashboardTopBar
 import com.daprox.financeos.presentation.core.designsystem.component.DualProgressBarsSection
 import com.daprox.financeos.presentation.core.designsystem.component.FinanceOSBottomNav
+import com.daprox.financeos.presentation.core.designsystem.component.NetWorthCard
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -51,6 +52,10 @@ fun DashboardScreen(
                 .padding(horizontal = 16.dp, vertical = 12.dp),
         ) {
             DualProgressBarsSection(progressBars = state.progressBars)
+            NetWorthCard(
+                netWorth = state.netWorth,
+                modifier = Modifier.padding(top = 12.dp),
+            )
         }
     }
 }
