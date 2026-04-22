@@ -65,9 +65,6 @@ class DashboardViewModel : ViewModel() {
 
     fun onAction(action: DashboardUiAction) {
         when (action) {
-            is DashboardUiAction.OnTabSelected ->
-                _state.update { it.copy(selectedTab = action.tab) }
-
             is DashboardUiAction.OnCategorySelected -> _state.update { current ->
                 // Tap again on the same segment to deselect.
                 val newIndex = if (current.selectedCategoryIndex == action.index) null else action.index

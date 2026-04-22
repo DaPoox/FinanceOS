@@ -36,11 +36,44 @@ internal val Purple950 = Color(0xFF2E1065)
 internal val Purple900 = Color(0xFF4C1D95)
 internal val Purple100 = Color(0xFFEDE9FE)
 
+// Orange — Savings accent.
+internal val Orange400 = Color(0xFFFB923C) // dark theme — warm, high contrast on dark bg
+internal val Orange600 = Color(0xFFEA580C) // light theme — deeper shade
+
 // Error — Red, lightened for dark backgrounds.
 internal val Red400 = Color(0xFFF87171)
 internal val Red900 = Color(0xFF7F1D1D)
 internal val Red800 = Color(0xFF991B1B)
 internal val Red100 = Color(0xFFFEE2E2)
+
+// ── Custom domain colors ─────────────────────────────────────────────────────
+// Colors tied to data concepts (budget categories), not M3 UI roles.
+// Separate dark/light instances — both provided via CompositionLocal in Theme.kt.
+// See ColorSystem.md for the three-layer architecture.
+
+// Envelope/budget allocation categories.
+data class FinanceOSCategoryColors(
+    val fixedExpenses : androidx.compose.ui.graphics.Color,
+    val investment    : androidx.compose.ui.graphics.Color,
+    val savings       : androidx.compose.ui.graphics.Color,
+    val other         : androidx.compose.ui.graphics.Color,
+)
+
+// Dark theme — bright, saturated, high contrast on dark surfaces.
+internal val FinanceOSDarkCategoryColors = FinanceOSCategoryColors(
+    fixedExpenses = Green400,
+    investment    = Blue300,
+    savings       = Orange400,
+    other         = Slate400,
+)
+
+// Light theme — deeper shades, high contrast on light surfaces.
+internal val FinanceOSLightCategoryColors = FinanceOSCategoryColors(
+    fixedExpenses = Green900,
+    investment    = Blue700,
+    savings       = Orange600,
+    other         = Slate500,
+)
 
 // ── Dark color scheme ────────────────────────────────────────────────────────
 // The app is dark-first per the "Emerald Ledger" design system.

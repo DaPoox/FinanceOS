@@ -8,8 +8,10 @@ import kotlinx.serialization.Serializable
 @Serializable
 object Dashboard
 
-fun NavGraphBuilder.dashboardScreen() {
+fun NavGraphBuilder.dashboardScreen(
+    onNavigateToEnvelopes: () -> Unit,
+) {
     composable<Dashboard> {
-        DashboardScreenRoot()
+        DashboardScreenRoot(onNavigateToEnvelopes = onNavigateToEnvelopes)
     }
 }

@@ -1,6 +1,8 @@
 package com.daprox.financeos.presentation.core.designsystem.component
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,9 +14,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -49,12 +55,14 @@ import com.daprox.financeos.presentation.dashboard.model.CategoryUi
  */
 @Composable
 fun BudgetDonutSection(
-    categories: List<CategoryUi>,
-    totalFormattedAmount: String,
-    modifier: Modifier = Modifier,
-    selectedCategoryIndex: Int? = null,
-    showAmounts: Boolean = true,
-    onCategoryClick: ((Int) -> Unit)? = null,
+    categories            : List<CategoryUi>,
+    totalFormattedAmount  : String,
+    modifier              : Modifier = Modifier,
+    selectedCategoryIndex : Int? = null,
+    showAmounts           : Boolean = true,
+    onCategoryClick       : ((Int) -> Unit)? = null,
+    // Tapping "Envelopes →" navigates to the Envelopes screen. Null = link hidden.
+    onViewAllClick        : (() -> Unit)? = null,
 ) {
     val segments = categories.map { cat ->
         DonutSegment(
@@ -72,6 +80,54 @@ fun BudgetDonutSection(
             .padding(horizontal = 24.dp, vertical = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        // Section header — "BUDGET" label + optional "Envelopes →" deep-link.
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text  = "BUDGET",
+                style = TextStyle(
+                    fontWeight    = FontWeight.Bold,
+                    fontSize      = 11.sp,
+                    letterSpacing = 1.2.sp,
+                ),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            if (onViewAllClick != null) {
+                Row(
+                    modifier = Modifier
+                        .clip(MaterialTheme.shapes.small)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication        = null,
+                            onClick           = onViewAllClick,
+                        )
+                        .padding(horizontal = 4.dp, vertical = 2.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Text(
+                        text  = "Envelopes",
+                        style = TextStyle(
+                            fontWeight    = FontWeight.SemiBold,
+                            fontSize      = 11.sp,
+                            letterSpacing = 0.3.sp,
+                        ),
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                    Icon(
+                        imageVector        = Icons.AutoMirrored.Filled.ArrowForward,
+                        contentDescription = null,
+                        tint               = MaterialTheme.colorScheme.primary,
+                        modifier           = Modifier.size(12.dp),
+                    )
+                }
+            }
+        }
         // ── Donut chart ───────────────────────────────────────────────────────
         DonutChart(
             segments             = segments,

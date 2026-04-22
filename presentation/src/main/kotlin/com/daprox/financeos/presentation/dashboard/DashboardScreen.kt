@@ -15,7 +15,6 @@ import com.daprox.financeos.presentation.core.designsystem.component.BudgetDonut
 import com.daprox.financeos.presentation.core.designsystem.component.DashboardFab
 import com.daprox.financeos.presentation.core.designsystem.component.DashboardTopBar
 import com.daprox.financeos.presentation.core.designsystem.component.DualProgressBarsSection
-import com.daprox.financeos.presentation.core.designsystem.component.FinanceOSBottomNav
 import com.daprox.financeos.presentation.core.designsystem.component.LiquiditySection
 import com.daprox.financeos.presentation.core.designsystem.component.NetWorthCard
 import com.daprox.financeos.presentation.core.designsystem.component.RecentTransactionsSection
@@ -23,29 +22,26 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun DashboardScreenRoot(
-    viewModel: DashboardViewModel = koinViewModel()
+    viewModel             : DashboardViewModel = koinViewModel(),
+    onNavigateToEnvelopes : () -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     DashboardScreen(
-        state = state,
-        onAction = viewModel::onAction,
+        state                 = state,
+        onAction              = viewModel::onAction,
+        onNavigateToEnvelopes = onNavigateToEnvelopes,
     )
 }
 
 @Composable
 fun DashboardScreen(
-    state: DashboardUiState,
-    onAction: (DashboardUiAction) -> Unit,
+    state                 : DashboardUiState,
+    onAction              : (DashboardUiAction) -> Unit,
+    onNavigateToEnvelopes : () -> Unit = {},
 ) {
     Scaffold(
         topBar = { DashboardTopBar() },
-        bottomBar = {
-            FinanceOSBottomNav(
-                selectedTab = state.selectedTab,
-                onTabSelected = { onAction(DashboardUiAction.OnTabSelected(it)) },
-            )
-        },
         floatingActionButton = {
             DashboardFab(onClick = { onAction(DashboardUiAction.OnAddTransactionClick) })
         },
@@ -71,6 +67,7 @@ fun DashboardScreen(
                 selectedCategoryIndex = state.selectedCategoryIndex,
                 showAmounts           = state.showCategoryAmounts,
                 onCategoryClick       = { onAction(DashboardUiAction.OnCategorySelected(it)) },
+                onViewAllClick        = onNavigateToEnvelopes,
                 modifier              = Modifier.padding(top = 12.dp),
             )
 

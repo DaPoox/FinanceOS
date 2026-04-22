@@ -1,6 +1,7 @@
 package com.daprox.financeos.presentation
 
 import com.daprox.financeos.presentation.dashboard.DashboardViewModel
+import com.daprox.financeos.presentation.envelopes.EnvelopesViewModel
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
 
@@ -8,4 +9,5 @@ import org.koin.dsl.module
 // Assembled in :app via startKoin { modules(..., presentationModule) }.
 val presentationModule = module {
     viewModel { DashboardViewModel() }
+    viewModel { EnvelopesViewModel() }
 }
