@@ -29,7 +29,10 @@ import com.daprox.financeos.presentation.core.designsystem.FinanceOSTheme
 // "Envelopes" title in primary green, edit icon + avatar on the right.
 // Navigation between screens is handled by the shared bottom nav — no back arrow needed.
 @Composable
-fun EnvelopesTopBar(modifier: Modifier = Modifier) {
+fun EnvelopesTopBar(
+    onEditClick : () -> Unit = {},
+    modifier    : Modifier   = Modifier,
+) {
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -48,8 +51,8 @@ fun EnvelopesTopBar(modifier: Modifier = Modifier) {
 
         Spacer(Modifier.weight(1f))
 
-        // Pencil icon — navigates to edit allocations (wired in a future task).
-        IconButton(onClick = {}) {
+        // Pencil icon — navigates to the EnvelopesEdit screen.
+        IconButton(onClick = onEditClick) {
             Icon(
                 imageVector        = Icons.Default.Edit,
                 contentDescription = "Edit allocations",

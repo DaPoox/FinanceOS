@@ -8,8 +8,10 @@ import kotlinx.serialization.Serializable
 @Serializable
 object Envelopes
 
-fun NavGraphBuilder.envelopesScreen() {
+fun NavGraphBuilder.envelopesScreen(
+    onNavigateToEdit: () -> Unit = {},
+) {
     composable<Envelopes> {
-        EnvelopesScreenRoot()
+        EnvelopesScreenRoot(onNavigateToEdit = onNavigateToEdit)
     }
 }

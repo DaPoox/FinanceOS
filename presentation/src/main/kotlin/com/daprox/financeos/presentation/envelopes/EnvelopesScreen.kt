@@ -45,19 +45,21 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun EnvelopesScreenRoot(
-    viewModel: EnvelopesViewModel = koinViewModel(),
+    onNavigateToEdit : () -> Unit          = {},
+    viewModel        : EnvelopesViewModel  = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    EnvelopesScreen(state = state, onAction = viewModel::onAction)
+    EnvelopesScreen(state = state, onAction = viewModel::onAction, onNavigateToEdit = onNavigateToEdit)
 }
 
 @Composable
 fun EnvelopesScreen(
-    state    : EnvelopesUiState,
-    onAction : (EnvelopesUiAction) -> Unit,
+    state            : EnvelopesUiState,
+    onAction         : (EnvelopesUiAction) -> Unit,
+    onNavigateToEdit : () -> Unit = {},
 ) {
     Scaffold(
-        topBar = { EnvelopesTopBar() },
+        topBar = { EnvelopesTopBar(onEditClick = onNavigateToEdit) },
     ) { innerPadding ->
         Column(
             modifier = Modifier

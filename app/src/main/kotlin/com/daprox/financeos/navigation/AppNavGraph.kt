@@ -12,6 +12,8 @@ import androidx.navigation.compose.rememberNavController
 import com.daprox.financeos.presentation.core.designsystem.component.FinanceOSBottomNav
 import com.daprox.financeos.presentation.dashboard.navigation.Dashboard
 import com.daprox.financeos.presentation.dashboard.navigation.dashboardScreen
+import com.daprox.financeos.presentation.envelopes.edit.navigation.EnvelopesEdit
+import com.daprox.financeos.presentation.envelopes.edit.navigation.envelopesEditScreen
 import com.daprox.financeos.presentation.envelopes.navigation.Envelopes
 import com.daprox.financeos.presentation.envelopes.navigation.envelopesScreen
 import com.daprox.financeos.presentation.navigation.AppTab
@@ -25,11 +27,12 @@ fun AppNavGraph() {
     val navController      = rememberNavController()
     val navBackStackEntry  by navController.currentBackStackEntryAsState()
     val currentDest        = navBackStackEntry?.destination
-
     // Derive the selected tab index from the active back-stack destination.
+    // EnvelopesEdit is a sub-screen of Envelopes — keep ENVELOPES tab highlighted.
     val selectedIndex = when {
-        currentDest?.hasRoute<Envelopes>() == true -> AppTab.ENVELOPES.ordinal
-        else                                        -> AppTab.WEALTH.ordinal
+        currentDest?.hasRoute<Envelopes>()     == true -> AppTab.ENVELOPES.ordinal
+        currentDest?.hasRoute<EnvelopesEdit>() == true -> AppTab.ENVELOPES.ordinal
+        else                                            -> AppTab.WEALTH.ordinal
     }
 
     Scaffold(
@@ -57,7 +60,12 @@ fun AppNavGraph() {
                 // "Envelopes →" shortcut in the budget section header.
                 onNavigateToEnvelopes = { navController.navigate(Envelopes) { launchSingleTop = true } },
             )
-            envelopesScreen()
+            envelopesScreen(
+                onNavigateToEdit = { navController.navigate(EnvelopesEdit) },
+            )
+            envelopesEditScreen(
+                onNavigateBack = { navController.popBackStack() },
+            )
         }
     }
 }
