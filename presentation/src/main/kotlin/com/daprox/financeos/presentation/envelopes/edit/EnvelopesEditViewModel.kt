@@ -34,6 +34,8 @@ class EnvelopesEditViewModel : ViewModel() {
 
             // Persist changes — wired when domain layer is ready.
             is EnvelopesEditUiAction.OnConfirm -> Unit
+            // Discard changes — navigation handled by the screen, nothing to do in VM.
+            is EnvelopesEditUiAction.OnClose -> Unit
         }
     }
 
@@ -81,22 +83,31 @@ private fun EnvelopeEditItemUi.withRecomputedDisplay(totalIncome: Double) = copy
 
 // Recomputes the summary fields (allocatedLabel, allocatedAmount, statusLabel) for the state.
 private fun EnvelopesEditUiState.withRecomputedSummary(totalIncome: Double): EnvelopesEditUiState {
-    val totalFraction  = items.sumOf { it.fraction.toDouble() }.coerceAtMost(1.0)
+    val totalFraction  = items.sumOf { it.fraction.toDouble() }
     val allocatedPct   = (totalFraction * 100).roundToInt()
-    val allocatedEuros = (totalFraction * totalIncome).roundToInt()
+    // Euro amount is clamped at the total income — you can't spend more than you have.
+    val allocatedEuros = (totalFraction.coerceAtMost(1.0) * totalIncome).roundToInt()
     val totalEuros     = totalIncome.roundToInt()
+    val isOver           = allocatedPct > 100
+    val isUnder          = !isOver && allocatedPct < 100
+    val overflowEuros    = if (isOver) ((totalFraction - 1.0) * totalIncome).roundToInt() else 0
+    val unallocatedEuros = if (isUnder) ((1.0 - totalFraction) * totalIncome).roundToInt() else 0
 
     val status = when {
-        allocatedPct > 100 -> "Dépassé"
+        isOver              -> "Dépassé"
         allocatedPct == 100 -> "Complet"
         allocatedPct >= 80  -> "Équilibré"
         else                -> "Sous-alloué"
     }
 
     return copy(
-        allocatedLabel  = "$allocatedPct% Alloué",
-        allocatedAmount = "€$allocatedEuros / €$totalEuros",
-        statusLabel     = status,
+        allocatedLabel        = "$allocatedPct% Alloué",
+        allocatedAmount       = "€$allocatedEuros / €$totalEuros",
+        statusLabel           = status,
+        isOverAllocated       = isOver,
+        overflowEurosLabel    = if (isOver) "€$overflowEuros" else "",
+        hasUnallocated        = isUnder,
+        unallocatedEurosLabel = if (isUnder) "€$unallocatedEuros" else "",
     )
 }
 

@@ -7,6 +7,8 @@ sealed interface EnvelopesEditUiAction {
     data class OnIncrement(val id: String) : EnvelopesEditUiAction
     // − button: nudge allocation down by 1%.
     data class OnDecrement(val id: String) : EnvelopesEditUiAction
-    // check_circle tapped — persists changes (no-op until domain layer is wired).
+    // ✓ tapped — persists changes (no-op until domain layer is wired).
     data object OnConfirm : EnvelopesEditUiAction
+    // ✕ tapped — discards changes without saving.
+    data object OnClose : EnvelopesEditUiAction
 }

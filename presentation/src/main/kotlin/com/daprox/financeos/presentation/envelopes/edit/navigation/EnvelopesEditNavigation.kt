@@ -9,9 +9,15 @@ import kotlinx.serialization.Serializable
 object EnvelopesEdit
 
 fun NavGraphBuilder.envelopesEditScreen(
-    onNavigateBack: () -> Unit,
+    // ✕ — discard changes and pop back.
+    onClose   : () -> Unit,
+    // ✓ — persist changes (ViewModel handles the save) and pop back.
+    onConfirm : () -> Unit,
 ) {
     composable<EnvelopesEdit> {
-        EnvelopesEditScreenRoot(onNavigateBack = onNavigateBack)
+        EnvelopesEditScreenRoot(
+            onClose   = onClose,
+            onConfirm = onConfirm,
+        )
     }
 }

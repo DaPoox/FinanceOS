@@ -64,7 +64,8 @@ fun AppNavGraph() {
                 onNavigateToEdit = { navController.navigate(EnvelopesEdit) },
             )
             envelopesEditScreen(
-                onNavigateBack = { navController.popBackStack() },
+                onClose   = { navController.popBackStack() },
+                onConfirm = { navController.popBackStack() },
             )
         }
     }
