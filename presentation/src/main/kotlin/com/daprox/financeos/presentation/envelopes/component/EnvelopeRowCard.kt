@@ -39,14 +39,16 @@ import com.daprox.financeos.presentation.core.designsystem.categoryColors
 import com.daprox.financeos.presentation.envelopes.model.EnvelopeCategory
 import com.daprox.financeos.presentation.envelopes.model.EnvelopeUi
 
-// Full allocation row card — icon circle, name/subtitle, amount, % pill, chevron.
-// When [isExpanded] is true, child rows animate into view below the parent.
+/**
+ * Full allocation row card — icon circle, name/subtitle, amount, % pill, chevron.
+ * When [isExpanded] is true, child rows animate into view below the parent.
+ */
 @Composable
 fun EnvelopeRowCard(
-    envelope    : EnvelopeUi,
-    isExpanded  : Boolean,
-    onClick     : () -> Unit,
-    modifier    : Modifier = Modifier,
+    envelope: EnvelopeUi,
+    isExpanded: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val accentColor = envelope.category.toColor()
 
@@ -58,8 +60,8 @@ fun EnvelopeRowCard(
                 .background(MaterialTheme.colorScheme.surfaceContainerLow)
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
-                    indication        = null,
-                    onClick           = onClick,
+                    indication = null,
+                    onClick = onClick,
                 )
                 .padding(horizontal = 16.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -74,7 +76,7 @@ fun EnvelopeRowCard(
             ) {
                 // Placeholder initial until SVG category icons are bundled.
                 Text(
-                    text  = envelope.name.first().toString(),
+                    text = envelope.name.first().toString(),
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                     color = accentColor,
                 )
@@ -85,13 +87,13 @@ fun EnvelopeRowCard(
             // Name + subtitle stacked, grows to fill available space.
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text  = envelope.name,
+                    text = envelope.name,
                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
                     color = MaterialTheme.colorScheme.onSurface,
                 )
                 Spacer(Modifier.height(2.dp))
                 Text(
-                    text  = envelope.subtitle,
+                    text = envelope.subtitle,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -102,7 +104,7 @@ fun EnvelopeRowCard(
             // Amount + percentage pill stacked on the right.
             Column(horizontalAlignment = Alignment.End) {
                 Text(
-                    text  = envelope.formattedAmount,
+                    text = envelope.formattedAmount,
                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.onSurface,
                 )
@@ -115,9 +117,9 @@ fun EnvelopeRowCard(
                         .padding(horizontal = 8.dp, vertical = 2.dp),
                 ) {
                     Text(
-                        text  = envelope.formattedPercentage,
+                        text = envelope.formattedPercentage,
                         style = MaterialTheme.typography.labelSmall.copy(
-                            fontWeight    = FontWeight.Bold,
+                            fontWeight = FontWeight.Bold,
                             letterSpacing = 0.3.sp,
                         ),
                         color = accentColor,
@@ -130,10 +132,10 @@ fun EnvelopeRowCard(
             // Chevron rotates 90° when expanded — smooth animation via animateFloatAsState
             // would require a parent state; the rotation here is instant for simplicity.
             Icon(
-                imageVector        = Icons.Default.ChevronRight,
+                imageVector = Icons.Default.ChevronRight,
                 contentDescription = if (isExpanded) "Collapse" else "Expand",
-                tint               = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier           = Modifier
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier
                     .size(20.dp)
                     .rotate(if (isExpanded) 90f else 0f),
             )
@@ -142,8 +144,8 @@ fun EnvelopeRowCard(
         // Child rows — slide in/out with a smooth height animation.
         AnimatedVisibility(
             visible = isExpanded && envelope.children.isNotEmpty(),
-            enter   = expandVertically(animationSpec = tween(220)),
-            exit    = shrinkVertically(animationSpec = tween(180)),
+            enter = expandVertically(animationSpec = tween(220)),
+            exit = shrinkVertically(animationSpec = tween(180)),
         ) {
             Column(
                 modifier = Modifier
@@ -155,9 +157,9 @@ fun EnvelopeRowCard(
                     ChildEnvelopeRow(child = child, accentColor = accentColor)
                     if (index < envelope.children.lastIndex) {
                         HorizontalDivider(
-                            modifier  = Modifier.padding(horizontal = 16.dp),
+                            modifier = Modifier.padding(horizontal = 16.dp),
                             thickness = 0.5.dp,
-                            color     = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
                         )
                     }
                 }
@@ -170,9 +172,9 @@ fun EnvelopeRowCard(
 // No chevron, smaller text — it's a sub-entry, not a primary allocation.
 @Composable
 private fun ChildEnvelopeRow(
-    child       : EnvelopeUi,
-    accentColor : androidx.compose.ui.graphics.Color,
-    modifier    : Modifier = Modifier,
+    child: EnvelopeUi,
+    accentColor: androidx.compose.ui.graphics.Color,
+    modifier: Modifier = Modifier,
 ) {
     Row(
         modifier = modifier
@@ -192,13 +194,13 @@ private fun ChildEnvelopeRow(
 
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text  = child.name,
+                text = child.name,
                 style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
                 color = MaterialTheme.colorScheme.onSurface,
             )
             if (child.subtitle.isNotBlank()) {
                 Text(
-                    text  = child.subtitle,
+                    text = child.subtitle,
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -206,7 +208,7 @@ private fun ChildEnvelopeRow(
         }
 
         Text(
-            text  = child.formattedAmount,
+            text = child.formattedAmount,
             style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.SemiBold),
             color = MaterialTheme.colorScheme.onSurface,
         )
@@ -218,9 +220,9 @@ private fun ChildEnvelopeRow(
 @Composable
 private fun EnvelopeCategory.toColor() = when (this) {
     EnvelopeCategory.FIXED_EXPENSES -> MaterialTheme.categoryColors.fixedExpenses
-    EnvelopeCategory.INVESTMENT     -> MaterialTheme.categoryColors.investment
-    EnvelopeCategory.SAVINGS        -> MaterialTheme.categoryColors.savings
-    EnvelopeCategory.OTHER          -> MaterialTheme.categoryColors.other
+    EnvelopeCategory.INVESTMENT -> MaterialTheme.categoryColors.investment
+    EnvelopeCategory.SAVINGS -> MaterialTheme.categoryColors.savings
+    EnvelopeCategory.OTHER -> MaterialTheme.categoryColors.other
 }
 
 // ── Previews ─────────────────────────────────────────────────────────────────
@@ -230,18 +232,18 @@ private fun EnvelopeCategory.toColor() = when (this) {
 private fun EnvelopeRowCollapsedPreview() {
     FinanceOSTheme {
         EnvelopeRowCard(
-            envelope   = EnvelopeUi(
-                id                  = "fixed",
-                name                = "Fixed Expenses",
-                subtitle            = "Rent, utilities, insurance",
-                formattedAmount     = "2 940,00 €",
+            envelope = EnvelopeUi(
+                id = "fixed",
+                name = "Fixed Expenses",
+                subtitle = "Rent, utilities, insurance",
+                formattedAmount = "2 940,00 €",
                 formattedPercentage = "35 %",
-                fraction            = 0.35f,
-                category            = EnvelopeCategory.FIXED_EXPENSES,
+                fraction = 0.35f,
+                category = EnvelopeCategory.FIXED_EXPENSES,
             ),
             isExpanded = false,
-            onClick    = {},
-            modifier   = Modifier.padding(16.dp),
+            onClick = {},
+            modifier = Modifier.padding(16.dp),
         )
     }
 }
@@ -251,22 +253,22 @@ private fun EnvelopeRowCollapsedPreview() {
 private fun EnvelopeRowExpandedPreview() {
     FinanceOSTheme {
         EnvelopeRowCard(
-            envelope   = EnvelopeUi(
-                id                  = "fixed",
-                name                = "Fixed Expenses",
-                subtitle            = "Rent, utilities, insurance",
-                formattedAmount     = "2 940,00 €",
+            envelope = EnvelopeUi(
+                id = "fixed",
+                name = "Fixed Expenses",
+                subtitle = "Rent, utilities, insurance",
+                formattedAmount = "2 940,00 €",
                 formattedPercentage = "35 %",
-                fraction            = 0.35f,
-                category            = EnvelopeCategory.FIXED_EXPENSES,
-                children            = listOf(
+                fraction = 0.35f,
+                category = EnvelopeCategory.FIXED_EXPENSES,
+                children = listOf(
                     EnvelopeUi("fixed_rent", "Rent", "Monthly lease", "1 200,00 €", "14 %", 0.14f, EnvelopeCategory.FIXED_EXPENSES),
                     EnvelopeUi("fixed_util", "Utilities", "Electricity, water", "180,00 €", "2 %", 0.02f, EnvelopeCategory.FIXED_EXPENSES),
                 ),
             ),
             isExpanded = true,
-            onClick    = {},
-            modifier   = Modifier.padding(16.dp),
+            onClick = {},
+            modifier = Modifier.padding(16.dp),
         )
     }
 }

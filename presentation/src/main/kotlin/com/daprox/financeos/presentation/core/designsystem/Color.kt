@@ -6,11 +6,11 @@ import androidx.compose.ui.graphics.Color
 // ── Raw palette ──────────────────────────────────────────────────────────────
 // Surfaces — tonal stacking, no borders.
 internal val Neutral1000 = Color(0xFF0A0D10)
-internal val Neutral950  = Color(0xFF0F1417) // background
-internal val Neutral900  = Color(0xFF171C1F) // surface-container-low (card boundary)
-internal val Neutral850  = Color(0xFF1C2226)
-internal val Neutral800  = Color(0xFF222930) // surface-container-high
-internal val Neutral750  = Color(0xFF2B333B) // surface-container-highest (chips, pips)
+internal val Neutral950 = Color(0xFF0F1417) // background
+internal val Neutral900 = Color(0xFF171C1F) // surface-container-low (card boundary)
+internal val Neutral850 = Color(0xFF1C2226)
+internal val Neutral800 = Color(0xFF222930) // surface-container-high
+internal val Neutral750 = Color(0xFF2B333B) // surface-container-highest (chips, pips)
 
 // Text — off-white per the "no pure white" rule.
 internal val Slate200 = Color(0xFFDFE3E7) // on-surface
@@ -19,16 +19,16 @@ internal val Slate500 = Color(0xFF64748B) // on-surface-variant (inactive nav, m
 internal val Slate700 = Color(0xFF3A4650) // outline
 
 // Primary — Green (Emerald jewel tone).
-internal val Green400  = Color(0xFF6EE591) // primary
-internal val Green950  = Color(0xFF003919) // on-primary
-internal val Green900  = Color(0xFF005227) // primary-container
-internal val Green200  = Color(0xFFA7F3D0) // on-primary-container
+internal val Green400 = Color(0xFF6EE591) // primary
+internal val Green950 = Color(0xFF003919) // on-primary
+internal val Green900 = Color(0xFF005227) // primary-container
+internal val Green200 = Color(0xFFA7F3D0) // on-primary-container
 
 // Secondary — Blue (Sapphire).
-internal val Blue300  = Color(0xFF93C5FD)
-internal val Blue900  = Color(0xFF1E3A8A)
-internal val Blue700  = Color(0xFF1D4ED8)
-internal val Blue100  = Color(0xFFDBEAFE)
+internal val Blue300 = Color(0xFF93C5FD)
+internal val Blue900 = Color(0xFF1E3A8A)
+internal val Blue700 = Color(0xFF1D4ED8)
+internal val Blue100 = Color(0xFFDBEAFE)
 
 // Tertiary — Purple (Violet).
 internal val Purple300 = Color(0xFFC4B5FD)
@@ -53,26 +53,26 @@ internal val Red100 = Color(0xFFFEE2E2)
 
 // Envelope/budget allocation categories.
 data class FinanceOSCategoryColors(
-    val fixedExpenses : androidx.compose.ui.graphics.Color,
-    val investment    : androidx.compose.ui.graphics.Color,
-    val savings       : androidx.compose.ui.graphics.Color,
-    val other         : androidx.compose.ui.graphics.Color,
+    val fixedExpenses: androidx.compose.ui.graphics.Color,
+    val investment: androidx.compose.ui.graphics.Color,
+    val savings: androidx.compose.ui.graphics.Color,
+    val other: androidx.compose.ui.graphics.Color,
 )
 
 // Dark theme — bright, saturated, high contrast on dark surfaces.
 internal val FinanceOSDarkCategoryColors = FinanceOSCategoryColors(
     fixedExpenses = Green400,
-    investment    = Blue300,
-    savings       = Orange400,
-    other         = Slate400,
+    investment = Blue300,
+    savings = Orange400,
+    other = Slate400,
 )
 
 // Light theme — deeper shades, high contrast on light surfaces.
 internal val FinanceOSLightCategoryColors = FinanceOSCategoryColors(
     fixedExpenses = Green900,
-    investment    = Blue700,
-    savings       = Orange600,
-    other         = Slate500,
+    investment = Blue700,
+    savings = Orange600,
+    other = Slate500,
 )
 
 // ── Dark color scheme ────────────────────────────────────────────────────────
@@ -82,50 +82,50 @@ internal val FinanceOSLightCategoryColors = FinanceOSCategoryColors(
 
 internal val FinanceOSDarkColorScheme = darkColorScheme(
     // Primary — Green
-    primary            = Green400,
-    onPrimary          = Green950,
-    primaryContainer   = Green900,
+    primary = Green400,
+    onPrimary = Green950,
+    primaryContainer = Green900,
     onPrimaryContainer = Green200,
 
     // Secondary — Blue
-    secondary            = Blue300,
-    onSecondary          = Blue900,
-    secondaryContainer   = Blue700,
+    secondary = Blue300,
+    onSecondary = Blue900,
+    secondaryContainer = Blue700,
     onSecondaryContainer = Blue100,
 
     // Tertiary — Purple
-    tertiary            = Purple300,
-    onTertiary          = Purple950,
-    tertiaryContainer   = Purple900,
+    tertiary = Purple300,
+    onTertiary = Purple950,
+    tertiaryContainer = Purple900,
     onTertiaryContainer = Purple100,
 
     // Surfaces — tonal stacking from Neutral950 base
-    background              = Neutral950,
-    onBackground            = Slate200,
-    surface                 = Neutral950,
-    onSurface               = Slate200,
-    surfaceVariant          = Neutral850,
-    onSurfaceVariant        = Slate500,
-    surfaceContainerLowest  = Neutral1000,
-    surfaceContainerLow     = Neutral900,
-    surfaceContainer        = Neutral850,
-    surfaceContainerHigh    = Neutral800,
+    background = Neutral950,
+    onBackground = Slate200,
+    surface = Neutral950,
+    onSurface = Slate200,
+    surfaceVariant = Neutral850,
+    onSurfaceVariant = Slate500,
+    surfaceContainerLowest = Neutral1000,
+    surfaceContainerLow = Neutral900,
+    surfaceContainer = Neutral850,
+    surfaceContainerHigh = Neutral800,
     surfaceContainerHighest = Neutral750,
-    surfaceTint             = Green400,
+    surfaceTint = Green400,
 
     // Outlines
-    outline        = Slate700,
+    outline = Slate700,
     outlineVariant = Neutral800,
 
     // Errors
-    error            = Red400,
-    onError          = Red900,
-    errorContainer   = Red800,
+    error = Red400,
+    onError = Red900,
+    errorContainer = Red800,
     onErrorContainer = Red100,
 
     // Inverse
-    scrim            = Color.Black,
-    inverseSurface   = Slate200,
+    scrim = Color.Black,
+    inverseSurface = Slate200,
     inverseOnSurface = Neutral950,
-    inversePrimary   = Green900,
+    inversePrimary = Green900,
 )

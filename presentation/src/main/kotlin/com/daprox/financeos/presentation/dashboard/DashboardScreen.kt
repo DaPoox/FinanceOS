@@ -20,25 +20,27 @@ import com.daprox.financeos.presentation.core.designsystem.component.NetWorthCar
 import com.daprox.financeos.presentation.core.designsystem.component.RecentTransactionsSection
 import org.koin.androidx.compose.koinViewModel
 
+/** Root composable — connects ViewModel to [DashboardScreen]. */
 @Composable
 fun DashboardScreenRoot(
-    viewModel             : DashboardViewModel = koinViewModel(),
-    onNavigateToEnvelopes : () -> Unit = {},
+    viewModel: DashboardViewModel = koinViewModel(),
+    onNavigateToEnvelopes: () -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     DashboardScreen(
-        state                 = state,
-        onAction              = viewModel::onAction,
+        state = state,
+        onAction = viewModel::onAction,
         onNavigateToEnvelopes = onNavigateToEnvelopes,
     )
 }
 
+/** Stateless Dashboard screen. Receives state and action callbacks. */
 @Composable
 fun DashboardScreen(
-    state                 : DashboardUiState,
-    onAction              : (DashboardUiAction) -> Unit,
-    onNavigateToEnvelopes : () -> Unit = {},
+    state: DashboardUiState,
+    onAction: (DashboardUiAction) -> Unit,
+    onNavigateToEnvelopes: () -> Unit = {},
 ) {
     Scaffold(
         topBar = { DashboardTopBar() },
@@ -62,23 +64,23 @@ fun DashboardScreen(
             )
 
             BudgetDonutSection(
-                categories            = state.categories,
-                totalFormattedAmount  = state.totalCategoryAmount,
+                categories = state.categories,
+                totalFormattedAmount = state.totalCategoryAmount,
                 selectedCategoryIndex = state.selectedCategoryIndex,
-                showAmounts           = state.showCategoryAmounts,
-                onCategoryClick       = { onAction(DashboardUiAction.OnCategorySelected(it)) },
-                onViewAllClick        = onNavigateToEnvelopes,
-                modifier              = Modifier.padding(top = 12.dp),
+                showAmounts = state.showCategoryAmounts,
+                onCategoryClick = { onAction(DashboardUiAction.OnCategorySelected(it)) },
+                onViewAllClick = onNavigateToEnvelopes,
+                modifier = Modifier.padding(top = 12.dp),
             )
 
             LiquiditySection(
-                items    = state.liquidityItems,
+                items = state.liquidityItems,
                 modifier = Modifier.padding(top = 12.dp),
             )
 
             RecentTransactionsSection(
                 transactions = state.recentTransactions,
-                modifier     = Modifier.padding(top = 12.dp, bottom = 16.dp),
+                modifier = Modifier.padding(top = 12.dp, bottom = 16.dp),
             )
         }
     }

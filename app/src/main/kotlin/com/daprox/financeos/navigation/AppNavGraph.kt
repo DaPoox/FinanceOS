@@ -24,37 +24,37 @@ import com.daprox.financeos.presentation.navigation.AppTab
 // NavController never leaks into composables; only lambdas are passed down.
 @Composable
 fun AppNavGraph() {
-    val navController      = rememberNavController()
-    val navBackStackEntry  by navController.currentBackStackEntryAsState()
-    val currentDest        = navBackStackEntry?.destination
+    val navController = rememberNavController()
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentDest = navBackStackEntry?.destination
     // Derive the selected tab index from the active back-stack destination.
     // EnvelopesEdit is a sub-screen of Envelopes — keep ENVELOPES tab highlighted.
     val selectedIndex = when {
-        currentDest?.hasRoute<Envelopes>()     == true -> AppTab.ENVELOPES.ordinal
+        currentDest?.hasRoute<Envelopes>() == true -> AppTab.ENVELOPES.ordinal
         currentDest?.hasRoute<EnvelopesEdit>() == true -> AppTab.ENVELOPES.ordinal
-        else                                            -> AppTab.WEALTH.ordinal
+        else -> AppTab.WEALTH.ordinal
     }
 
     Scaffold(
         bottomBar = {
             FinanceOSBottomNav(
-                items          = AppTab.toBottomNavItems(),
-                selectedIndex  = selectedIndex,
+                items = AppTab.toBottomNavItems(),
+                selectedIndex = selectedIndex,
                 onItemSelected = { index ->
                     when (AppTab.entries[index]) {
-                        AppTab.WEALTH    -> navController.navigate(Dashboard)  { launchSingleTop = true }
+                        AppTab.WEALTH -> navController.navigate(Dashboard) { launchSingleTop = true }
                         AppTab.ENVELOPES -> navController.navigate(Envelopes) { launchSingleTop = true }
-                        AppTab.GROWTH    -> Unit // screen not built yet
-                        AppTab.VAULT     -> Unit // screen not built yet
+                        AppTab.GROWTH -> Unit // screen not built yet
+                        AppTab.VAULT -> Unit // screen not built yet
                     }
                 },
             )
         },
     ) { innerPadding ->
         NavHost(
-            navController    = navController,
+            navController = navController,
             startDestination = Dashboard,
-            modifier         = Modifier.padding(innerPadding),
+            modifier = Modifier.padding(innerPadding),
         ) {
             dashboardScreen(
                 // "Envelopes →" shortcut in the budget section header.
@@ -64,7 +64,7 @@ fun AppNavGraph() {
                 onNavigateToEdit = { navController.navigate(EnvelopesEdit) },
             )
             envelopesEditScreen(
-                onClose   = { navController.popBackStack() },
+                onClose = { navController.popBackStack() },
                 onConfirm = { navController.popBackStack() },
             )
         }

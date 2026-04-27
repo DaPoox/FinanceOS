@@ -17,7 +17,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
@@ -77,7 +76,7 @@ object DonutChartDefaults {
      */
     val AnimationSpec: AnimationSpec<Float> = spring(
         dampingRatio = Spring.DampingRatioMediumBouncy,
-        stiffness    = Spring.StiffnessMediumLow,
+        stiffness = Spring.StiffnessMediumLow,
     )
 }
 
@@ -133,7 +132,7 @@ fun DonutChart(
 ) {
     val density = LocalDensity.current
     val strokeWidthPx = with(density) { strokeWidth.toPx() }
-    val liftPx        = with(density) { selectedLift.toPx() }
+    val liftPx = with(density) { selectedLift.toPx() }
 
     // ── Fraction animations ───────────────────────────────────────────────────
     // One Animatable per segment, recreated only when the segment COUNT changes.
@@ -147,7 +146,7 @@ fun DonutChart(
         fractionAnims.forEachIndexed { i, anim ->
             launch {
                 anim.animateTo(
-                    targetValue  = segments.getOrNull(i)?.fraction ?: 0f,
+                    targetValue = segments.getOrNull(i)?.fraction ?: 0f,
                     animationSpec = animationSpec,
                 )
             }
@@ -163,7 +162,7 @@ fun DonutChart(
         liftAnims.forEachIndexed { i, anim ->
             launch {
                 anim.animateTo(
-                    targetValue   = if (i == selectedSegmentIndex) 1f else 0f,
+                    targetValue = if (i == selectedSegmentIndex) 1f else 0f,
                     animationSpec = animationSpec,
                 )
             }
@@ -193,7 +192,7 @@ fun DonutChart(
                 .pointerInput(segments, onSegmentClick) {
                     if (onSegmentClick == null) return@pointerInput
                     detectTapGestures { tapOffset ->
-                        val cx = size.width  / 2f
+                        val cx = size.width / 2f
                         val cy = size.height / 2f
                         val dx = tapOffset.x - cx
                         val dy = tapOffset.y - cy
@@ -211,7 +210,7 @@ fun DonutChart(
                         // Use the full sweep for hit testing (more forgiving UX).
                         var cursor = 0f
                         segments.forEachIndexed { index, _ ->
-                            val sweep  = fractionAnims[index].value * 360f
+                            val sweep = fractionAnims[index].value * 360f
                             val arcEnd = cursor + sweep
                             if (tapAngle in cursor..arcEnd) {
                                 onSegmentClick(index)
@@ -223,20 +222,20 @@ fun DonutChart(
                 },
         ) {
             Canvas(modifier = Modifier.fillMaxSize()) {
-                val center  = Offset(size.width / 2f, size.height / 2f)
-                val ovalTL  = Offset(center.x - ringRadius, center.y - ringRadius)
+                val center = Offset(size.width / 2f, size.height / 2f)
+                val ovalTL = Offset(center.x - ringRadius, center.y - ringRadius)
                 val ovalSize = Size(ringRadius * 2f, ringRadius * 2f)
-                val stroke  = Stroke(width = strokeWidthPx, cap = StrokeCap.Butt)
+                val stroke = Stroke(width = strokeWidthPx, cap = StrokeCap.Butt)
 
                 // ── Track (full-circle background) ────────────────────────────
                 drawArc(
-                    color      = trackColor,
+                    color = trackColor,
                     startAngle = 0f,
                     sweepAngle = 360f,
-                    useCenter  = false,
-                    topLeft    = ovalTL,
-                    size       = ovalSize,
-                    style      = stroke,
+                    useCenter = false,
+                    topLeft = ovalTL,
+                    size = ovalSize,
+                    style = stroke,
                 )
 
                 // ── Segments ──────────────────────────────────────────────────
@@ -247,33 +246,33 @@ fun DonutChart(
 
                 segments.forEachIndexed { index, segment ->
                     val liftProgress = liftAnims[index].value
-                    val sweep        = fractionAnims[index].value * 360f
+                    val sweep = fractionAnims[index].value * 360f
 
                     // Gap opens only on the selected arc, proportional to lift progress.
-                    val halfGap  = liftProgress * (gapAngleDegrees / 2f)
+                    val halfGap = liftProgress * (gapAngleDegrees / 2f)
                     val arcStart = startAngle + halfGap
                     val arcSweep = (sweep - halfGap * 2f).coerceAtLeast(0f)
 
                     // Bisector direction for the outward lift translate.
                     val bisectorRad = Math.toRadians((arcStart + arcSweep / 2f).toDouble()).toFloat()
-                    val lift        = liftProgress * liftPx
+                    val lift = liftProgress * liftPx
 
                     withTransform(
                         transformBlock = {
                             translate(
                                 left = lift * cos(bisectorRad),
-                                top  = lift * sin(bisectorRad),
+                                top = lift * sin(bisectorRad),
                             )
                         }
                     ) {
                         drawArc(
-                            color      = segment.color,
+                            color = segment.color,
                             startAngle = arcStart,
                             sweepAngle = arcSweep,
-                            useCenter  = false,
-                            topLeft    = ovalTL,
-                            size       = ovalSize,
-                            style      = stroke,
+                            useCenter = false,
+                            topLeft = ovalTL,
+                            size = ovalSize,
+                            style = stroke,
                         )
                     }
 

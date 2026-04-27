@@ -7,7 +7,7 @@ import com.daprox.financeos.presentation.envelopes.model.EnvelopeUi
 // [expandedId] tracks which envelope row is currently open (null = all collapsed).
 @Stable
 data class EnvelopesUiState(
-    val totalFormattedAmount : String           = "0,00 €",
-    val envelopes            : List<EnvelopeUi> = emptyList(),
-    val expandedId           : String?          = null,
+    val totalFormattedAmount: String = "0,00 €",
+    val envelopes: List<EnvelopeUi> = emptyList(),
+    val expandedId: String? = null,
 )

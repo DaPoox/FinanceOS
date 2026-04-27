@@ -55,20 +55,20 @@ import com.daprox.financeos.presentation.dashboard.model.CategoryUi
  */
 @Composable
 fun BudgetDonutSection(
-    categories            : List<CategoryUi>,
-    totalFormattedAmount  : String,
-    modifier              : Modifier = Modifier,
-    selectedCategoryIndex : Int? = null,
-    showAmounts           : Boolean = true,
-    onCategoryClick       : ((Int) -> Unit)? = null,
+    categories: List<CategoryUi>,
+    totalFormattedAmount: String,
+    modifier: Modifier = Modifier,
+    selectedCategoryIndex: Int? = null,
+    showAmounts: Boolean = true,
+    onCategoryClick: ((Int) -> Unit)? = null,
     // Tapping "Envelopes →" navigates to the Envelopes screen. Null = link hidden.
-    onViewAllClick        : (() -> Unit)? = null,
+    onViewAllClick: (() -> Unit)? = null,
 ) {
     val segments = categories.map { cat ->
         DonutSegment(
             fraction = cat.fraction,
-            color    = cat.color,
-            label    = cat.label,
+            color = cat.color,
+            label = cat.label,
         )
     }
 
@@ -89,10 +89,10 @@ fun BudgetDonutSection(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text  = "BUDGET",
+                text = "BUDGET",
                 style = TextStyle(
-                    fontWeight    = FontWeight.Bold,
-                    fontSize      = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 11.sp,
                     letterSpacing = 1.2.sp,
                 ),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -103,45 +103,45 @@ fun BudgetDonutSection(
                         .clip(MaterialTheme.shapes.small)
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
-                            indication        = null,
-                            onClick           = onViewAllClick,
+                            indication = null,
+                            onClick = onViewAllClick,
                         )
                         .padding(horizontal = 4.dp, vertical = 2.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     Text(
-                        text  = "Envelopes",
+                        text = "Envelopes",
                         style = TextStyle(
-                            fontWeight    = FontWeight.SemiBold,
-                            fontSize      = 11.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 11.sp,
                             letterSpacing = 0.3.sp,
                         ),
                         color = MaterialTheme.colorScheme.primary,
                     )
                     Icon(
-                        imageVector        = Icons.AutoMirrored.Filled.ArrowForward,
+                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                         contentDescription = null,
-                        tint               = MaterialTheme.colorScheme.primary,
-                        modifier           = Modifier.size(12.dp),
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(12.dp),
                     )
                 }
             }
         }
         // ── Donut chart ───────────────────────────────────────────────────────
         DonutChart(
-            segments             = segments,
-            modifier             = Modifier.fillMaxWidth(fraction = 0.65f),
-            strokeWidth          = 28.dp,
-            trackColor           = MaterialTheme.colorScheme.surfaceContainerHigh,
+            segments = segments,
+            modifier = Modifier.fillMaxWidth(fraction = 0.65f),
+            strokeWidth = 28.dp,
+            trackColor = MaterialTheme.colorScheme.surfaceContainerHigh,
             selectedSegmentIndex = selectedCategoryIndex,
-            onSegmentClick       = onCategoryClick,
-            centerContent        = {
+            onSegmentClick = onCategoryClick,
+            centerContent = {
                 DonutCenterLabel(
-                    categories           = categories,
+                    categories = categories,
                     totalFormattedAmount = totalFormattedAmount,
-                    selectedIndex        = selectedCategoryIndex,
-                    showAmounts          = showAmounts,
+                    selectedIndex = selectedCategoryIndex,
+                    showAmounts = showAmounts,
                 )
             },
         )
@@ -174,7 +174,11 @@ private fun DonutCenterLabel(
             Text(
                 text = selected.label,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                style = TextStyle(fontWeight = FontWeight.Medium, fontSize = 10.sp, letterSpacing = 0.8.sp),
+                style = TextStyle(
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 10.sp,
+                    letterSpacing = 0.8.sp,
+                ),
             )
             Spacer(Modifier.height(2.dp))
             Text(
@@ -187,7 +191,11 @@ private fun DonutCenterLabel(
             Text(
                 text = "TOTAL",
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                style = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 10.sp, letterSpacing = 1.sp),
+                style = TextStyle(
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 10.sp,
+                    letterSpacing = 1.sp,
+                ),
             )
             Spacer(Modifier.height(2.dp))
             Text(
@@ -268,7 +276,7 @@ private fun CategoryPip(
 private fun BudgetDonutSectionPreview() {
     FinanceOSTheme {
         BudgetDonutSection(
-            categories           = previewCategories(),
+            categories = previewCategories(),
             totalFormattedAmount = "3 000 €",
             selectedCategoryIndex = 0,
         )
@@ -280,15 +288,15 @@ private fun BudgetDonutSectionPreview() {
 private fun BudgetDonutSectionNoSelectionPreview() {
     FinanceOSTheme {
         BudgetDonutSection(
-            categories           = previewCategories(),
+            categories = previewCategories(),
             totalFormattedAmount = "3 000 €",
         )
     }
 }
 
 private fun previewCategories() = listOf(
-    CategoryUi("Logement",   "1 200 €", "40 %", 0.40f, androidx.compose.ui.graphics.Color(0xFF6EE591)),
-    CategoryUi("Alimentation", "480 €",  "25 %", 0.25f, androidx.compose.ui.graphics.Color(0xFF93C5FD)),
-    CategoryUi("Transport",   "240 €",  "20 %", 0.20f, androidx.compose.ui.graphics.Color(0xFFC4B5FD)),
-    CategoryUi("Loisirs",     "180 €",  "15 %", 0.15f, androidx.compose.ui.graphics.Color(0xFFF87171)),
+    CategoryUi("Logement", "1 200 €", "40 %", 0.40f, androidx.compose.ui.graphics.Color(0xFF6EE591)),
+    CategoryUi("Alimentation", "480 €", "25 %", 0.25f, androidx.compose.ui.graphics.Color(0xFF93C5FD)),
+    CategoryUi("Transport", "240 €", "20 %", 0.20f, androidx.compose.ui.graphics.Color(0xFFC4B5FD)),
+    CategoryUi("Loisirs", "180 €", "15 %", 0.15f, androidx.compose.ui.graphics.Color(0xFFF87171)),
 )

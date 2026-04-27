@@ -12,13 +12,13 @@ import com.daprox.financeos.presentation.core.designsystem.component.BottomNavIt
 // Lives in :presentation so the icon library is available.
 // Items will be finalised with the designer — placeholders for now.
 enum class AppTab(
-    val label : String,
-    val icon  : ImageVector,
+    val label: String,
+    val icon: ImageVector,
 ) {
-    WEALTH("WEALTH",       Icons.Default.Home),
+    WEALTH("WEALTH", Icons.Default.Home),
     ENVELOPES("ENVELOPES", Icons.Default.Wallet),
-    GROWTH("GROWTH",       Icons.Default.TrendingUp),
-    VAULT("VAULT",         Icons.Default.Lock),
+    GROWTH("GROWTH", Icons.Default.TrendingUp),
+    VAULT("VAULT", Icons.Default.Lock),
     ;
 
     companion object {

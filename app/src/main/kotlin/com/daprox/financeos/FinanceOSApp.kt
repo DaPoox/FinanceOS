@@ -14,7 +14,7 @@ class FinanceOSApp : Application() {
             androidContext(this@FinanceOSApp)
             modules(
                 dataModule,
-                presentationModule
+                presentationModule,
             )
         }
     }

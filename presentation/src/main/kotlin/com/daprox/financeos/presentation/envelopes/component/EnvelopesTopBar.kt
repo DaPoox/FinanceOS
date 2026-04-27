@@ -30,8 +30,8 @@ import com.daprox.financeos.presentation.core.designsystem.FinanceOSTheme
 // Navigation between screens is handled by the shared bottom nav — no back arrow needed.
 @Composable
 fun EnvelopesTopBar(
-    onEditClick : () -> Unit = {},
-    modifier    : Modifier   = Modifier,
+    onEditClick: () -> Unit = {},
+    modifier: Modifier = Modifier,
 ) {
     Row(
         modifier = modifier
@@ -41,9 +41,9 @@ fun EnvelopesTopBar(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            text  = "Envelopes",
+            text = "Envelopes",
             style = MaterialTheme.typography.headlineMedium.copy(
-                fontWeight    = FontWeight.Bold,
+                fontWeight = FontWeight.Bold,
                 letterSpacing = (-0.5).sp,
             ),
             color = MaterialTheme.colorScheme.primary,
@@ -54,10 +54,10 @@ fun EnvelopesTopBar(
         // Pencil icon — navigates to the EnvelopesEdit screen.
         IconButton(onClick = onEditClick) {
             Icon(
-                imageVector        = Icons.Default.Edit,
+                imageVector = Icons.Default.Edit,
                 contentDescription = "Edit allocations",
-                tint               = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier           = Modifier.size(20.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(20.dp),
             )
         }
 
@@ -70,7 +70,7 @@ fun EnvelopesTopBar(
             contentAlignment = Alignment.Center,
         ) {
             Text(
-                text  = "A",
+                text = "A",
                 style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
             )

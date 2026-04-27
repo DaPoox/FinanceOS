@@ -62,17 +62,18 @@ import com.daprox.financeos.presentation.core.designsystem.categoryColors
 import com.daprox.financeos.presentation.envelopes.model.EnvelopeCategory
 import org.koin.androidx.compose.koinViewModel
 
+/** Root composable — connects ViewModel to [EnvelopesEditScreen]. */
 @Composable
 fun EnvelopesEditScreenRoot(
-    viewModel : EnvelopesEditViewModel = koinViewModel(),
-    onClose   : () -> Unit = {},
-    onConfirm : () -> Unit = {},
+    viewModel: EnvelopesEditViewModel = koinViewModel(),
+    onClose: () -> Unit = {},
+    onConfirm: () -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     EnvelopesEditScreen(
-        state     = state,
-        onAction  = viewModel::onAction,
-        onClose   = onClose,
+        state = state,
+        onAction = viewModel::onAction,
+        onClose = onClose,
         onConfirm = {
             viewModel.onAction(EnvelopesEditUiAction.OnConfirm)
             onConfirm()
@@ -80,19 +81,20 @@ fun EnvelopesEditScreenRoot(
     )
 }
 
+/** Stateless Edit screen. Receives state and action callbacks. */
 @Composable
 fun EnvelopesEditScreen(
-    state     : EnvelopesEditUiState,
-    onAction  : (EnvelopesEditUiAction) -> Unit,
-    onClose   : () -> Unit = {},
-    onConfirm : () -> Unit = {},
+    state: EnvelopesEditUiState,
+    onAction: (EnvelopesEditUiAction) -> Unit,
+    onClose: () -> Unit = {},
+    onConfirm: () -> Unit = {},
 ) {
     Scaffold(
         topBar = {
             RebalanceTopBar(
                 isOverAllocated = state.isOverAllocated,
-                onClose         = onClose,
-                onConfirm       = onConfirm,
+                onClose = onClose,
+                onConfirm = onConfirm,
             )
         },
     ) { innerPadding ->
@@ -107,22 +109,16 @@ fun EnvelopesEditScreen(
             // ── Allocation Visualizer ─────────────────────────────────────────
             AllocationVisualizer(state = state)
 
-            // ── Over-allocation warning — red, blocks confirm ─────────────────
+            // ── Allocation status card — warning (over) or surplus (under) ──
             AnimatedVisibility(
-                visible = state.isOverAllocated,
-                enter   = fadeIn() + expandVertically(),
-                exit    = fadeOut() + shrinkVertically(),
+                visible = state.isOverAllocated || state.hasUnallocated,
+                enter = fadeIn() + expandVertically(),
+                exit = fadeOut() + shrinkVertically(),
             ) {
-                WarningCard(overflowEurosLabel = state.overflowEurosLabel)
-            }
-
-            // ── Under-allocation nudge — primary, confirm still enabled ───────
-            AnimatedVisibility(
-                visible = state.hasUnallocated,
-                enter   = fadeIn() + expandVertically(),
-                exit    = fadeOut() + shrinkVertically(),
-            ) {
-                SurplusCard(unallocatedEurosLabel = state.unallocatedEurosLabel)
+                AllocationStatusCard(
+                    isOverAllocated = state.isOverAllocated,
+                    amountLabel = if (state.isOverAllocated) state.overflowEurosLabel else state.unallocatedEurosLabel,
+                )
             }
 
             // ── Envelope list header ──────────────────────────────────────────
@@ -146,10 +142,10 @@ fun EnvelopesEditScreen(
 // ✕ discard · "REBALANCE ENVELOPES" · ✓ confirm (greyed when over-allocated).
 @Composable
 private fun RebalanceTopBar(
-    isOverAllocated : Boolean,
-    onClose         : () -> Unit,
-    onConfirm       : () -> Unit,
-    modifier        : Modifier = Modifier,
+    isOverAllocated: Boolean,
+    onClose: () -> Unit,
+    onConfirm: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     Row(
         modifier = modifier
@@ -162,31 +158,32 @@ private fun RebalanceTopBar(
     ) {
         IconButton(onClick = onClose) {
             Icon(
-                imageVector        = Icons.Default.Close,
+                imageVector = Icons.Default.Close,
                 contentDescription = "Discard",
-                tint               = MaterialTheme.colorScheme.primary,
+                tint = MaterialTheme.colorScheme.primary,
             )
         }
 
         Text(
-            text      = "REBALANCE ENVELOPES",
-            modifier  = Modifier.weight(1f),
-            style     = MaterialTheme.typography.labelSmall.copy(
-                fontWeight    = FontWeight.Bold,
+            text = "REBALANCE ENVELOPES",
+            modifier = Modifier.weight(1f),
+            style = MaterialTheme.typography.labelSmall.copy(
+                fontWeight = FontWeight.Bold,
                 letterSpacing = 2.sp,
             ),
-            color     = MaterialTheme.colorScheme.primary,
+            color = MaterialTheme.colorScheme.primary,
             textAlign = TextAlign.Center,
         )
 
         IconButton(onClick = onConfirm, enabled = !isOverAllocated) {
             Icon(
-                imageVector        = Icons.Default.Check,
+                imageVector = Icons.Default.Check,
                 contentDescription = "Confirm",
-                tint               = if (isOverAllocated)
+                tint = if (isOverAllocated) {
                     MaterialTheme.colorScheme.onSurface.copy(alpha = 0.25f)
-                else
-                    MaterialTheme.colorScheme.primary,
+                } else {
+                    MaterialTheme.colorScheme.primary
+                },
             )
         }
     }
@@ -194,53 +191,56 @@ private fun RebalanceTopBar(
 
 // ── Allocation Visualizer ─────────────────────────────────────────────────────
 
-// Standalone section: "TOTAL ALLOCATION" + big %, status italic text, LIMIT on right, segmented bar.
+// Standalone section: "TOTAL ALLOCATION" label + big %, status italic text, LIMIT on right, segmented bar.
 @Composable
 private fun AllocationVisualizer(
-    state    : EnvelopesEditUiState,
-    modifier : Modifier = Modifier,
+    state: EnvelopesEditUiState,
+    modifier: Modifier = Modifier,
 ) {
-    val accentColor = if (state.isOverAllocated) MaterialTheme.colorScheme.tertiary
-                      else MaterialTheme.colorScheme.primary
+    val accentColor = if (state.isOverAllocated) {
+        MaterialTheme.colorScheme.onSurface
+    } else {
+        MaterialTheme.colorScheme.primary
+    }
 
     Column(
-        modifier            = modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Row(
-            modifier              = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment     = Alignment.Bottom,
+            verticalAlignment = Alignment.Bottom,
         ) {
             // Left: label + big % + italic status text
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Text(
-                    text  = "TOTAL ALLOCATION",
+                    text = "TOTAL ALLOCATION",
                     style = MaterialTheme.typography.labelSmall.copy(
-                        fontWeight    = FontWeight.Bold,
+                        fontWeight = FontWeight.Bold,
                         letterSpacing = 3.sp,
                     ),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Row(
-                    verticalAlignment      = Alignment.Bottom,
-                    horizontalArrangement  = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.Bottom,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Text(
-                        text  = state.allocatedLabel.substringBefore('%') + "%",
+                        text = state.allocatedLabel.substringBefore('%') + "%",
                         style = MaterialTheme.typography.displaySmall.copy(
-                            fontWeight    = FontWeight.ExtraBold,
+                            fontWeight = FontWeight.ExtraBold,
                             letterSpacing = (-1).sp,
                         ),
-                        color = accentColor,
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
                     Text(
-                        text     = if (state.isOverAllocated) "Over Budget" else state.statusLabel,
-                        style    = MaterialTheme.typography.bodySmall.copy(
+                        text = if (state.isOverAllocated) "Over Budget" else state.statusLabel,
+                        style = MaterialTheme.typography.bodySmall.copy(
                             fontWeight = FontWeight.Medium,
-                            fontStyle  = FontStyle.Italic,
+                            fontStyle = FontStyle.Italic,
                         ),
-                        color    = accentColor.copy(alpha = 0.6f),
+                        color = accentColor.copy(alpha = 0.6f),
                         modifier = Modifier.padding(bottom = 4.dp),
                     )
                 }
@@ -252,17 +252,17 @@ private fun AllocationVisualizer(
                 verticalArrangement = Arrangement.spacedBy(2.dp),
             ) {
                 Text(
-                    text  = "LIMIT",
+                    text = "LIMIT",
                     style = MaterialTheme.typography.labelSmall.copy(
-                        fontWeight    = FontWeight.Bold,
+                        fontWeight = FontWeight.Bold,
                         letterSpacing = 3.sp,
                     ),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Text(
-                    text  = state.totalIncome,
+                    text = state.totalIncome,
                     style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight    = FontWeight.Bold,
+                        fontWeight = FontWeight.Bold,
                         letterSpacing = (-0.5).sp,
                     ),
                     color = MaterialTheme.colorScheme.onSurface,
@@ -270,7 +270,7 @@ private fun AllocationVisualizer(
             }
         }
 
-        // Segmented bar — 16dp tall, red border when over-allocated.
+        // Segmented bar — 8dp tall, red border when over-allocated.
         AllocationBar(items = state.items, isOverAllocated = state.isOverAllocated)
     }
 }
@@ -278,14 +278,14 @@ private fun AllocationVisualizer(
 // Proportional segmented bar. Red border signals over-allocation.
 @Composable
 private fun AllocationBar(
-    items           : List<EnvelopeEditItemUi>,
-    isOverAllocated : Boolean = false,
-    modifier        : Modifier = Modifier,
+    items: List<EnvelopeEditItemUi>,
+    isOverAllocated: Boolean = false,
+    modifier: Modifier = Modifier,
 ) {
-    val errorColor    = MaterialTheme.colorScheme.error
-    val trackColor    = MaterialTheme.colorScheme.surfaceContainerHighest
+    val errorColor = MaterialTheme.colorScheme.error
+    val trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
     val totalFraction = items.sumOf { it.fraction.toDouble() }.toFloat().coerceAtMost(1f)
-    val remainder     = 1f - totalFraction
+    val remainder = 1f - totalFraction
 
     Row(
         modifier = modifier
@@ -294,9 +294,11 @@ private fun AllocationBar(
             .clip(RoundedCornerShape(50))
             .background(trackColor)
             .then(
-                if (isOverAllocated)
+                if (isOverAllocated) {
                     Modifier.border(1.5.dp, errorColor, RoundedCornerShape(50))
-                else Modifier
+                } else {
+                    Modifier
+                }
             ),
     ) {
         items.forEach { item ->
@@ -315,105 +317,70 @@ private fun AllocationBar(
     }
 }
 
-// ── Warning Card ──────────────────────────────────────────────────────────────
+// ── Allocation Status Card ────────────────────────────────────────────────────
 
-// Full red card shown only when total > 100%.
+// One card, two states — color/icon/text driven by isOverAllocated.
+// Warning state (over 100%): error color, blocks confirm.
+// Surplus state (under 100%): primary color, confirm remains enabled.
 @Composable
-private fun WarningCard(
-    overflowEurosLabel : String,
-    modifier           : Modifier = Modifier,
+private fun AllocationStatusCard(
+    isOverAllocated: Boolean,
+    amountLabel: String,
+    modifier: Modifier = Modifier,
 ) {
-    val errorColor = MaterialTheme.colorScheme.error
-
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(errorColor.copy(alpha = 0.08f))
-            .border(1.dp, errorColor.copy(alpha = 0.2f), RoundedCornerShape(16.dp))
-            .padding(16.dp),
-        verticalAlignment     = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        Box(
-            modifier = Modifier
-                .size(40.dp)
-                .clip(CircleShape)
-                .background(errorColor.copy(alpha = 0.15f)),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                imageVector        = Icons.Default.Warning,
-                contentDescription = null,
-                tint               = errorColor,
-                modifier           = Modifier.size(20.dp),
-            )
-        }
-
-        Column(
-            modifier            = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(3.dp),
-        ) {
-            Text(
-                text  = "Budget dépassé de $overflowEurosLabel",
-                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                color = errorColor,
-            )
-            Text(
-                text  = "Réduisez d'autres enveloppes pour équilibrer votre plan financier mensuel.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
-            )
-        }
+    val color = if (isOverAllocated) {
+        MaterialTheme.colorScheme.error
+    } else {
+        MaterialTheme.colorScheme.primary
     }
-}
-
-// ── Surplus Card ──────────────────────────────────────────────────────────────
-
-// Friendly nudge shown when total allocation < 100% — confirm remains enabled.
-@Composable
-private fun SurplusCard(
-    unallocatedEurosLabel : String,
-    modifier              : Modifier = Modifier,
-) {
-    val primaryColor = MaterialTheme.colorScheme.primary
+    //TODO: Find better icons.
+    val icon = if (isOverAllocated) Icons.Default.Warning else Icons.Default.Add
+    val title = if (isOverAllocated) {
+        "Budget dépassé de $amountLabel"
+    } else {
+        "$amountLabel à distribuer"
+    }
+    val subtitle = if (isOverAllocated) {
+        "Réduisez d'autres enveloppes pour équilibrer votre plan financier mensuel."
+    } else {
+        "Assignez ce montant à vos enveloppes pour optimiser votre budget."
+    }
 
     Row(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(primaryColor.copy(alpha = 0.08f))
-            .border(1.dp, primaryColor.copy(alpha = 0.2f), RoundedCornerShape(16.dp))
+            .background(color.copy(alpha = 0.08f))
+            .border(1.dp, color.copy(alpha = 0.2f), RoundedCornerShape(16.dp))
             .padding(16.dp),
-        verticalAlignment     = Alignment.CenterVertically,
+        verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Box(
             modifier = Modifier
                 .size(40.dp)
                 .clip(CircleShape)
-                .background(primaryColor.copy(alpha = 0.15f)),
+                .background(color.copy(alpha = 0.15f)),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
-                imageVector        = Icons.Default.Add,
+                imageVector = icon,
                 contentDescription = null,
-                tint               = primaryColor,
-                modifier           = Modifier.size(20.dp),
+                tint = color,
+                modifier = Modifier.size(20.dp),
             )
         }
-
         Column(
-            modifier            = Modifier.weight(1f),
+            modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(3.dp),
         ) {
             Text(
-                text  = "$unallocatedEurosLabel à distribuer",
+                text = title,
                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                color = primaryColor,
+                color = color,
             )
             Text(
-                text  = "Assignez ce montant à vos enveloppes pour optimiser votre budget.",
+                text = subtitle,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
             )
@@ -425,18 +392,18 @@ private fun SurplusCard(
 
 @Composable
 private fun EnvelopeListHeader(
-    isOverAllocated : Boolean,
-    modifier        : Modifier = Modifier,
+    isOverAllocated: Boolean,
+    modifier: Modifier = Modifier,
 ) {
     Row(
-        modifier              = modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment     = Alignment.CenterVertically,
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            text  = "ACTIVE ENVELOPES",
+            text = "ACTIVE ENVELOPES",
             style = MaterialTheme.typography.labelSmall.copy(
-                fontWeight    = FontWeight.Bold,
+                fontWeight = FontWeight.Bold,
                 letterSpacing = 3.sp,
             ),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -450,9 +417,9 @@ private fun EnvelopeListHeader(
                     .padding(horizontal = 8.dp, vertical = 3.dp),
             ) {
                 Text(
-                    text  = "DÉPASSEMENT",
+                    text = "DÉPASSEMENT",
                     style = MaterialTheme.typography.labelSmall.copy(
-                        fontWeight    = FontWeight.Black,
+                        fontWeight = FontWeight.Black,
                         letterSpacing = 1.5.sp,
                     ),
                     color = MaterialTheme.colorScheme.error,
@@ -467,9 +434,9 @@ private fun EnvelopeListHeader(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun EnvelopeEditCard(
-    item     : EnvelopeEditItemUi,
-    onAction : (EnvelopesEditUiAction) -> Unit,
-    modifier : Modifier = Modifier,
+    item: EnvelopeEditItemUi,
+    onAction: (EnvelopesEditUiAction) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val accentColor = item.category.toColor()
 
@@ -482,7 +449,7 @@ private fun EnvelopeEditCard(
     ) {
         // ── Header row: icon · name/subtitle · amount/percentage ──────────
         Row(
-            modifier          = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             // Icon circle
@@ -494,7 +461,7 @@ private fun EnvelopeEditCard(
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
-                    text  = item.name.first().toString(),
+                    text = item.name.first().toString(),
                     style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.Bold),
                     color = accentColor,
                 )
@@ -504,14 +471,14 @@ private fun EnvelopeEditCard(
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text  = item.name,
+                    text = item.name,
                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.onSurface,
                 )
                 Text(
-                    text  = item.subtitle.uppercase(),
+                    text = item.subtitle.uppercase(),
                     style = MaterialTheme.typography.labelSmall.copy(
-                        fontWeight    = FontWeight.SemiBold,
+                        fontWeight = FontWeight.SemiBold,
                         letterSpacing = 1.sp,
                     ),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -520,12 +487,12 @@ private fun EnvelopeEditCard(
 
             Column(horizontalAlignment = Alignment.End) {
                 Text(
-                    text  = item.formattedAmount,
+                    text = item.formattedAmount,
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Black),
                     color = MaterialTheme.colorScheme.onSurface,
                 )
                 Text(
-                    text  = item.formattedPercentage,
+                    text = item.formattedPercentage,
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Black),
                     color = accentColor,
                 )
@@ -537,19 +504,19 @@ private fun EnvelopeEditCard(
         // ── Slider — circular thumb with category-color glow + thin track ─
         val inactiveTrack = MaterialTheme.colorScheme.surfaceContainerHighest
         Slider(
-            value         = item.fraction,
+            value = item.fraction,
             onValueChange = { onAction(EnvelopesEditUiAction.OnSliderChanged(item.id, it)) },
-            modifier      = Modifier.fillMaxWidth(),
-            thumb         = {
+            modifier = Modifier.fillMaxWidth(),
+            thumb = {
                 Box(
                     modifier = Modifier
                         .size(20.dp)
                         .shadow(
-                            elevation    = 8.dp,
-                            shape        = CircleShape,
-                            clip         = false,
+                            elevation = 8.dp,
+                            shape = CircleShape,
+                            clip = false,
                             ambientColor = accentColor.copy(alpha = 0.35f),
-                            spotColor    = accentColor.copy(alpha = 0.55f),
+                            spotColor = accentColor.copy(alpha = 0.55f),
                         )
                         .clip(CircleShape)
                         .background(Color.White),
@@ -557,13 +524,13 @@ private fun EnvelopeEditCard(
             },
             track = { sliderState ->
                 SliderDefaults.Track(
-                    sliderState       = sliderState,
-                    modifier          = Modifier.height(4.dp),
-                    colors            = SliderDefaults.colors(
-                        activeTrackColor   = accentColor,
+                    sliderState = sliderState,
+                    modifier = Modifier.height(4.dp),
+                    colors = SliderDefaults.colors(
+                        activeTrackColor = accentColor,
                         inactiveTrackColor = inactiveTrack,
-                        activeTickColor    = Color.Transparent,
-                        inactiveTickColor  = Color.Transparent,
+                        activeTickColor = Color.Transparent,
+                        inactiveTickColor = Color.Transparent,
                     ),
                     thumbTrackGapSize = 4.dp,
                     drawStopIndicator = null,
@@ -575,8 +542,8 @@ private fun EnvelopeEditCard(
 
         // ── Controls: − · AJUSTER · + ─────────────────────────────────────
         Row(
-            modifier              = Modifier.fillMaxWidth(),
-            verticalAlignment     = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             Box(
@@ -587,14 +554,14 @@ private fun EnvelopeEditCard(
                 contentAlignment = Alignment.Center,
             ) {
                 IconButton(
-                    onClick  = { onAction(EnvelopesEditUiAction.OnDecrement(item.id)) },
+                    onClick = { onAction(EnvelopesEditUiAction.OnDecrement(item.id)) },
                     modifier = Modifier.size(40.dp),
                 ) {
                     Icon(
-                        imageVector        = Icons.Default.Remove,
+                        imageVector = Icons.Default.Remove,
                         contentDescription = "Decrease",
-                        tint               = MaterialTheme.colorScheme.onSurface,
-                        modifier           = Modifier.size(18.dp),
+                        tint = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.size(18.dp),
                     )
                 }
             }
@@ -607,9 +574,9 @@ private fun EnvelopeEditCard(
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
-                    text  = "AJUSTER",
+                    text = "AJUSTER",
                     style = MaterialTheme.typography.labelSmall.copy(
-                        fontWeight    = FontWeight.Bold,
+                        fontWeight = FontWeight.Bold,
                         letterSpacing = 2.sp,
                     ),
                     color = MaterialTheme.colorScheme.onSurface,
@@ -624,14 +591,14 @@ private fun EnvelopeEditCard(
                 contentAlignment = Alignment.Center,
             ) {
                 IconButton(
-                    onClick  = { onAction(EnvelopesEditUiAction.OnIncrement(item.id)) },
+                    onClick = { onAction(EnvelopesEditUiAction.OnIncrement(item.id)) },
                     modifier = Modifier.size(40.dp),
                 ) {
                     Icon(
-                        imageVector        = Icons.Default.Add,
+                        imageVector = Icons.Default.Add,
                         contentDescription = "Increase",
-                        tint               = MaterialTheme.colorScheme.onSurface,
-                        modifier           = Modifier.size(18.dp),
+                        tint = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.size(18.dp),
                     )
                 }
             }
@@ -652,9 +619,9 @@ private fun AddAllocationButton(modifier: Modifier = Modifier) {
             .background(MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = 0.3f))
             .drawBehind {
                 drawRoundRect(
-                    color        = borderColor,
-                    style        = Stroke(
-                        width      = 2.dp.toPx(),
+                    color = borderColor,
+                    style = Stroke(
+                        width = 2.dp.toPx(),
                         pathEffect = PathEffect.dashPathEffect(floatArrayOf(12f, 8f), 0f),
                     ),
                     cornerRadius = CornerRadius(16.dp.toPx()),
@@ -665,19 +632,19 @@ private fun AddAllocationButton(modifier: Modifier = Modifier) {
         contentAlignment = Alignment.Center,
     ) {
         Row(
-            verticalAlignment     = Alignment.CenterVertically,
+            verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Icon(
-                imageVector        = Icons.Default.AddCircle,
+                imageVector = Icons.Default.AddCircle,
                 contentDescription = null,
-                tint               = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier           = Modifier.size(16.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(16.dp),
             )
             Text(
-                text  = "ADD ALLOCATION",
+                text = "ADD ALLOCATION",
                 style = MaterialTheme.typography.labelSmall.copy(
-                    fontWeight    = FontWeight.Bold,
+                    fontWeight = FontWeight.Bold,
                     letterSpacing = 2.sp,
                 ),
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -691,9 +658,9 @@ private fun AddAllocationButton(modifier: Modifier = Modifier) {
 @Composable
 private fun EnvelopeCategory.toColor(): Color = when (this) {
     EnvelopeCategory.FIXED_EXPENSES -> MaterialTheme.categoryColors.fixedExpenses
-    EnvelopeCategory.INVESTMENT     -> MaterialTheme.categoryColors.investment
-    EnvelopeCategory.SAVINGS        -> MaterialTheme.categoryColors.savings
-    EnvelopeCategory.OTHER          -> MaterialTheme.categoryColors.other
+    EnvelopeCategory.INVESTMENT -> MaterialTheme.categoryColors.investment
+    EnvelopeCategory.SAVINGS -> MaterialTheme.categoryColors.savings
+    EnvelopeCategory.OTHER -> MaterialTheme.categoryColors.other
 }
 
 // ── Preview ───────────────────────────────────────────────────────────────────
@@ -704,19 +671,21 @@ private fun EnvelopesEditScreenPreview() {
     FinanceOSTheme {
         EnvelopesEditScreen(
             state = EnvelopesEditUiState(
-                monthLabel         = "AVRIL 2026",
-                totalIncome        = "€8,400",
-                allocatedLabel     = "89% Alloué",
-                allocatedAmount    = "€7,476 / €8,400",
-                statusLabel        = "Équilibré",
-                isOverAllocated    = false,
+                monthLabel = "AVRIL 2026",
+                totalIncome = "€8,400",
+                allocatedLabel = "89% Alloué",
+                allocatedAmount = "€7,476 / €8,400",
+                statusLabel = "Équilibré",
+                isOverAllocated = false,
                 overflowEurosLabel = "",
-                items              = listOf(
-                    EnvelopeEditItemUi("fixed",       "Fixed",       "Priorité Haute", EnvelopeCategory.FIXED_EXPENSES, 0.40f, "€3,360", "40%"),
-                    EnvelopeEditItemUi("investment",  "Investment",  "Croissance",     EnvelopeCategory.INVESTMENT,     0.20f, "€1,680", "20%"),
-                    EnvelopeEditItemUi("savings",     "Savings",     "Réserve",        EnvelopeCategory.SAVINGS,        0.15f, "€1,260", "15%"),
-                    EnvelopeEditItemUi("restaurants", "Restaurants", "Lifestyle",      EnvelopeCategory.OTHER,          0.08f, "€672",   "8%"),
-                    EnvelopeEditItemUi("loisirs",     "Loisirs",     "Plaisir",        EnvelopeCategory.OTHER,          0.06f, "€504",   "6%"),
+                hasUnallocated = true,
+                unallocatedEurosLabel = "€924",
+                items = listOf(
+                    EnvelopeEditItemUi("fixed", "Fixed", "Priorité Haute", EnvelopeCategory.FIXED_EXPENSES, 0.40f, "€3,360", "40%"),
+                    EnvelopeEditItemUi("investment", "Investment", "Croissance", EnvelopeCategory.INVESTMENT, 0.20f, "€1,680", "20%"),
+                    EnvelopeEditItemUi("savings", "Savings", "Réserve", EnvelopeCategory.SAVINGS, 0.15f, "€1,260", "15%"),
+                    EnvelopeEditItemUi("restaurants", "Restaurants", "Lifestyle", EnvelopeCategory.OTHER, 0.08f, "€672", "8%"),
+                    EnvelopeEditItemUi("loisirs", "Loisirs", "Plaisir", EnvelopeCategory.OTHER, 0.06f, "€504", "6%"),
                 ),
             ),
             onAction = {},

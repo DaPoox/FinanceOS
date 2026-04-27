@@ -7,23 +7,31 @@ Zero business logic. Zero data transformation. Minimal side effects.
 
 ---
 
-## Scaffold
+## File Structure
 
-Always consume `innerPadding` from the `Scaffold` content lambda and pass it to the main composable:
+`ScreenRoot` + `Screen` + `@Preview` live in one file — `<Screen>Screen.kt`.
 
-```kotlin
-Scaffold(
-    bottomBar = { ... }
-) { innerPadding ->
-    MainContent(modifier = Modifier.padding(innerPadding))
-}
+Extract to a separate file when a composable:
+- Has its own meaningful state or logic (e.g. `AllocationVisualizer`) - This is important.
+- 
+- Is reused across screens → move to design system
+- Makes the screen file exceed ~150 lines
+
+Related small composables (icon, label, divider) can stay in the same file as the component they belong to.
+
 ```
-
-Never ignore `innerPadding` — dropping it causes content to render behind system bars and the bottom nav.
+envelopes/edit/
+├── EnvelopesEditScreen.kt         ← ScreenRoot + Screen + Preview
+├── AllocationVisualizer.kt        ← standalone section with its own sub-composables
+├── EnvelopeEditCard.kt            ← complex card with slider + controls
+└── component/
+    ├── WarningCard.kt             ← reusable warning pattern
+    └── SurplusCard.kt             ← reusable surplus pattern
+```
 
 ---
 
-## Screen Structure
+
 
 Every screen is two composables in **one file** (`<Screen>Screen.kt`).
 
@@ -61,7 +69,7 @@ fun BudgetScreenRoot(
 fun BudgetScreen(
     state: BudgetUiState,
     onAction: (BudgetUiAction) -> Unit
-) { ... }
+) { }
 
 @Preview
 @Composable

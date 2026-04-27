@@ -23,32 +23,32 @@ import com.daprox.financeos.presentation.core.designsystem.FinanceOSTheme
 // Which side the icon sits on relative to the text.
 enum class IconPosition { START, END }
 
-// Text with an icon to its left or right — the Compose equivalent of drawableStart/drawableEnd.
-//
-// The [icon] parameter is a composable slot, so the caller is unconstrained:
-//   Icon(imageVector = ...)
-//   Icon(painter = painterResource(R.drawable.something))
-//   A custom Box, badge, or any other composable
-//
-// [iconSpacing] is the gap between the icon slot and the text edge — equivalent
-// to drawablePadding in the View system.
-//
-// [color] defaults to Color.Unspecified so it inherits LocalContentColor from
-// the call site automatically. Pass an explicit color to override.
+/**
+ * Text with an icon to its left or right — the Compose equivalent of drawableStart/drawableEnd.
+ *
+ * The [icon] parameter is a composable slot, so the caller is unconstrained:
+ * Icon(imageVector = ...), Icon(painter = ...), a custom Box, badge, or any other composable.
+ *
+ * [iconSpacing] is the gap between the icon slot and the text edge — equivalent
+ * to drawablePadding in the View system.
+ *
+ * [color] defaults to Color.Unspecified so it inherits LocalContentColor from
+ * the call site automatically. Pass an explicit color to override.
+ */
 @Composable
 fun TextWithIcon(
-    text         : String,
-    icon         : @Composable () -> Unit,
-    modifier     : Modifier     = Modifier,
-    style        : TextStyle    = MaterialTheme.typography.bodyMedium,
-    color        : Color        = Color.Unspecified,
-    iconPosition : IconPosition = IconPosition.START,
-    iconSpacing  : Dp           = 8.dp,
-    maxLines     : Int          = Int.MAX_VALUE,
-    overflow     : TextOverflow = TextOverflow.Clip,
+    text: String,
+    icon: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
+    style: TextStyle = MaterialTheme.typography.bodyMedium,
+    color: Color = Color.Unspecified,
+    iconPosition: IconPosition = IconPosition.START,
+    iconSpacing: Dp = 8.dp,
+    maxLines: Int = Int.MAX_VALUE,
+    overflow: TextOverflow = TextOverflow.Clip,
 ) {
     Row(
-        modifier         = modifier,
+        modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
     ) {
         when (iconPosition) {
@@ -56,9 +56,9 @@ fun TextWithIcon(
                 icon()
                 Spacer(Modifier.width(iconSpacing))
                 Text(
-                    text     = text,
-                    style    = style,
-                    color    = color,
+                    text = text,
+                    style = style,
+                    color = color,
                     maxLines = maxLines,
                     overflow = overflow,
                     modifier = Modifier.weight(1f, fill = false),
@@ -66,9 +66,9 @@ fun TextWithIcon(
             }
             IconPosition.END -> {
                 Text(
-                    text     = text,
-                    style    = style,
-                    color    = color,
+                    text = text,
+                    style = style,
+                    color = color,
                     maxLines = maxLines,
                     overflow = overflow,
                     modifier = Modifier.weight(1f, fill = false),
@@ -88,12 +88,12 @@ fun TextWithIcon(
 private fun TextWithIconStartPreview() {
     FinanceOSTheme {
         TextWithIcon(
-            text  = "Fixed Expenses",
-            icon  = {
+            text = "Fixed Expenses",
+            icon = {
                 Icon(
-                    imageVector        = Icons.Default.Star,
+                    imageVector = Icons.Default.Star,
                     contentDescription = null,
-                    tint               = MaterialTheme.colorScheme.primary,
+                    tint = MaterialTheme.colorScheme.primary,
                 )
             },
             color = MaterialTheme.colorScheme.onSurface,
@@ -107,17 +107,17 @@ private fun TextWithIconStartPreview() {
 private fun TextWithIconEndPreview() {
     FinanceOSTheme {
         TextWithIcon(
-            text         = "See all envelopes",
-            icon         = {
+            text = "See all envelopes",
+            icon = {
                 Icon(
-                    imageVector        = Icons.AutoMirrored.Filled.ArrowForward,
+                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                     contentDescription = null,
-                    tint               = MaterialTheme.colorScheme.primary,
+                    tint = MaterialTheme.colorScheme.primary,
                 )
             },
-            color        = MaterialTheme.colorScheme.primary,
+            color = MaterialTheme.colorScheme.primary,
             iconPosition = IconPosition.END,
-            iconSpacing  = 4.dp,
+            iconSpacing = 4.dp,
         )
     }
 }
@@ -128,18 +128,18 @@ private fun TextWithIconEndPreview() {
 private fun TextWithIconEllipsisPreview() {
     FinanceOSTheme {
         TextWithIcon(
-            text         = "This is a very long category name that should be truncated",
-            icon         = {
+            text = "This is a very long category name that should be truncated",
+            icon = {
                 Icon(
-                    imageVector        = Icons.Default.Star,
+                    imageVector = Icons.Default.Star,
                     contentDescription = null,
-                    tint               = MaterialTheme.colorScheme.onSurfaceVariant,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             },
-            color        = MaterialTheme.colorScheme.onSurface,
+            color = MaterialTheme.colorScheme.onSurface,
             iconPosition = IconPosition.END,
-            maxLines     = 1,
-            overflow     = TextOverflow.Ellipsis,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
         )
     }
 }

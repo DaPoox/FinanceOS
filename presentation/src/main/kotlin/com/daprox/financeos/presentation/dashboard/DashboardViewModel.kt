@@ -34,10 +34,10 @@ class DashboardViewModel : ViewModel() {
                 ),
             ),
             categories = listOf(
-                CategoryUi("Logement",      "1 200 €", "40 %", 0.40f, androidx.compose.ui.graphics.Color(0xFF6EE591)),
-                CategoryUi("Alimentation",  "750 €",   "25 %", 0.25f, androidx.compose.ui.graphics.Color(0xFF93C5FD)),
-                CategoryUi("Transport",     "600 €",   "20 %", 0.20f, androidx.compose.ui.graphics.Color(0xFFC4B5FD)),
-                CategoryUi("Loisirs",       "450 €",   "15 %", 0.15f, androidx.compose.ui.graphics.Color(0xFFF87171)),
+                CategoryUi("Logement", "1 200 €", "40 %", 0.40f, androidx.compose.ui.graphics.Color(0xFF6EE591)),
+                CategoryUi("Alimentation", "750 €", "25 %", 0.25f, androidx.compose.ui.graphics.Color(0xFF93C5FD)),
+                CategoryUi("Transport", "600 €", "20 %", 0.20f, androidx.compose.ui.graphics.Color(0xFFC4B5FD)),
+                CategoryUi("Loisirs", "450 €", "15 %", 0.15f, androidx.compose.ui.graphics.Color(0xFFF87171)),
             ),
             totalCategoryAmount = "3 000 €",
             liquidityItems = listOf(
@@ -53,11 +53,11 @@ class DashboardViewModel : ViewModel() {
                 ),
             ),
             recentTransactions = listOf(
-                TransactionUi("1", "Carrefour",  "Alimentation", "Aujourd'hui", "- 87,50 €",  true,  androidx.compose.ui.graphics.Color(0xFF93C5FD)),
-                TransactionUi("2", "Salaire",    "Revenus",      "15 avr.",     "+ 2 800 €",  false, androidx.compose.ui.graphics.Color(0xFF6EE591)),
-                TransactionUi("3", "Netflix",    "Loisirs",      "14 avr.",     "- 17,99 €",  true,  androidx.compose.ui.graphics.Color(0xFFC4B5FD)),
-                TransactionUi("4", "RATP",       "Transport",    "13 avr.",     "- 1,90 €",   true,  androidx.compose.ui.graphics.Color(0xFFF87171)),
-                TransactionUi("5", "Freelance",  "Revenus",      "12 avr.",     "+ 650 €",    false, androidx.compose.ui.graphics.Color(0xFF6EE591)),
+                TransactionUi("1", "Carrefour", "Alimentation", "Aujourd'hui", "- 87,50 €", true, androidx.compose.ui.graphics.Color(0xFF93C5FD)),
+                TransactionUi("2", "Salaire", "Revenus", "15 avr.", "+ 2 800 €", false, androidx.compose.ui.graphics.Color(0xFF6EE591)),
+                TransactionUi("3", "Netflix", "Loisirs", "14 avr.", "- 17,99 €", true, androidx.compose.ui.graphics.Color(0xFFC4B5FD)),
+                TransactionUi("4", "RATP", "Transport", "13 avr.", "- 1,90 €", true, androidx.compose.ui.graphics.Color(0xFFF87171)),
+                TransactionUi("5", "Freelance", "Revenus", "12 avr.", "+ 650 €", false, androidx.compose.ui.graphics.Color(0xFF6EE591)),
             ),
         )
     )

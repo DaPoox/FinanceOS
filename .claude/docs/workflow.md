@@ -94,6 +94,9 @@ After execution:
 - [ ] Koin modules updated
 - [ ] Nav graph updated
 - [ ] Ripple effects from Step 2 have been addressed
+- [ ] No vertical `=` or `:` alignment in created/modified files
+- [ ] Trailing commas on all multiline parameter and argument lists
+- [ ] KDoc on all new public functions and classes
 
 Report result:
 ```

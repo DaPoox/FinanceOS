@@ -17,7 +17,7 @@ fun FinanceOSTheme(
     darkTheme: Boolean = true,
     content: @Composable () -> Unit,
 ) {
-    val colorScheme    = if (darkTheme) FinanceOSDarkColorScheme  else FinanceOSDarkColorScheme
+    val colorScheme = if (darkTheme) FinanceOSDarkColorScheme else FinanceOSDarkColorScheme
     val categoryColors = if (darkTheme) FinanceOSDarkCategoryColors else FinanceOSLightCategoryColors
 
     CompositionLocalProvider(
@@ -26,8 +26,8 @@ fun FinanceOSTheme(
     ) {
         MaterialTheme(
             colorScheme = colorScheme,
-            typography  = FinanceOSTypography,
-            shapes      = FinanceOSShapes,
+            typography = FinanceOSTypography,
+            shapes = FinanceOSShapes,
             content     = content,
         )
     }
