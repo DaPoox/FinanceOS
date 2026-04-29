@@ -133,11 +133,10 @@ Mappers live in the package of the screen that consumes them — not centralized
 ## Domain Layer
 
 ### UseCases
+Always create UseCases for API calls, or any call that goes via repository. 
+Do not call repository directly in the ViewModel.
 
-Created when logic is non-trivial or reused across ViewModels.  
-Simple 1:1 repository call does not need a UseCase — call the repository from the ViewModel directly.
-
-`operator fun invoke()` as entry point. One class = one responsibility.
+`operator fun invoke()` as entry point. One class = one responsibility. Use Suspend if necessary.
 
 ```kotlin
 class ComputeAllocationUseCase(
