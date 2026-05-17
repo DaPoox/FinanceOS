@@ -5,6 +5,27 @@ Never skip to execution without completing analysis and confirmation.
 
 ---
 
+## Design Implementation Workflow
+
+Used when building UI from HTML/JSX design files. Component by component — never full screens at once.
+
+### Rules
+- **Design source:** HTML/JSX files provided by the user. These are the source of truth for layout, spacing, and visual intent.
+- **Scope:** One component per task. User controls what gets built next.
+- **Colors:** Use existing tokens only. If the design uses a color not in `Color.kt`, map to the closest token and flag the substitution. No new raw hex values.
+- **Animations & UX:** Implement fully — transitions, feedback, micro-interactions included, not deferred.
+- **Font prerequisite:** `DM Sans` and `Geist Mono` `.ttf` files must be in `res/font/` before any typography renders.
+
+### Per-Component Checklist
+- [ ] Read the HTML/JSX for the component fully before writing any code
+- [ ] Identify all colors used → map to tokens, flag any gaps
+- [ ] Implement layout, spacing, and typography to match the design
+- [ ] Add animations and interaction states (press, loading, error)
+- [ ] Add `@Preview` with realistic data wrapped in `FinanceOSTheme`
+- [ ] No business logic in the composable
+
+---
+
 ## Step 1 — Receive the Task
 
 Read the task fully. If the request is ambiguous, ask **one** clarifying question before proceeding.  
