@@ -1,98 +1,109 @@
 package com.daprox.financeos.presentation.core.designsystem
 
-import androidx.compose.material3.darkColorScheme
 import androidx.compose.ui.graphics.Color
 
-// ── Raw palette ──────────────────────────────────────────────────────────────
-// Surfaces — tonal stacking, no borders.
-internal val Neutral1000 = Color(0xFF0A0D10)
-internal val Neutral950  = Color(0xFF0F1417) // background
-internal val Neutral900  = Color(0xFF171C1F) // surface-container-low (card boundary)
-internal val Neutral850  = Color(0xFF1C2226)
-internal val Neutral800  = Color(0xFF222930) // surface-container-high
-internal val Neutral750  = Color(0xFF2B333B) // surface-container-highest (chips, pips)
+// ─────────────────────────────────────────────
+// RAW PALETTE — valeurs brutes, ne pas utiliser
+// directement dans les composants.
+// Toujours passer par les tokens sémantiques.
+// ─────────────────────────────────────────────
 
-// Text — off-white per the "no pure white" rule.
-internal val Slate200 = Color(0xFFDFE3E7) // on-surface
-internal val Slate400 = Color(0xFF8E9BA4)
-internal val Slate500 = Color(0xFF64748B) // on-surface-variant (inactive nav, muted labels)
-internal val Slate700 = Color(0xFF3A4650) // outline
+internal object Palette {
+    // Navy
+    val Navy950 = Color(0xFF090C12)
+    val Navy900 = Color(0xFF0F1420)
+    val Navy800 = Color(0xFF161D2E)
+    val Navy700 = Color(0xFF1C263A)
+    val Navy600 = Color(0xFF243347)
 
-// Primary — Green (Emerald jewel tone).
-internal val Green400  = Color(0xFF6EE591) // primary
-internal val Green950  = Color(0xFF003919) // on-primary
-internal val Green900  = Color(0xFF005227) // primary-container
-internal val Green200  = Color(0xFFA7F3D0) // on-primary-container
+    // Gold
+    val Gold400 = Color(0xFFF0B429)
+    val Gold900 = Color(0xFF1A1000)
 
-// Secondary — Blue (Sapphire).
-internal val Blue300  = Color(0xFF93C5FD)
-internal val Blue900  = Color(0xFF1E3A8A)
-internal val Blue700  = Color(0xFF1D4ED8)
-internal val Blue100  = Color(0xFFDBEAFE)
+    // Text
+    val White = Color(0xFFE8EEF5)
+    val SlateLight = Color(0xFF8BA4BE)
+    val SlateDark = Color(0xFF4A6070)
 
-// Tertiary — Purple (Violet).
-internal val Purple300 = Color(0xFFC4B5FD)
-internal val Purple950 = Color(0xFF2E1065)
-internal val Purple900 = Color(0xFF4C1D95)
-internal val Purple100 = Color(0xFFEDE9FE)
+    // Semantic
+    val Emerald500 = Color(0xFF22C55E)
+    val Red400 = Color(0xFFF87171)
+    val Orange400 = Color(0xFFFB923C)
+    val Blue300 = Color(0xFF7EB8F7)
+    val Violet400 = Color(0xFFA78BFA)
 
-// Error — Red, lightened for dark backgrounds.
-internal val Red400 = Color(0xFFF87171)
-internal val Red900 = Color(0xFF7F1D1D)
-internal val Red800 = Color(0xFF991B1B)
-internal val Red100 = Color(0xFFFEE2E2)
+    // Borders
+    val BorderSubtle = Color(0x0FFFFFFF)   // 6% white
+    val BorderDefault = Color(0x1CFFFFFF)  // 11% white
 
-// ── Dark color scheme ────────────────────────────────────────────────────────
-// The app is dark-first per the "Emerald Ledger" design system.
-// Hierarchy is conveyed through tonal stacking — no borders, no shadows except
-// the diffused primary glow on the FAB.
+    // Chart neutral — market contribution bar
+    val SlateNeutral = Color(0xFF4A5568)
+}
 
-internal val FinanceOSDarkColorScheme = darkColorScheme(
-    // Primary — Green
-    primary            = Green400,
-    onPrimary          = Green950,
-    primaryContainer   = Green900,
-    onPrimaryContainer = Green200,
+// ─────────────────────────────────────────────
+// SLOTS M3 — ColorScheme
+// Nommés selon Material Design 3.
+// Ces valeurs alimentent MaterialTheme.colorScheme.
+// ─────────────────────────────────────────────
 
-    // Secondary — Blue
-    secondary            = Blue300,
-    onSecondary          = Blue900,
-    secondaryContainer   = Blue700,
-    onSecondaryContainer = Blue100,
+// Background — fond de chaque écran
+internal val BackgroundDark = Palette.Navy950
 
-    // Tertiary — Purple
-    tertiary            = Purple300,
-    onTertiary          = Purple950,
-    tertiaryContainer   = Purple900,
-    onTertiaryContainer = Purple100,
+// Surface — fond des cards et sheets
+internal val SurfaceDark = Palette.Navy900
 
-    // Surfaces — tonal stacking from Neutral950 base
-    background              = Neutral950,
-    onBackground            = Slate200,
-    surface                 = Neutral950,
-    onSurface               = Slate200,
-    surfaceVariant          = Neutral850,
-    onSurfaceVariant        = Slate500,
-    surfaceContainerLowest  = Neutral1000,
-    surfaceContainerLow     = Neutral900,
-    surfaceContainer        = Neutral850,
-    surfaceContainerHigh    = Neutral800,
-    surfaceContainerHighest = Neutral750,
-    surfaceTint             = Green400,
+// SurfaceVariant — cards secondaires, chips non sélectionnées
+internal val SurfaceVariantDark = Palette.Navy800
 
-    // Outlines
-    outline        = Slate700,
-    outlineVariant = Neutral800,
+// SurfaceContainer — inputs, bottom nav, bottom sheet
+internal val SurfaceContainerDark = Palette.Navy700
 
-    // Errors
-    error            = Red400,
-    onError          = Red900,
-    errorContainer   = Red800,
-    onErrorContainer = Red100,
+// Primary — CTA, nav active, accent principal
+internal val PrimaryDark = Palette.Gold400
 
-    // Inverse
-    scrim            = Color.Black,
-    inverseSurface   = Slate200,
-    inverseOnSurface = Neutral950,
-    inversePrimary   = Green900,
-)
+// OnPrimary — texte/icône sur fond primary
+internal val OnPrimaryDark = Palette.Gold900
+
+// OnSurface — texte principal sur fond surface
+internal val OnSurfaceDark = Palette.White
+
+// OnSurfaceVariant — texte secondaire, labels, sous-titres
+internal val OnSurfaceVariantDark = Palette.SlateLight
+
+// Outline — bordures subtiles
+internal val OutlineDark = Palette.BorderSubtle
+
+// OutlineVariant — bordures légèrement plus visibles
+internal val OutlineVariantDark = Palette.BorderDefault
+
+// Error — dépassement de budget, états d'erreur
+internal val ErrorDark = Palette.Red400
+
+// OnError — texte sur fond error
+internal val OnErrorDark = Palette.White
+
+// ─────────────────────────────────────────────
+// TOKENS CUSTOM — hors slots M3
+// Pour les cas que Material Design ne couvre pas.
+// Préfixés pour éviter la confusion avec M3.
+// ─────────────────────────────────────────────
+
+// Indicateur positif — deltas patrimoniaux, état OK
+// RÈGLE : jamais pour du texte générique ou des montants neutres.
+// Uniquement pour signaler une progression confirmée.
+internal val FinPositive = Palette.Emerald500
+
+// Warning — enveloppe entre 80% et 100% du budget
+internal val FinWarning = Palette.Orange400
+
+// Savings — couleur dédiée épargne dans les charts et donuts
+internal val FinSavings = Palette.Blue300
+
+// Investment — couleur dédiée investissement dans les charts
+internal val FinInvestment = Palette.Violet400
+
+// Market — barre neutre pour la contribution marché dans les charts
+internal val FinMarket = Palette.SlateNeutral
+
+// Scrim — overlay semi-transparent pour les bottom sheets
+internal val ScrimDark = Color(0xCC090C12)  // 80% Navy950

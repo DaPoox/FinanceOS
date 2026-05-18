@@ -58,7 +58,7 @@ Unidirectional data flow. Layer boundaries are strict.
 
 ## Code Style
 
-Comment all classes, functions, and non-obvious logic blocks. Comments explain intent, not restate the code — enough to navigate the codebase at a glance.
+See @.claude/docs/code-style.md. ktfmt Google style — no vertical `=` or `:` alignment, trailing commas on all multiline lists, KDoc on all public functions and classes, max 120 chars per line.
 
 ---
 
@@ -86,4 +86,5 @@ Comment all classes, functions, and non-obvious logic blocks. Comments explain i
 - Dependency injection: @.claude/docs/DI.md
 - Agent workflow: @.claude/docs/workflow.md
 - Design System: @.claude/docs/DesignSystem.md
-- Gitflow: @.claude/.docs/Gitflow.md
+- Code style: @.claude/docs/code-style.md
+- Gitflow: @.claude/docs/Gitflow.md

@@ -13,10 +13,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.TrendingUp
+import androidx.compose.material.icons.filled.Wallet
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -32,25 +30,27 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.daprox.financeos.presentation.core.designsystem.FinanceOSTheme
 
-// Top-level navigation destinations.
-enum class DashboardTab(
+// Generic descriptor for a single bottom-nav destination.
+// Each screen declares its own list; the composable is tab-agnostic.
+data class BottomNavItem(
     val label: String,
-    // Placeholder icons — replace with bundled SVG assets once added to the project.
     val icon: ImageVector,
-) {
-    WEALTH("WEALTH", Icons.Default.Home),
-    ASSETS("ASSETS", Icons.Default.AccountBalance),
-    GROWTH("GROWTH", Icons.Default.TrendingUp),
-    VAULT("VAULT", Icons.Default.Lock),
-}
+)
 
-// Bottom navigation bar with a frosted-glass shell and a green pill active indicator.
-// True backdrop blur is not natively supported in Compose — the glass effect is
-// approximated via surface color at 80% alpha.
+/**
+ * Bottom navigation bar with a frosted-glass shell and a green pill active indicator.
+ * True backdrop blur is not natively supported in Compose — the glass effect is
+ * approximated via surface color at 80% alpha.
+ *
+ * @param items Ordered list of destinations to render.
+ * @param selectedIndex Index of the currently active destination in [items].
+ * @param onItemSelected Callback with the tapped index.
+ */
 @Composable
 fun FinanceOSBottomNav(
-    selectedTab: DashboardTab,
-    onTabSelected: (DashboardTab) -> Unit,
+    items: List<BottomNavItem>,
+    selectedIndex: Int,
+    onItemSelected: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -62,11 +62,11 @@ fun FinanceOSBottomNav(
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        DashboardTab.entries.forEach { tab ->
+        items.forEachIndexed { index, item ->
             NavItem(
-                tab = tab,
-                isSelected = tab == selectedTab,
-                onSelected = { onTabSelected(tab) },
+                item = item,
+                isSelected = index == selectedIndex,
+                onSelected = { onItemSelected(index) },
             )
         }
     }
@@ -75,7 +75,7 @@ fun FinanceOSBottomNav(
 // Single tab item. Active state renders a green pill; inactive state is icon + label only.
 @Composable
 private fun NavItem(
-    tab: DashboardTab,
+    item: BottomNavItem,
     isSelected: Boolean,
     onSelected: () -> Unit,
 ) {
@@ -102,14 +102,14 @@ private fun NavItem(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Icon(
-            imageVector = tab.icon,
-            contentDescription = tab.label,
+            imageVector = item.icon,
+            contentDescription = item.label,
             tint = contentColor,
             modifier = Modifier.size(18.dp),
         )
         Spacer(Modifier.height(4.dp))
         Text(
-            text = tab.label,
+            text = item.label,
             color = contentColor,
             style = MaterialTheme.typography.labelSmall.copy(
                 fontWeight = FontWeight.Bold,
@@ -121,16 +121,12 @@ private fun NavItem(
 
 @Preview(showBackground = true, backgroundColor = 0xFF0F1417)
 @Composable
-private fun BottomNavWealthPreview() {
+private fun BottomNavPreview() {
+    val items = listOf(
+        BottomNavItem("WEALTH", Icons.Default.Home),
+        BottomNavItem("ENVELOPES", Icons.Default.Wallet),
+    )
     FinanceOSTheme {
-        FinanceOSBottomNav(selectedTab = DashboardTab.WEALTH, onTabSelected = {})
-    }
-}
-
-@Preview(showBackground = true, backgroundColor = 0xFF0F1417)
-@Composable
-private fun BottomNavAssetsPreview() {
-    FinanceOSTheme {
-        FinanceOSBottomNav(selectedTab = DashboardTab.ASSETS, onTabSelected = {})
+        FinanceOSBottomNav(items = items, selectedIndex = 0, onItemSelected = {})
     }
 }

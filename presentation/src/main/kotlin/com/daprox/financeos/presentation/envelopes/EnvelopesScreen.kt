@@ -1,4 +1,4 @@
-package com.daprox.financeos.presentation.dashboard
+package com.daprox.financeos.presentation.envelopes
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,23 +9,23 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun DashboardScreenRoot(
-    viewModel: DashboardViewModel = koinViewModel(),
-    onNavigateToEnvelopes: () -> Unit = {},
+fun EnvelopesScreenRoot(
+    onNavigateToEdit: () -> Unit = {},
+    viewModel: EnvelopesViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    DashboardScreen(
+    EnvelopesScreen(
         state = state,
         onAction = viewModel::onAction,
-        onNavigateToEnvelopes = onNavigateToEnvelopes,
+        onNavigateToEdit = onNavigateToEdit,
     )
 }
 
 @Composable
-fun DashboardScreen(
-    state: DashboardUiState,
-    onAction: (DashboardUiAction) -> Unit,
-    onNavigateToEnvelopes: () -> Unit = {},
+fun EnvelopesScreen(
+    state: EnvelopesUiState,
+    onAction: (EnvelopesUiAction) -> Unit,
+    onNavigateToEdit: () -> Unit = {},
 ) {
     Box(modifier = Modifier.fillMaxSize())
 }

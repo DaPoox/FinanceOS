@@ -96,3 +96,11 @@ When opening a PR via GitHub MCP, use this structure:
 - One PR per feature — no bundling unrelated changes
 - Merge only after build passes
 - Delete branch after merge
+
+---
+
+## Claude Staging & Commit Rules
+
+- **Auto-stage**: after modifying or creating files, immediately `git add` them — no need for the user to ask
+- **Never auto-commit**: always wait for explicit user instruction ("commit", "commit push", etc.)
+- **Ask when ready**: once implementation is complete and staged, ask "Ready to commit?" before doing anything

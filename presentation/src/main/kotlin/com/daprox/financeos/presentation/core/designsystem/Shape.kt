@@ -9,9 +9,9 @@ import androidx.compose.ui.unit.dp
 // "conservative" step; every larger size pushes toward pill territory.
 
 internal val FinanceOSShapes = Shapes(
-    extraSmall = RoundedCornerShape(8.dp),   // chips, tooltips, small badges
-    small      = RoundedCornerShape(12.dp),  // input fields, small cards
-    medium     = RoundedCornerShape(16.dp),  // cards, dialogs, bottom sheets
-    large      = RoundedCornerShape(24.dp),  // modals, drawers
-    extraLarge = RoundedCornerShape(32.dp),  // full-bleed containers, FABs
+    extraSmall = RoundedCornerShape(8.dp), // chips, tooltips, small badges
+    small = RoundedCornerShape(12.dp), // input fields, small cards
+    medium = RoundedCornerShape(16.dp), // cards, dialogs, bottom sheets
+    large = RoundedCornerShape(24.dp), // modals, drawers
+    extraLarge = RoundedCornerShape(32.dp), // full-bleed containers, FABs
 )
