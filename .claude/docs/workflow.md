@@ -145,3 +145,5 @@ Commit and push are separate, explicit steps. Authorization to commit does NOT i
 | Extension created in the wrong module | ✅ Always |
 | New extension file when an existing one could be extended | ✅ Always |
 | Running build/test/lint commands (`./gradlew ...`) | ❌ Never  |
+| Read-only bash commands (`ls`, `find`, `grep`, `curl`, `jar`, `python3` inspection, etc.) | ❌ Never  |
+| Bash commands that write, delete, or modify files/state | ✅ Always |

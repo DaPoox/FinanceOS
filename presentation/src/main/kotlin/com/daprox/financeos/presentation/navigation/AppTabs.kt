@@ -1,11 +1,11 @@
 package com.daprox.financeos.presentation.navigation
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.TrendingUp
-import androidx.compose.material.icons.filled.Wallet
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.composables.icons.lucide.House
+import com.composables.icons.lucide.Lock
+import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.TrendingUp
+import com.composables.icons.lucide.Wallet
 import com.daprox.financeos.presentation.core.designsystem.component.BottomNavItem
 
 // App-level bottom-nav destinations.
@@ -15,10 +15,10 @@ enum class AppTab(
     val label: String,
     val icon: ImageVector,
 ) {
-    WEALTH("WEALTH", Icons.Default.Home),
-    ENVELOPES("ENVELOPES", Icons.Default.Wallet),
-    GROWTH("GROWTH", Icons.Default.TrendingUp),
-    VAULT("VAULT", Icons.Default.Lock),
+    WEALTH("WEALTH", Lucide.House),
+    ENVELOPES("ENVELOPES", Lucide.Wallet),
+    GROWTH("GROWTH", Lucide.TrendingUp),
+    VAULT("VAULT", Lucide.Lock),
     ;
 
     companion object {

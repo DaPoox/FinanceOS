@@ -12,10 +12,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Wallet
 import androidx.compose.material3.Icon
+import com.composables.icons.lucide.House
+import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.Wallet
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -123,8 +123,8 @@ private fun NavItem(
 @Composable
 private fun BottomNavPreview() {
     val items = listOf(
-        BottomNavItem("WEALTH", Icons.Default.Home),
-        BottomNavItem("ENVELOPES", Icons.Default.Wallet),
+        BottomNavItem("WEALTH", Lucide.House),
+        BottomNavItem("ENVELOPES", Lucide.Wallet),
     )
     FinanceOSTheme {
         FinanceOSBottomNav(items = items, selectedIndex = 0, onItemSelected = {})

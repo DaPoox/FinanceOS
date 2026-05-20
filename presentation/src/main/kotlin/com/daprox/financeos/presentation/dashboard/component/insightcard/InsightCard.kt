@@ -12,9 +12,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.Icon
+import com.composables.icons.lucide.Check
+import com.composables.icons.lucide.Lucide
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -140,7 +140,7 @@ private fun InsightIconBox(
         when (type) {
             InsightType.WARNING, InsightType.ERROR -> WarningIcon(color = color)
             InsightType.SUCCESS -> Icon(
-                imageVector = Icons.Rounded.Check,
+                imageVector = Lucide.Check,
                 contentDescription = null,
                 tint = color,
                 modifier = Modifier.size(16.dp),

@@ -2,43 +2,24 @@ package com.daprox.financeos.presentation.core.designsystem
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.googlefonts.Font
-import androidx.compose.ui.text.googlefonts.GoogleFont
 import androidx.compose.ui.unit.sp
 import com.daprox.financeos.presentation.R
 
-// ─────────────────────────────────────────────
-// FONT FAMILIES
-// DM Sans — UI, labels, titres
-// Geist Mono — tous les chiffres financiers
-//
-// Téléchargées via Google Fonts à l'exécution.
-// Certificats dans res/values/font_certs.xml.
-// ─────────────────────────────────────────────
-
-private val provider = GoogleFont.Provider(
-    providerAuthority = "com.google.android.gms.fonts",
-    providerPackage = "com.google.android.gms",
-    certificates = R.array.com_google_android_gms_fonts_certs,
-)
-
-private val DmSansFont = GoogleFont("DM Sans")
-private val GeistMonoFont = GoogleFont("Geist Mono")
-
 internal val DmSans = FontFamily(
-    Font(googleFont = DmSansFont, fontProvider = provider, weight = FontWeight.Normal),
-    Font(googleFont = DmSansFont, fontProvider = provider, weight = FontWeight.Medium),
-    Font(googleFont = DmSansFont, fontProvider = provider, weight = FontWeight.SemiBold),
-    Font(googleFont = DmSansFont, fontProvider = provider, weight = FontWeight.Bold),
+    Font(R.font.dm_sans_regular, FontWeight.Normal),
+    Font(R.font.dm_sans_medium, FontWeight.Medium),
+    Font(R.font.dm_sans_semibold, FontWeight.SemiBold),
+    Font(R.font.dm_sans_bold, FontWeight.Bold),
 )
 
 internal val GeistMono = FontFamily(
-    Font(googleFont = GeistMonoFont, fontProvider = provider, weight = FontWeight.Normal),
-    Font(googleFont = GeistMonoFont, fontProvider = provider, weight = FontWeight.Medium),
-    Font(googleFont = GeistMonoFont, fontProvider = provider, weight = FontWeight.SemiBold),
-    Font(googleFont = GeistMonoFont, fontProvider = provider, weight = FontWeight.Bold),
+    Font(R.font.geist_mono_regular, FontWeight.Normal),
+    Font(R.font.geist_mono_medium, FontWeight.Medium),
+    Font(R.font.geist_mono_semibold, FontWeight.SemiBold),
+    Font(R.font.geist_mono_bold, FontWeight.Bold),
 )
 
 // ─────────────────────────────────────────────

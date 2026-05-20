@@ -89,3 +89,4 @@ See @.claude/docs/code-style.md. ktfmt Google style — no vertical `=` or `:` a
 - Design System: @.claude/docs/DesignSystem.md
 - Code style: @.claude/docs/code-style.md
 - Gitflow: @.claude/docs/Gitflow.md
+- Icons: @.claude/docs/icone-guide.md

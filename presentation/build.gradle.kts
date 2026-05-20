@@ -15,6 +15,5 @@ dependencies {
 
     implementation(libs.navigation.compose)
     implementation(libs.kotlinx.serialization.json)
-    implementation(libs.compose.ui.text.google.fonts)
-    implementation(libs.compose.material.icons.extended)
+    implementation(libs.lucide.icons)
 }

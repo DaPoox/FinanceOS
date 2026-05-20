@@ -105,6 +105,19 @@ Tous les composants ont une référence JSX dans `design_handoff/` :
 
 ---
 
+## Clôture d'un ticket
+
+Marquer le ticket comme **Done** dans Linear **après que l'utilisateur a confirmé que le push est bon.**
+
+Séquence exacte :
+1. Code terminé + build OK → attendre instruction commit
+2. Commit + push → attendre confirmation de l'utilisateur
+3. Utilisateur valide → marquer le ticket Done via `save_issue` (status = Done)
+
+Ne pas marquer Done avant la confirmation. Un push ne suffit pas — l'utilisateur peut vouloir vérifier sur GitHub ou relancer un build avant de valider.
+
+---
+
 ## Format du plan de validation
 
 Quand tu récupères un ticket, réponds avec ce format exact avant de coder :
