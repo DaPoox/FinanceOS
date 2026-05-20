@@ -85,6 +85,7 @@ See @.claude/docs/code-style.md. ktfmt Google style — no vertical `=` or `:` a
 - Error handling: @.claude/docs/ErrorHandling.md
 - Dependency injection: @.claude/docs/DI.md
 - Agent workflow: @.claude/docs/workflow.md
+- Linear workflow: @.claude/docs/linear-workflow.md
 - Design System: @.claude/docs/DesignSystem.md
 - Code style: @.claude/docs/code-style.md
 - Gitflow: @.claude/docs/Gitflow.md

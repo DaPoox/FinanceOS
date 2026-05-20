@@ -1,4 +1,4 @@
-package com.daprox.financeos.presentation.dashboard.component
+package com.daprox.financeos.presentation.dashboard.component.networthhero
 
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
@@ -44,15 +44,6 @@ import com.daprox.financeos.presentation.core.designsystem.finColors
 import java.text.NumberFormat
 import java.util.Locale
 
-/** Ui model for the NetWorth hero card on the Home screen. */
-data class NetWorthHeroUiState(
-    val netWorth: Double = 0.0,
-    val delta: Double = 0.0,
-    val insightLabel: String? = null,
-    val contribSavings: Double = 0.0,
-    val contribInvest: Double = 0.0,
-    val contribMarket: Double = 0.0,
-)
 
 /**
  * Hero card showing total net worth with count-up animation, monthly delta pill,

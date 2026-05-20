@@ -29,6 +29,29 @@ envelopes/edit/
     └── SurplusCard.kt             ← reusable surplus pattern
 ```
 
+### Each component — its own package
+
+Every standalone component lives in its own sub-package under `component/`.
+The package name is the component name in lowercase, no separators.
+
+```
+dashboard/component/
+├── insightcard/
+│   ├── InsightCard.kt            ← composable only
+│   └── InsightCardUiState.kt     ← InsightCardUiState data class + InsightType enum
+└── networthhero/
+    ├── NetWorthHeroCard.kt       ← composable only
+    └── NetWorthHeroUiState.kt    ← NetWorthHeroUiState data class
+```
+
+### UiState and enums — always separate files
+
+`UiState` data classes and their associated `enum` classes are never defined inside a composable file.
+They live in their own `<Component>UiState.kt` file, in the same package as the composable.
+
+This mirrors the existing convention for screens (`DashboardUiState.kt`, `EnvelopesUiState.kt`, etc.)
+and applies equally to standalone components.
+
 ---
 
 
