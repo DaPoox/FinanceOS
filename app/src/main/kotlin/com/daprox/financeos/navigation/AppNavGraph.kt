@@ -57,8 +57,10 @@ fun AppNavGraph() {
             modifier = Modifier.padding(innerPadding),
         ) {
             dashboardScreen(
-                // "Envelopes →" shortcut in the budget section header.
-                onNavigateToEnvelopes = { navController.navigate(Envelopes) { launchSingleTop = true } },
+                onNavigateToBudget = { navController.navigate(Envelopes) { launchSingleTop = true } },
+                onNavigateToAllocation = { /* AllocationScreen not built yet */ },
+                onNavigateToEnvelopeDetail = { /* EnvelopeDetailScreen not built yet */ },
+                onNavigateToMonthHistory = { /* HistoryScreen not built yet */ },
             )
             envelopesScreen(
                 onNavigateToEdit = { navController.navigate(EnvelopesEdit) },

@@ -9,9 +9,17 @@ import kotlinx.serialization.Serializable
 object Dashboard
 
 fun NavGraphBuilder.dashboardScreen(
-    onNavigateToEnvelopes: () -> Unit,
+    onNavigateToBudget: () -> Unit = {},
+    onNavigateToAllocation: () -> Unit = {},
+    onNavigateToEnvelopeDetail: (String) -> Unit = {},
+    onNavigateToMonthHistory: (String) -> Unit = {},
 ) {
     composable<Dashboard> {
-        DashboardScreenRoot(onNavigateToEnvelopes = onNavigateToEnvelopes)
+        DashboardScreenRoot(
+            onNavigateToBudget = onNavigateToBudget,
+            onNavigateToAllocation = onNavigateToAllocation,
+            onNavigateToEnvelopeDetail = onNavigateToEnvelopeDetail,
+            onNavigateToMonthHistory = onNavigateToMonthHistory,
+        )
     }
 }
