@@ -37,11 +37,10 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.daprox.financeos.core.extensions.frenchAmount
 import com.daprox.financeos.presentation.core.designsystem.FinanceOSTheme
 import com.daprox.financeos.presentation.core.designsystem.GeistMono
 import com.daprox.financeos.presentation.core.designsystem.finColors
-import java.text.NumberFormat
-import java.util.Locale
 
 
 /**
@@ -102,7 +101,7 @@ fun InsightCard(
                                 fontSize = 14.sp,
                             ),
                         ) {
-                            append(insightFormatAmount(amount))
+                            append("${amount.frenchAmount()} €")
                         }
                     }
                 }
@@ -189,11 +188,6 @@ private fun WarningIcon(
         )
     }
 }
-
-private fun insightFormatAmount(value: Double): String =
-    NumberFormat.getNumberInstance(Locale.FRANCE).apply {
-        maximumFractionDigits = 0
-    }.format(value.toLong()) + " €"
 
 @Preview(name = "WARNING", showBackground = true, backgroundColor = 0xFF090C12)
 @Composable

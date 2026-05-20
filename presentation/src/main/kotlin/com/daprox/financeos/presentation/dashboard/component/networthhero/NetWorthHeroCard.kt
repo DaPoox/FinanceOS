@@ -38,11 +38,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.daprox.financeos.core.extensions.frenchAmount
 import com.daprox.financeos.presentation.core.designsystem.FinanceOSTheme
 import com.daprox.financeos.presentation.core.designsystem.GeistMono
 import com.daprox.financeos.presentation.core.designsystem.finColors
-import java.text.NumberFormat
-import java.util.Locale
 
 
 /**
@@ -89,7 +88,7 @@ fun NetWorthHeroCard(
             if (hasData) {
                 Row(verticalAlignment = Alignment.Bottom) {
                     Text(
-                        text = frFormat(animatedAmount.toLong()),
+                        text = animatedAmount.toLong().frenchAmount(),
                         style = MaterialTheme.typography.displayLarge.copy(
                             letterSpacing = (-1.2).sp,
                             fontWeight = FontWeight.Medium,
@@ -168,7 +167,7 @@ private fun DeltaPill(
         MaterialTheme.colorScheme.error
     }
     val prefix = if (isPositive) "+" else ""
-    val formattedDelta = "$prefix${frFormat(delta.toLong())} €"
+    val formattedDelta = "$prefix${delta.toLong().frenchAmount()} €"
 
     Surface(
         modifier = modifier,
@@ -247,7 +246,7 @@ private fun ContribRow(
         label = "contrib_bar_$label",
     )
     val prefix = if (value >= 0) "+" else ""
-    val formattedValue = "$prefix${frFormat(value.toLong())} €"
+    val formattedValue = "$prefix${value.toLong().frenchAmount()} €"
     val barBackground = MaterialTheme.colorScheme.outline
 
     Row(
@@ -288,11 +287,6 @@ private fun ContribRow(
         )
     }
 }
-
-private fun frFormat(value: Long): String =
-    NumberFormat.getNumberInstance(Locale.FRANCE).apply {
-        maximumFractionDigits = 0
-    }.format(value)
 
 @Preview(name = "Normal state", showBackground = true, backgroundColor = 0xFF090C12)
 @Composable
