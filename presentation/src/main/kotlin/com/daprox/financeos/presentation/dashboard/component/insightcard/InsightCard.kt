@@ -56,9 +56,9 @@ fun InsightCard(
     if (state == null) return
 
     val typeColor = when (state.type) {
-        InsightType.WARNING -> MaterialTheme.finColors.warning
-        InsightType.ERROR -> MaterialTheme.colorScheme.error
-        InsightType.SUCCESS -> MaterialTheme.finColors.positive
+        InsightTypeEnum.WARNING -> MaterialTheme.finColors.warning
+        InsightTypeEnum.ERROR -> MaterialTheme.colorScheme.error
+        InsightTypeEnum.SUCCESS -> MaterialTheme.finColors.positive
     }
     val surfaceColor = MaterialTheme.colorScheme.surface
     val outlineColor = MaterialTheme.colorScheme.outline
@@ -125,7 +125,7 @@ fun InsightCard(
 
 @Composable
 private fun InsightIconBox(
-    type: InsightType,
+    type: InsightTypeEnum,
     color: Color,
     modifier: Modifier = Modifier,
 ) {
@@ -137,8 +137,8 @@ private fun InsightIconBox(
         contentAlignment = Alignment.Center,
     ) {
         when (type) {
-            InsightType.WARNING, InsightType.ERROR -> WarningIcon(color = color)
-            InsightType.SUCCESS -> Icon(
+            InsightTypeEnum.WARNING, InsightTypeEnum.ERROR -> WarningIcon(color = color)
+            InsightTypeEnum.SUCCESS -> Icon(
                 imageVector = Lucide.Check,
                 contentDescription = null,
                 tint = color,
@@ -195,7 +195,7 @@ private fun InsightCardPreviewWarning() {
     FinanceOSTheme {
         InsightCard(
             state = InsightCardUiState(
-                type = InsightType.WARNING,
+                type = InsightTypeEnum.WARNING,
                 title = "Courses à 87% du budget",
                 subtitle = "Il te reste 54 € pour 12 jours.",
             ),
@@ -210,7 +210,7 @@ private fun InsightCardPreviewError() {
     FinanceOSTheme {
         InsightCard(
             state = InsightCardUiState(
-                type = InsightType.ERROR,
+                type = InsightTypeEnum.ERROR,
                 title = "Restos dépassé de ",
                 subtitle = "5 sorties ce mois. Tu en es à 112% du budget.",
                 highlightAmount = 26.0,
@@ -226,7 +226,7 @@ private fun InsightCardPreviewSuccess() {
     FinanceOSTheme {
         InsightCard(
             state = InsightCardUiState(
-                type = InsightType.SUCCESS,
+                type = InsightTypeEnum.SUCCESS,
                 title = "Taux d'épargne à 30% ce mois",
                 subtitle = "Objectif atteint. Meilleur résultat depuis mars.",
             ),

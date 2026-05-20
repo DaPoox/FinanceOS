@@ -106,14 +106,14 @@ private fun EnvelopeMiniCard(
     modifier: Modifier = Modifier,
 ) {
     val statusColor = when (state.status) {
-        EnvelopeStatus.OVER -> MaterialTheme.colorScheme.error
-        EnvelopeStatus.WARNING -> MaterialTheme.finColors.warning
-        EnvelopeStatus.FIXED -> MaterialTheme.finColors.market
-        EnvelopeStatus.OK -> MaterialTheme.finColors.positive
+        EnvelopeStatusEnum.OVER -> MaterialTheme.colorScheme.error
+        EnvelopeStatusEnum.WARNING -> MaterialTheme.finColors.warning
+        EnvelopeStatusEnum.FIXED -> MaterialTheme.finColors.market
+        EnvelopeStatusEnum.OK -> MaterialTheme.finColors.positive
     }
     val iconTint = when (state.status) {
-        EnvelopeStatus.OVER -> MaterialTheme.colorScheme.error
-        EnvelopeStatus.WARNING -> MaterialTheme.finColors.warning
+        EnvelopeStatusEnum.OVER -> MaterialTheme.colorScheme.error
+        EnvelopeStatusEnum.WARNING -> MaterialTheme.finColors.warning
         else -> MaterialTheme.colorScheme.onSurfaceVariant
     }
     val animatedProgress by animateFloatAsState(
@@ -148,7 +148,7 @@ private fun EnvelopeMiniCard(
                         )
                     }
                 }
-                if (state.status == EnvelopeStatus.OVER || state.status == EnvelopeStatus.FIXED) {
+                if (state.status == EnvelopeStatusEnum.OVER || state.status == EnvelopeStatusEnum.FIXED) {
                     StatusBadge(status = state.status)
                 }
             }
@@ -174,7 +174,7 @@ private fun EnvelopeMiniCard(
                         fontWeight = FontWeight.Medium,
                         fontSize = 16.sp,
                     ),
-                    color = if (state.status == EnvelopeStatus.OVER) {
+                    color = if (state.status == EnvelopeStatusEnum.OVER) {
                         MaterialTheme.colorScheme.error
                     } else {
                         MaterialTheme.colorScheme.onSurface
@@ -216,10 +216,10 @@ private fun EnvelopeMiniCard(
 
 @Composable
 private fun StatusBadge(
-    status: EnvelopeStatus,
+    status: EnvelopeStatusEnum,
     modifier: Modifier = Modifier,
 ) {
-    val isOver = status == EnvelopeStatus.OVER
+    val isOver = status == EnvelopeStatusEnum.OVER
     val label = if (isOver) "↑" else "FIXE"
     val bgColor = if (isOver) {
         MaterialTheme.colorScheme.error.copy(alpha = 0.12f)
@@ -260,40 +260,40 @@ private fun EnvelopeMiniGridPreview() {
                     id = "1",
                     name = "Courses",
                     icon = Lucide.ShoppingCart,
-                    type = EnvelopeType.VARIABLE,
+                    type = EnvelopeTypeEnum.VARIABLE,
                     spent = 287.0,
                     allocated = 420.0,
-                    status = EnvelopeStatus.OK,
+                    status = EnvelopeStatusEnum.OK,
                     progress = 0.68f,
                 ),
                 EnvelopeMiniUiState(
                     id = "2",
                     name = "Shopping",
                     icon = Lucide.Car,
-                    type = EnvelopeType.VARIABLE,
+                    type = EnvelopeTypeEnum.VARIABLE,
                     spent = 170.0,
                     allocated = 200.0,
-                    status = EnvelopeStatus.WARNING,
+                    status = EnvelopeStatusEnum.WARNING,
                     progress = 0.85f,
                 ),
                 EnvelopeMiniUiState(
                     id = "3",
                     name = "Restos",
                     icon = Lucide.Utensils,
-                    type = EnvelopeType.VARIABLE,
+                    type = EnvelopeTypeEnum.VARIABLE,
                     spent = 134.0,
                     allocated = 120.0,
-                    status = EnvelopeStatus.OVER,
+                    status = EnvelopeStatusEnum.OVER,
                     progress = 1f,
                 ),
                 EnvelopeMiniUiState(
                     id = "4",
                     name = "Loyer",
                     icon = Lucide.House,
-                    type = EnvelopeType.FIXED,
+                    type = EnvelopeTypeEnum.FIXED,
                     spent = 900.0,
                     allocated = 900.0,
-                    status = EnvelopeStatus.FIXED,
+                    status = EnvelopeStatusEnum.FIXED,
                     progress = 1f,
                 ),
             ),

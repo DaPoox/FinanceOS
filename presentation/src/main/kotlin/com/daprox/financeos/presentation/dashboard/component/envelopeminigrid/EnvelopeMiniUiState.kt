@@ -6,9 +6,9 @@ data class EnvelopeMiniUiState(
     val id: String,
     val name: String,
     val icon: ImageVector,
-    val type: EnvelopeType,
+    val type: EnvelopeTypeEnum,
     val spent: Double,
     val allocated: Double,
-    val status: EnvelopeStatus,
+    val status: EnvelopeStatusEnum,
     val progress: Float,
 )
