@@ -7,5 +7,4 @@ data class NetWorthHeroUiState(
     val insightLabel: String? = null,
     val contribSavings: Double = 0.0,
     val contribInvest: Double = 0.0,
-    val contribMarket: Double = 0.0,
 )

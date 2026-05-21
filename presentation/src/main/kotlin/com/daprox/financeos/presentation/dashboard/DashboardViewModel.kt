@@ -34,7 +34,6 @@ class DashboardViewModel : ViewModel() {
                 insightLabel = "Meilleur mois depuis 4 mois",
                 contribSavings = 600.0,
                 contribInvest = 650.0,
-                contribMarket = 590.0,
             ),
             insight = InsightCardUiState(
                 type = InsightTypeEnum.WARNING,

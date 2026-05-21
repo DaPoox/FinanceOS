@@ -5,13 +5,9 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -20,6 +16,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -31,7 +28,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.text.font.FontWeight
@@ -41,7 +37,6 @@ import androidx.compose.ui.unit.sp
 import com.daprox.financeos.core.extensions.frenchAmount
 import com.daprox.financeos.presentation.core.designsystem.FinanceOSTheme
 import com.daprox.financeos.presentation.core.designsystem.GeistMono
-import com.daprox.financeos.presentation.core.designsystem.finColors
 
 
 /**
@@ -126,28 +121,30 @@ fun NetWorthHeroCard(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(18.dp))
 
-                val maxContrib = maxOf(state.contribSavings, state.contribInvest, state.contribMarket)
+                HorizontalDivider(color = MaterialTheme.colorScheme.outline)
 
-                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    ContribRow(
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = "CONTRIBUTION DU MOIS",
+                    style = MaterialTheme.typography.labelMedium.copy(letterSpacing = 1.4.sp),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Row(modifier = Modifier.fillMaxWidth()) {
+                    ContribColumn(
                         label = "Épargne",
                         value = state.contribSavings,
-                        max = maxContrib,
-                        color = MaterialTheme.finColors.savings,
+                        modifier = Modifier.weight(1f),
                     )
-                    ContribRow(
+                    ContribColumn(
                         label = "Investissement",
                         value = state.contribInvest,
-                        max = maxContrib,
-                        color = MaterialTheme.finColors.investment,
-                    )
-                    ContribRow(
-                        label = "Marché",
-                        value = state.contribMarket,
-                        max = maxContrib,
-                        color = MaterialTheme.finColors.market,
+                        modifier = Modifier.weight(1f),
                     )
                 }
             }
@@ -232,58 +229,27 @@ private fun ArrowIcon(
 }
 
 @Composable
-private fun ContribRow(
+private fun ContribColumn(
     label: String,
     value: Double,
-    max: Double,
-    color: Color,
     modifier: Modifier = Modifier,
 ) {
-    val fraction = if (max > 0) (value / max).toFloat().coerceIn(0f, 1f) else 0f
-    val animatedFraction by animateFloatAsState(
-        targetValue = fraction,
-        animationSpec = tween(durationMillis = 800, easing = FastOutSlowInEasing),
-        label = "contrib_bar_$label",
-    )
     val prefix = if (value >= 0) "+" else ""
-    val formattedValue = "$prefix${value.toLong().frenchAmount()} €"
-    val barBackground = MaterialTheme.colorScheme.outline
-
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
+    Column(modifier = modifier) {
         Text(
             text = label,
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.width(92.dp),
         )
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .height(5.dp)
-                .clip(RoundedCornerShape(100.dp))
-                .background(barBackground),
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .fillMaxWidth(animatedFraction)
-                    .clip(RoundedCornerShape(100.dp))
-                    .background(color),
-            )
-        }
-        Spacer(modifier = Modifier.width(10.dp))
+        Spacer(modifier = Modifier.height(4.dp))
         Text(
-            text = formattedValue,
+            text = "$prefix${value.toLong().frenchAmount()} €",
             style = MaterialTheme.typography.labelMedium.copy(
                 fontFamily = GeistMono,
-                fontWeight = FontWeight.Medium,
-                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 16.sp,
             ),
             color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.width(56.dp),
         )
     }
 }
@@ -299,7 +265,6 @@ private fun NetWorthHeroCardPreviewNormal() {
                 insightLabel = "Meilleur mois depuis 4 mois 🔥",
                 contribSavings = 600.0,
                 contribInvest = 650.0,
-                contribMarket = 590.0,
             ),
             modifier = Modifier.padding(20.dp),
         )
@@ -317,7 +282,6 @@ private fun NetWorthHeroCardPreviewNegative() {
                 insightLabel = null,
                 contribSavings = 400.0,
                 contribInvest = 200.0,
-                contribMarket = 100.0,
             ),
             modifier = Modifier.padding(20.dp),
         )
