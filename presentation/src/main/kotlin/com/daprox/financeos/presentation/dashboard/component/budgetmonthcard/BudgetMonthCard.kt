@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,6 +31,7 @@ import androidx.compose.ui.unit.sp
 import com.daprox.financeos.core.extensions.frenchAmount
 import com.daprox.financeos.presentation.core.designsystem.FinanceOSTheme
 import com.daprox.financeos.presentation.core.designsystem.GeistMono
+import com.daprox.financeos.presentation.core.designsystem.component.FinProgressBar
 import com.daprox.financeos.presentation.core.designsystem.finColors
 
 /**
@@ -141,15 +141,7 @@ private fun AllocatedContent(state: BudgetMonthCardUiState) {
 
         Spacer(modifier = Modifier.height(14.dp))
 
-        LinearProgressIndicator(
-            progress = { animatedProgress },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(8.dp)
-                .clip(RoundedCornerShape(4.dp)),
-            color = barColor,
-            trackColor = MaterialTheme.colorScheme.outline,
-        )
+        FinProgressBar(progress = animatedProgress, color = barColor)
     }
 }
 

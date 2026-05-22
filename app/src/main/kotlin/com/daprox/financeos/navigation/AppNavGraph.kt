@@ -9,30 +9,22 @@ import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.daprox.financeos.presentation.budget.navigation.Budget
+import com.daprox.financeos.presentation.budget.navigation.budgetScreen
 import com.daprox.financeos.presentation.core.designsystem.component.FinanceOSBottomNav
 import com.daprox.financeos.presentation.dashboard.navigation.Dashboard
 import com.daprox.financeos.presentation.dashboard.navigation.dashboardScreen
-import com.daprox.financeos.presentation.envelopes.edit.navigation.EnvelopesEdit
-import com.daprox.financeos.presentation.envelopes.edit.navigation.envelopesEditScreen
-import com.daprox.financeos.presentation.envelopes.navigation.Envelopes
-import com.daprox.financeos.presentation.envelopes.navigation.envelopesScreen
 import com.daprox.financeos.presentation.navigation.AppTab
 
-// Root nav graph.
-// The shared Scaffold with a single FinanceOSBottomNav lives here so it persists
-// across all destinations — individual screens never own the bottom bar.
-// NavController never leaks into composables; only lambdas are passed down.
 @Composable
 fun AppNavGraph() {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDest = navBackStackEntry?.destination
-    // Derive the selected tab index from the active back-stack destination.
-    // EnvelopesEdit is a sub-screen of Envelopes — keep ENVELOPES tab highlighted.
+
     val selectedIndex = when {
-        currentDest?.hasRoute<Envelopes>() == true -> AppTab.ENVELOPES.ordinal
-        currentDest?.hasRoute<EnvelopesEdit>() == true -> AppTab.ENVELOPES.ordinal
-        else -> AppTab.WEALTH.ordinal
+        currentDest?.hasRoute<Budget>() == true -> AppTab.BUDGET.ordinal
+        else -> AppTab.HOME.ordinal
     }
 
     Scaffold(
@@ -42,10 +34,10 @@ fun AppNavGraph() {
                 selectedIndex = selectedIndex,
                 onItemSelected = { index ->
                     when (AppTab.entries[index]) {
-                        AppTab.WEALTH -> navController.navigate(Dashboard) { launchSingleTop = true }
-                        AppTab.ENVELOPES -> navController.navigate(Envelopes) { launchSingleTop = true }
-                        AppTab.GROWTH -> Unit // screen not built yet
-                        AppTab.VAULT -> Unit // screen not built yet
+                        AppTab.HOME -> navController.navigate(Dashboard) { launchSingleTop = true }
+                        AppTab.BUDGET -> navController.navigate(Budget) { launchSingleTop = true }
+                        AppTab.PATRIMOINE -> Unit // PatrimoineScreen not built yet
+                        AppTab.HISTORIQUE -> Unit // HistoryScreen not built yet
                     }
                 },
             )
@@ -57,17 +49,14 @@ fun AppNavGraph() {
             modifier = Modifier.padding(innerPadding),
         ) {
             dashboardScreen(
-                onNavigateToBudget = { navController.navigate(Envelopes) { launchSingleTop = true } },
+                onNavigateToBudget = { navController.navigate(Budget) { launchSingleTop = true } },
                 onNavigateToAllocation = { /* AllocationScreen not built yet */ },
                 onNavigateToEnvelopeDetail = { /* EnvelopeDetailScreen not built yet */ },
                 onNavigateToMonthHistory = { /* HistoryScreen not built yet */ },
             )
-            envelopesScreen(
-                onNavigateToEdit = { navController.navigate(EnvelopesEdit) },
-            )
-            envelopesEditScreen(
-                onClose = { navController.popBackStack() },
-                onConfirm = { navController.popBackStack() },
+            budgetScreen(
+                onNavigateToAllocation = { /* AllocationScreen not built yet */ },
+                onNavigateToEnvelopeDetail = { /* EnvelopeDetailScreen not built yet */ },
             )
         }
     }
