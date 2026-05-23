@@ -14,6 +14,8 @@ import com.daprox.financeos.presentation.budget.navigation.budgetScreen
 import com.daprox.financeos.presentation.core.designsystem.component.FinanceOSBottomNav
 import com.daprox.financeos.presentation.dashboard.navigation.Dashboard
 import com.daprox.financeos.presentation.dashboard.navigation.dashboardScreen
+import com.daprox.financeos.presentation.envelopedetail.navigation.EnvelopeDetail
+import com.daprox.financeos.presentation.envelopedetail.navigation.envelopeDetailScreen
 import com.daprox.financeos.presentation.navigation.AppTab
 
 @Composable
@@ -24,6 +26,7 @@ fun AppNavGraph() {
 
     val selectedIndex = when {
         currentDest?.hasRoute<Budget>() == true -> AppTab.BUDGET.ordinal
+        currentDest?.hasRoute<EnvelopeDetail>() == true -> AppTab.BUDGET.ordinal
         else -> AppTab.HOME.ordinal
     }
 
@@ -51,12 +54,15 @@ fun AppNavGraph() {
             dashboardScreen(
                 onNavigateToBudget = { navController.navigate(Budget) { launchSingleTop = true } },
                 onNavigateToAllocation = { /* AllocationScreen not built yet */ },
-                onNavigateToEnvelopeDetail = { /* EnvelopeDetailScreen not built yet */ },
+                onNavigateToEnvelopeDetail = { id -> navController.navigate(EnvelopeDetail(id)) },
                 onNavigateToMonthHistory = { /* HistoryScreen not built yet */ },
             )
             budgetScreen(
                 onNavigateToAllocation = { /* AllocationScreen not built yet */ },
-                onNavigateToEnvelopeDetail = { /* EnvelopeDetailScreen not built yet */ },
+                onNavigateToEnvelopeDetail = { id -> navController.navigate(EnvelopeDetail(id)) },
+            )
+            envelopeDetailScreen(
+                onNavigateBack = { navController.popBackStack() },
             )
         }
     }
