@@ -1,10 +1,18 @@
 package com.daprox.financeos.presentation.allocation
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,20 +36,27 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -52,12 +67,14 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.icons.lucide.ArrowLeft
 import com.composables.icons.lucide.ChartBar
+import com.composables.icons.lucide.ChevronRight
 import com.composables.icons.lucide.House
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Plane
 import com.composables.icons.lucide.ShoppingCart
 import com.composables.icons.lucide.TrendingUp
 import com.composables.icons.lucide.Utensils
+import com.composables.icons.lucide.Trash2
 import com.composables.icons.lucide.Wallet
 import com.daprox.financeos.core.extensions.frenchAmount
 import com.daprox.financeos.presentation.core.ObserveAsEvents
@@ -67,6 +84,14 @@ import com.daprox.financeos.presentation.core.designsystem.finColors
 import com.daprox.financeos.presentation.dashboard.component.envelopeminigrid.EnvelopeTypeEnum
 import org.koin.androidx.compose.koinViewModel
 import kotlin.math.abs
+
+private fun addButtonLabel(type: EnvelopeTypeEnum?): String? = when (type) {
+    EnvelopeTypeEnum.VARIABLE -> "+ Ajouter une catégorie"
+    EnvelopeTypeEnum.MONTHLY -> "+ Nouvelle dépense du mois"
+    EnvelopeTypeEnum.SAVINGS -> "+ Nouveau livret"
+    EnvelopeTypeEnum.INVESTMENT -> "+ Nouveau placement"
+    else -> null
+}
 
 @Composable
 fun AllocationScreenRoot(
@@ -432,6 +457,12 @@ private fun StepAdjust(
     onAmountChanged: (String, String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val expandedGroups = remember(groups.map { it.label }) {
+        mutableStateMapOf<String, Boolean>().apply {
+            groups.forEach { g -> put(g.label, g.label in setOf("Variables", "Du mois")) }
+        }
+    }
+
     Column(modifier = modifier.padding(horizontal = 20.dp, vertical = 8.dp)) {
         Spacer(modifier = Modifier.height(8.dp))
         Text(
@@ -440,39 +471,66 @@ private fun StepAdjust(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = "Ajuste tes enveloppes",
-            style = MaterialTheme.typography.titleLarge.copy(
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 22.sp,
-                lineHeight = 28.sp,
-            ),
-            color = MaterialTheme.colorScheme.onSurface,
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Bottom,
+        ) {
+            Text(
+                text = "Ajuste tes enveloppes",
+                style = MaterialTheme.typography.titleLarge.copy(
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 22.sp,
+                    lineHeight = 28.sp,
+                ),
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Text(
+                text = "Tout déplier",
+                style = MaterialTheme.typography.labelMedium.copy(fontSize = 13.sp),
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .clickable { groups.forEach { expandedGroups[it.label] = true } }
+                    .padding(start = 8.dp, bottom = 2.dp),
+            )
+        }
 
         groups.forEach { group ->
+            val expanded = expandedGroups[group.label] ?: false
+            val groupTotal = group.envelopes.sumOf { it.amount.toLongOrNull() ?: 0L }
+
             Spacer(modifier = Modifier.height(18.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
+            CollapsableGroupHeader(
+                label = group.label,
+                count = group.envelopes.size,
+                total = groupTotal,
+                expanded = expanded,
+                onToggle = { expandedGroups[group.label] = !expanded },
+            )
+
+            AnimatedVisibility(
+                visible = expanded,
+                enter = expandVertically(animationSpec = tween(280, easing = FastOutSlowInEasing)) +
+                    fadeIn(animationSpec = tween(280, easing = FastOutSlowInEasing)),
+                exit = shrinkVertically(animationSpec = tween(280, easing = FastOutSlowInEasing)) +
+                    fadeOut(animationSpec = tween(280, easing = FastOutSlowInEasing)),
             ) {
-                Text(
-                    text = group.label.uppercase(),
-                    style = MaterialTheme.typography.labelMedium.copy(letterSpacing = 1.2.sp),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                group.envelopes.forEach { envelope ->
-                    AdjustRow(
-                        envelope = envelope,
-                        onAmountChanged = { onAmountChanged(envelope.id, it) },
-                    )
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    modifier = Modifier.padding(top = 8.dp),
+                ) {
+                    group.envelopes.forEach { envelope ->
+                        AdjustRow(
+                            envelope = envelope,
+                            onAmountChanged = { onAmountChanged(envelope.id, it) },
+                            onDelete = {},
+                        )
+                    }
+                    addButtonLabel(group.envelopes.firstOrNull()?.type)?.let { label ->
+                        Spacer(modifier = Modifier.height(4.dp))
+                        AddGroupButton(label = label, onClick = {})
+                    }
                 }
             }
         }
@@ -480,9 +538,97 @@ private fun StepAdjust(
 }
 
 @Composable
+private fun CollapsableGroupHeader(
+    label: String,
+    count: Int,
+    total: Long,
+    expanded: Boolean,
+    onToggle: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val rotation by animateFloatAsState(
+        targetValue = if (expanded) 90f else 0f,
+        animationSpec = tween(300),
+        label = "chevron_$label",
+    )
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(onClick = onToggle),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Icon(
+            imageVector = Lucide.ChevronRight,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier
+                .size(14.dp)
+                .rotate(rotation),
+        )
+        Text(
+            text = "${label.uppercase()} · $count",
+            style = MaterialTheme.typography.labelSmall.copy(
+                fontWeight = FontWeight.SemiBold,
+                fontSize = 11.sp,
+                letterSpacing = 0.5.sp,
+            ),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Spacer(modifier = Modifier.weight(1f))
+        Text(
+            text = "${total.frenchAmount()} €",
+            style = MaterialTheme.typography.labelSmall.copy(
+                fontFamily = GeistMono,
+                fontSize = 13.sp,
+            ),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+@Composable
+private fun AddGroupButton(
+    label: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val primary = MaterialTheme.colorScheme.primary
+    val borderColor = primary.copy(alpha = 0.5f)
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .drawBehind {
+                drawRoundRect(
+                    color = borderColor,
+                    cornerRadius = CornerRadius(14.dp.toPx()),
+                    style = Stroke(
+                        width = 1.dp.toPx(),
+                        pathEffect = PathEffect.dashPathEffect(floatArrayOf(8f, 6f), 0f),
+                    ),
+                )
+            }
+            .padding(vertical = 14.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodySmall.copy(
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Medium,
+            ),
+            color = primary,
+        )
+    }
+}
+
+@Composable
 private fun AdjustRow(
     envelope: AllocationEnvelopeUiState,
     onAmountChanged: (String) -> Unit,
+    onDelete: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val iconTint = when (envelope.type) {
@@ -549,6 +695,18 @@ private fun AdjustRow(
             ),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+
+        IconButton(
+            onClick = onDelete,
+            modifier = Modifier.size(32.dp),
+        ) {
+            Icon(
+                imageVector = Lucide.Trash2,
+                contentDescription = "Supprimer",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(16.dp),
+            )
+        }
     }
 }
 
