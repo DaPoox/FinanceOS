@@ -9,6 +9,8 @@ import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.daprox.financeos.presentation.allocation.navigation.Allocation
+import com.daprox.financeos.presentation.allocation.navigation.allocationScreen
 import com.daprox.financeos.presentation.budget.navigation.Budget
 import com.daprox.financeos.presentation.budget.navigation.budgetScreen
 import com.daprox.financeos.presentation.core.designsystem.component.FinanceOSBottomNav
@@ -24,6 +26,10 @@ fun AppNavGraph() {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDest = navBackStackEntry?.destination
 
+    val showBottomBar = currentDest?.let { dest ->
+        dest.hasRoute<Dashboard>() == true || dest.hasRoute<Budget>() == true
+    } ?: false
+
     val selectedIndex = when {
         currentDest?.hasRoute<Budget>() == true -> AppTab.BUDGET.ordinal
         currentDest?.hasRoute<EnvelopeDetail>() == true -> AppTab.BUDGET.ordinal
@@ -32,18 +38,20 @@ fun AppNavGraph() {
 
     Scaffold(
         bottomBar = {
-            FinanceOSBottomNav(
-                items = AppTab.toBottomNavItems(),
-                selectedIndex = selectedIndex,
-                onItemSelected = { index ->
-                    when (AppTab.entries[index]) {
-                        AppTab.HOME -> navController.navigate(Dashboard) { launchSingleTop = true }
-                        AppTab.BUDGET -> navController.navigate(Budget) { launchSingleTop = true }
-                        AppTab.PATRIMOINE -> Unit // PatrimoineScreen not built yet
-                        AppTab.HISTORIQUE -> Unit // HistoryScreen not built yet
-                    }
-                },
-            )
+            if (showBottomBar) {
+                FinanceOSBottomNav(
+                    items = AppTab.toBottomNavItems(),
+                    selectedIndex = selectedIndex,
+                    onItemSelected = { index ->
+                        when (AppTab.entries[index]) {
+                            AppTab.HOME -> navController.navigate(Dashboard) { launchSingleTop = true }
+                            AppTab.BUDGET -> navController.navigate(Budget) { launchSingleTop = true }
+                            AppTab.PATRIMOINE -> Unit // PatrimoineScreen not built yet
+                            AppTab.HISTORIQUE -> Unit // HistoryScreen not built yet
+                        }
+                    },
+                )
+            }
         },
     ) { innerPadding ->
         NavHost(
@@ -53,15 +61,18 @@ fun AppNavGraph() {
         ) {
             dashboardScreen(
                 onNavigateToBudget = { navController.navigate(Budget) { launchSingleTop = true } },
-                onNavigateToAllocation = { /* AllocationScreen not built yet */ },
+                onNavigateToAllocation = { navController.navigate(Allocation) },
                 onNavigateToEnvelopeDetail = { id -> navController.navigate(EnvelopeDetail(id)) },
                 onNavigateToMonthHistory = { /* HistoryScreen not built yet */ },
             )
             budgetScreen(
-                onNavigateToAllocation = { /* AllocationScreen not built yet */ },
+                onNavigateToAllocation = { navController.navigate(Allocation) },
                 onNavigateToEnvelopeDetail = { id -> navController.navigate(EnvelopeDetail(id)) },
             )
             envelopeDetailScreen(
+                onNavigateBack = { navController.popBackStack() },
+            )
+            allocationScreen(
                 onNavigateBack = { navController.popBackStack() },
             )
         }

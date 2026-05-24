@@ -1,5 +1,6 @@
 package com.daprox.financeos.presentation
 
+import com.daprox.financeos.presentation.allocation.AllocationViewModel
 import com.daprox.financeos.presentation.budget.BudgetViewModel
 import com.daprox.financeos.presentation.dashboard.DashboardViewModel
 import com.daprox.financeos.presentation.envelopedetail.EnvelopeDetailViewModel
@@ -13,6 +14,7 @@ import org.koin.dsl.module
 val presentationModule = module {
     viewModel { DashboardViewModel() }
     viewModel { BudgetViewModel() }
+    viewModel { AllocationViewModel() }
     viewModel { (id: String) -> EnvelopeDetailViewModel(id) }
     viewModel { EnvelopesViewModel() }
     viewModel { EnvelopesEditViewModel() }
