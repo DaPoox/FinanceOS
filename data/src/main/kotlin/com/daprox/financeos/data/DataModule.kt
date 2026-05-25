@@ -1,13 +1,14 @@
 package com.daprox.financeos.data
 
+import com.daprox.financeos.data.db.FinanceDatabase
+import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
-// Koin module for :data — registers the Room database, DAOs, and repository implementations.
-// Assembled in :app via startKoin { modules(dataModule, ...) }.
 val dataModule = module {
-    // Room database and DAOs are registered here as features are added.
-    // Example:
-    // single { FinanceDatabase.create(get()) }
-    // single { get<FinanceDatabase>().budgetDao() }
-    // singleOf(::BudgetRepositoryImpl) { bind<BudgetRepository>() }
+    single { FinanceDatabase.create(androidContext()) }
+    single { get<FinanceDatabase>().envelopeDao() }
+    single { get<FinanceDatabase>().transactionDao() }
+    single { get<FinanceDatabase>().monthDao() }
+    single { get<FinanceDatabase>().monthAllocationDao() }
+    single { get<FinanceDatabase>().accountDao() }
 }

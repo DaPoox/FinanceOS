@@ -17,11 +17,11 @@ interface EnvelopeDao {
     suspend fun getById(id: String): EnvelopeEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(envelope: EnvelopeEntity)
+    suspend fun insert(envelope: EnvelopeEntity): Long
 
     @Update
-    suspend fun update(envelope: EnvelopeEntity)
+    suspend fun update(envelope: EnvelopeEntity): Int
 
     @Query("UPDATE envelopes SET isActive = 0 WHERE id = :id")
-    suspend fun softDelete(id: String)
+    suspend fun softDelete(id: String): Int
 }
