@@ -6,6 +6,7 @@ import com.daprox.financeos.presentation.dashboard.DashboardViewModel
 import com.daprox.financeos.presentation.envelopedetail.EnvelopeDetailViewModel
 import com.daprox.financeos.presentation.envelopes.EnvelopesViewModel
 import com.daprox.financeos.presentation.envelopes.edit.EnvelopesEditViewModel
+import com.daprox.financeos.presentation.history.HistoryViewModel
 import com.daprox.financeos.presentation.patrimoine.PatrimoineViewModel
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
@@ -20,4 +21,5 @@ val presentationModule = module {
     viewModel { EnvelopesViewModel() }
     viewModel { EnvelopesEditViewModel() }
     viewModel { PatrimoineViewModel() }
+    viewModel { HistoryViewModel() }
 }

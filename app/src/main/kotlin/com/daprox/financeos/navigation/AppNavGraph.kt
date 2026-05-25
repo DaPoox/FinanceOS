@@ -21,6 +21,8 @@ import com.daprox.financeos.presentation.envelopedetail.navigation.envelopeDetai
 import com.daprox.financeos.presentation.navigation.AppTab
 import com.daprox.financeos.presentation.patrimoine.navigation.Patrimoine
 import com.daprox.financeos.presentation.patrimoine.navigation.patrimoineScreen
+import com.daprox.financeos.presentation.history.navigation.History
+import com.daprox.financeos.presentation.history.navigation.historyScreen
 
 @Composable
 fun AppNavGraph() {
@@ -31,13 +33,15 @@ fun AppNavGraph() {
     val showBottomBar = currentDest?.let { dest ->
         dest.hasRoute<Dashboard>() == true ||
             dest.hasRoute<Budget>() == true ||
-            dest.hasRoute<Patrimoine>() == true
+            dest.hasRoute<Patrimoine>() == true ||
+            dest.hasRoute<History>() == true
     } ?: false
 
     val selectedIndex = when {
         currentDest?.hasRoute<Budget>() == true -> AppTab.BUDGET.ordinal
         currentDest?.hasRoute<EnvelopeDetail>() == true -> AppTab.BUDGET.ordinal
         currentDest?.hasRoute<Patrimoine>() == true -> AppTab.PATRIMOINE.ordinal
+        currentDest?.hasRoute<History>() == true -> AppTab.HISTORIQUE.ordinal
         else -> AppTab.HOME.ordinal
     }
 
@@ -52,7 +56,7 @@ fun AppNavGraph() {
                             AppTab.HOME -> navController.navigate(Dashboard) { launchSingleTop = true }
                             AppTab.BUDGET -> navController.navigate(Budget) { launchSingleTop = true }
                             AppTab.PATRIMOINE -> navController.navigate(Patrimoine) { launchSingleTop = true }
-                            AppTab.HISTORIQUE -> Unit // HistoryScreen not built yet
+                            AppTab.HISTORIQUE -> navController.navigate(History) { launchSingleTop = true }
                         }
                     },
                 )
@@ -68,7 +72,7 @@ fun AppNavGraph() {
                 onNavigateToBudget = { navController.navigate(Budget) { launchSingleTop = true } },
                 onNavigateToAllocation = { navController.navigate(Allocation) },
                 onNavigateToEnvelopeDetail = { id -> navController.navigate(EnvelopeDetail(id)) },
-                onNavigateToMonthHistory = { /* HistoryScreen not built yet */ },
+                onNavigateToMonthHistory = { navController.navigate(History) { launchSingleTop = true } },
             )
             budgetScreen(
                 onNavigateToAllocation = { navController.navigate(Allocation) },
@@ -81,6 +85,7 @@ fun AppNavGraph() {
                 onNavigateBack = { navController.popBackStack() },
             )
             patrimoineScreen()
+            historyScreen()
         }
     }
 }
