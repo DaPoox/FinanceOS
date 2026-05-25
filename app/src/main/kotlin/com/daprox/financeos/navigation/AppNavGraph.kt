@@ -19,6 +19,8 @@ import com.daprox.financeos.presentation.dashboard.navigation.dashboardScreen
 import com.daprox.financeos.presentation.envelopedetail.navigation.EnvelopeDetail
 import com.daprox.financeos.presentation.envelopedetail.navigation.envelopeDetailScreen
 import com.daprox.financeos.presentation.navigation.AppTab
+import com.daprox.financeos.presentation.patrimoine.navigation.Patrimoine
+import com.daprox.financeos.presentation.patrimoine.navigation.patrimoineScreen
 
 @Composable
 fun AppNavGraph() {
@@ -27,12 +29,15 @@ fun AppNavGraph() {
     val currentDest = navBackStackEntry?.destination
 
     val showBottomBar = currentDest?.let { dest ->
-        dest.hasRoute<Dashboard>() == true || dest.hasRoute<Budget>() == true
+        dest.hasRoute<Dashboard>() == true ||
+            dest.hasRoute<Budget>() == true ||
+            dest.hasRoute<Patrimoine>() == true
     } ?: false
 
     val selectedIndex = when {
         currentDest?.hasRoute<Budget>() == true -> AppTab.BUDGET.ordinal
         currentDest?.hasRoute<EnvelopeDetail>() == true -> AppTab.BUDGET.ordinal
+        currentDest?.hasRoute<Patrimoine>() == true -> AppTab.PATRIMOINE.ordinal
         else -> AppTab.HOME.ordinal
     }
 
@@ -46,7 +51,7 @@ fun AppNavGraph() {
                         when (AppTab.entries[index]) {
                             AppTab.HOME -> navController.navigate(Dashboard) { launchSingleTop = true }
                             AppTab.BUDGET -> navController.navigate(Budget) { launchSingleTop = true }
-                            AppTab.PATRIMOINE -> Unit // PatrimoineScreen not built yet
+                            AppTab.PATRIMOINE -> navController.navigate(Patrimoine) { launchSingleTop = true }
                             AppTab.HISTORIQUE -> Unit // HistoryScreen not built yet
                         }
                     },
@@ -75,6 +80,7 @@ fun AppNavGraph() {
             allocationScreen(
                 onNavigateBack = { navController.popBackStack() },
             )
+            patrimoineScreen()
         }
     }
 }
