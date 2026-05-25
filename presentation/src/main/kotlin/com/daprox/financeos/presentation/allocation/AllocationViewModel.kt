@@ -2,18 +2,20 @@ package com.daprox.financeos.presentation.allocation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.composables.icons.lucide.ChartBar
-import com.composables.icons.lucide.House
-import com.composables.icons.lucide.Lucide
-import com.composables.icons.lucide.Plane
-import com.composables.icons.lucide.ShoppingCart
-import com.composables.icons.lucide.TrendingUp
-import com.composables.icons.lucide.Utensils
-import com.composables.icons.lucide.Wallet
+import com.daprox.financeos.domain.model.EnvelopeTypeEnum as DomainEnvelopeType
+import com.daprox.financeos.domain.usecase.ObserveActiveEnvelopesUseCase
+import com.daprox.financeos.domain.usecase.ObserveCurrentMonthUseCase
+import com.daprox.financeos.domain.usecase.ObserveMonthAllocationsUseCase
+import com.daprox.financeos.presentation.core.designsystem.iconKeyToImageVector
 import com.daprox.financeos.presentation.dashboard.component.envelopeminigrid.EnvelopeTypeEnum
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -27,15 +29,7 @@ private val TYPE_LABELS = mapOf(
     EnvelopeTypeEnum.INVESTMENT to "Investissement",
 )
 
-private val MOCK_ENVELOPES = listOf(
-    AllocationEnvelopeUiState("loyer", "Loyer", Lucide.House, EnvelopeTypeEnum.FIXED, "900"),
-    AllocationEnvelopeUiState("courses", "Courses", Lucide.ShoppingCart, EnvelopeTypeEnum.VARIABLE, "420"),
-    AllocationEnvelopeUiState("restos", "Restos", Lucide.Utensils, EnvelopeTypeEnum.VARIABLE, "120"),
-    AllocationEnvelopeUiState("voyage", "Voyage été", Lucide.Plane, EnvelopeTypeEnum.MONTHLY, "400"),
-    AllocationEnvelopeUiState("fonds-urgence", "Fonds urgence", Lucide.TrendingUp, EnvelopeTypeEnum.PERMANENT, "200"),
-    AllocationEnvelopeUiState("epargne", "Épargne", Lucide.Wallet, EnvelopeTypeEnum.SAVINGS, "500"),
-    AllocationEnvelopeUiState("etf", "ETF World", Lucide.ChartBar, EnvelopeTypeEnum.INVESTMENT, "300"),
-)
+private fun DomainEnvelopeType.toPresentation(): EnvelopeTypeEnum = EnvelopeTypeEnum.valueOf(name)
 
 private fun List<AllocationEnvelopeUiState>.toGroups(): List<AllocationEnvelopeGroup> =
     TYPE_LABELS.entries.mapNotNull { (type, label) ->
@@ -49,20 +43,55 @@ private fun computeRemaining(income: String, groups: List<AllocationEnvelopeGrou
     return incomeVal - totalAlloc
 }
 
-class AllocationViewModel : ViewModel() {
+class AllocationViewModel(
+    observeCurrentMonth: ObserveCurrentMonthUseCase,
+    observeActiveEnvelopes: ObserveActiveEnvelopesUseCase,
+    observeMonthAllocations: ObserveMonthAllocationsUseCase,
+) : ViewModel() {
 
-    private val initialGroups = MOCK_ENVELOPES.toGroups()
-
-    private val _state = MutableStateFlow(
-        AllocationUiState(
-            groups = initialGroups,
-            remaining = computeRemaining("4200", initialGroups),
-        )
-    )
+    private val _state = MutableStateFlow(AllocationUiState())
     val state = _state.asStateFlow()
 
     private val _events = Channel<AllocationUiEvent>()
     val events = _events.receiveAsFlow()
+
+    init {
+        observeCurrentMonth()
+            .filterNotNull()
+            .flatMapLatest { month ->
+                combine(
+                    observeActiveEnvelopes(),
+                    observeMonthAllocations(month.id),
+                ) { envelopes, allocations ->
+                    val allocMap = allocations.associateBy { it.envelopeId }
+                    val uiEnvelopes = envelopes.map { env ->
+                        val alloc = allocMap[env.id]
+                        AllocationEnvelopeUiState(
+                            id = env.id,
+                            name = env.name,
+                            icon = iconKeyToImageVector(env.iconKey),
+                            type = env.type.toPresentation(),
+                            amount = alloc?.allocated?.toLong()?.toString() ?: "0",
+                        )
+                    }
+                    val income = month.income.toLong().toString()
+                    val groups = uiEnvelopes.toGroups()
+                    AllocationUiState(
+                        income = income,
+                        groups = groups,
+                        remaining = computeRemaining(income, groups),
+                    )
+                }
+            }
+            .onEach { newState ->
+                // Only update non-user-edited fields on first load; preserve step and template
+                _state.update { current ->
+                    if (current.groups.isEmpty()) newState
+                    else current.copy(income = newState.income, groups = newState.groups, remaining = newState.remaining)
+                }
+            }
+            .launchIn(viewModelScope)
+    }
 
     fun onAction(action: AllocationUiAction) {
         viewModelScope.launch {
@@ -85,11 +114,7 @@ class AllocationViewModel : ViewModel() {
                 }
                 is AllocationUiAction.OnIncomeChanged -> {
                     _state.update { state ->
-                        val newIncome = action.value
-                        state.copy(
-                            income = newIncome,
-                            remaining = computeRemaining(newIncome, state.groups),
-                        )
+                        state.copy(income = action.value, remaining = computeRemaining(action.value, state.groups))
                     }
                 }
                 is AllocationUiAction.OnTemplateSelected -> {
@@ -104,10 +129,7 @@ class AllocationViewModel : ViewModel() {
                                 }
                             )
                         }
-                        state.copy(
-                            groups = newGroups,
-                            remaining = computeRemaining(state.income, newGroups),
-                        )
+                        state.copy(groups = newGroups, remaining = computeRemaining(state.income, newGroups))
                     }
                 }
             }

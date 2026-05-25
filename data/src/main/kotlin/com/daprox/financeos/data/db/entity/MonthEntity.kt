@@ -10,4 +10,6 @@ data class MonthEntity(
     val income: Double,
     val status: String = "good",        // best | good | mid | hard
     val isAllocated: Boolean = false,
+    val spent: Double = 0.0,
+    val contrib: Double = 0.0,
 )

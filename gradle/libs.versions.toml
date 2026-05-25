@@ -14,7 +14,7 @@ composeBom = "2025.03.00"
 lucideIcons = "1.1.0"
 
 # Room
-room = "2.6.1"
+room = "2.7.0"
 
 # Koin
 koin = "3.5.6"

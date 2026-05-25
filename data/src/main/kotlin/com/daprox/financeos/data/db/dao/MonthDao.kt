@@ -17,8 +17,8 @@ interface MonthDao {
     suspend fun getById(monthId: String): MonthEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(month: MonthEntity): Long
+    suspend fun insert(month: MonthEntity)
 
     @Update
-    suspend fun update(month: MonthEntity): Int
+    suspend fun update(month: MonthEntity)
 }

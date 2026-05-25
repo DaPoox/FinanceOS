@@ -9,13 +9,11 @@ import com.daprox.financeos.presentation.patrimoine.PatrimoineViewModel
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
 
-// Koin module for :presentation — registers all ViewModels.
-// Assembled in :app via startKoin { modules(..., presentationModule) }.
 val presentationModule = module {
-    viewModel { DashboardViewModel() }
-    viewModel { BudgetViewModel() }
-    viewModel { AllocationViewModel() }
-    viewModel { (id: String) -> EnvelopeDetailViewModel(id) }
-    viewModel { PatrimoineViewModel() }
-    viewModel { HistoryViewModel() }
+    viewModel { DashboardViewModel(get(), get(), get(), get(), get(), get()) }
+    viewModel { BudgetViewModel(get(), get(), get(), get()) }
+    viewModel { AllocationViewModel(get(), get(), get()) }
+    viewModel { (id: String) -> EnvelopeDetailViewModel(id, get(), get(), get(), get()) }
+    viewModel { PatrimoineViewModel(get()) }
+    viewModel { HistoryViewModel(get()) }
 }

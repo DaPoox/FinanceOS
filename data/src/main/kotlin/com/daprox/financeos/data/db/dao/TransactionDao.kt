@@ -17,8 +17,8 @@ interface TransactionDao {
     fun getByEnvelopeAndMonth(envelopeId: String, monthId: String): Flow<List<TransactionEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(tx: TransactionEntity): Long
+    suspend fun insert(tx: TransactionEntity)
 
     @Delete
-    suspend fun delete(tx: TransactionEntity): Int
+    suspend fun delete(tx: TransactionEntity)
 }

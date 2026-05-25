@@ -13,8 +13,8 @@ interface MonthAllocationDao {
     fun getByMonth(monthId: String): Flow<List<MonthAllocationEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertAll(allocations: List<MonthAllocationEntity>): List<Long>
+    suspend fun insertAll(allocations: List<MonthAllocationEntity>)
 
     @Query("DELETE FROM month_allocations WHERE monthId = :monthId")
-    suspend fun deleteByMonth(monthId: String): Int
+    suspend fun deleteByMonth(monthId: String)
 }

@@ -1,38 +1,46 @@
 package com.daprox.financeos.presentation.history
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.daprox.financeos.domain.usecase.ObserveMonthsUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlin.math.roundToInt
 
-private val MOCK_MONTHS = listOf(
-    MonthRowUiState("mai 26", income = 4200.0, spent = 2960.0, contrib = 1840.0, status = MonthStatusEnum.BEST),
-    MonthRowUiState("avr 26", income = 4200.0, spent = 3210.0, contrib = 1410.0, status = MonthStatusEnum.GOOD),
-    MonthRowUiState("mar 26", income = 3950.0, spent = 3380.0, contrib = 980.0, status = MonthStatusEnum.MID),
-    MonthRowUiState("fév 26", income = 4400.0, spent = 3210.0, contrib = 1620.0, status = MonthStatusEnum.GOOD),
-    MonthRowUiState("jan 26", income = 4200.0, spent = 3340.0, contrib = 1280.0, status = MonthStatusEnum.GOOD),
-    MonthRowUiState("déc 25", income = 4800.0, spent = 4520.0, contrib = 520.0, status = MonthStatusEnum.HARD),
-    MonthRowUiState("nov 25", income = 4200.0, spent = 3120.0, contrib = 1390.0, status = MonthStatusEnum.GOOD),
-    MonthRowUiState("oct 25", income = 4200.0, spent = 3290.0, contrib = 1180.0, status = MonthStatusEnum.GOOD),
-)
+class HistoryViewModel(
+    observeMonths: ObserveMonthsUseCase,
+) : ViewModel() {
 
-private fun buildState(): HistoryUiState {
-    val totalIncome = MOCK_MONTHS.sumOf { it.income }
-    val totalContrib = MOCK_MONTHS.sumOf { it.contrib }
-    val avgSavingRate = ((totalContrib / totalIncome) * 100).roundToInt()
-    val barData = MOCK_MONTHS.reversed().map { it.contrib }
-    return HistoryUiState(
-        totalIncome = totalIncome,
-        totalContrib = totalContrib,
-        avgSavingRate = avgSavingRate,
-        barData = barData,
-        months = MOCK_MONTHS,
-    )
-}
-
-class HistoryViewModel : ViewModel() {
-    private val _state = MutableStateFlow(buildState())
+    private val _state = MutableStateFlow(HistoryUiState())
     val state = _state.asStateFlow()
+
+    init {
+        observeMonths()
+            .onEach { months ->
+                val rows = months.map { month ->
+                    MonthRowUiState(
+                        monthLabel = month.label,
+                        income = month.income,
+                        spent = month.spent,
+                        contrib = month.contrib,
+                        status = MonthStatusEnum.valueOf(month.status.name),
+                    )
+                }
+                val totalIncome = rows.sumOf { it.income }
+                val totalContrib = rows.sumOf { it.contrib }
+                val avgSavingRate = if (totalIncome > 0) ((totalContrib / totalIncome) * 100).roundToInt() else 0
+                _state.value = HistoryUiState(
+                    totalIncome = totalIncome,
+                    totalContrib = totalContrib,
+                    avgSavingRate = avgSavingRate,
+                    barData = rows.reversed().map { it.contrib },
+                    months = rows,
+                )
+            }
+            .launchIn(viewModelScope)
+    }
 
     fun onAction(action: HistoryUiAction) = Unit
 }

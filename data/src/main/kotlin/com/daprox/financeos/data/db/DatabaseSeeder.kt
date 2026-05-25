@@ -55,14 +55,14 @@ object DatabaseSeeder {
     private suspend fun seedMonths(db: FinanceDatabase) {
         val dao = db.monthDao()
         listOf(
-            MonthEntity(id = "2026-05", label = "Mai 2026", income = 4200.0, status = "best", isAllocated = true),
-            MonthEntity(id = "2026-04", label = "Avr 2026", income = 4200.0, status = "good", isAllocated = true),
-            MonthEntity(id = "2026-03", label = "Mar 2026", income = 3950.0, status = "mid",  isAllocated = true),
-            MonthEntity(id = "2026-02", label = "Fév 2026", income = 4400.0, status = "good", isAllocated = true),
-            MonthEntity(id = "2026-01", label = "Jan 2026", income = 4200.0, status = "good", isAllocated = true),
-            MonthEntity(id = "2025-12", label = "Déc 2025", income = 4800.0, status = "hard", isAllocated = true),
-            MonthEntity(id = "2025-11", label = "Nov 2025", income = 4200.0, status = "good", isAllocated = true),
-            MonthEntity(id = "2025-10", label = "Oct 2025", income = 4200.0, status = "good", isAllocated = true),
+            MonthEntity(id = "2026-05", label = "Mai 2026", income = 4200.0, status = "best", isAllocated = true, spent = 2960.0, contrib = 1840.0),
+            MonthEntity(id = "2026-04", label = "Avr 2026", income = 4200.0, status = "good", isAllocated = true, spent = 3210.0, contrib = 1410.0),
+            MonthEntity(id = "2026-03", label = "Mar 2026", income = 3950.0, status = "mid",  isAllocated = true, spent = 3380.0, contrib = 980.0),
+            MonthEntity(id = "2026-02", label = "Fév 2026", income = 4400.0, status = "good", isAllocated = true, spent = 3210.0, contrib = 1620.0),
+            MonthEntity(id = "2026-01", label = "Jan 2026", income = 4200.0, status = "good", isAllocated = true, spent = 3340.0, contrib = 1280.0),
+            MonthEntity(id = "2025-12", label = "Déc 2025", income = 4800.0, status = "hard", isAllocated = true, spent = 4520.0, contrib = 520.0),
+            MonthEntity(id = "2025-11", label = "Nov 2025", income = 4200.0, status = "good", isAllocated = true, spent = 3120.0, contrib = 1390.0),
+            MonthEntity(id = "2025-10", label = "Oct 2025", income = 4200.0, status = "good", isAllocated = true, spent = 3290.0, contrib = 1180.0),
         ).forEach { dao.insert(it) }
     }
 
