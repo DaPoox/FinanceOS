@@ -3,6 +3,8 @@ package com.daprox.financeos.presentation.budget
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.daprox.financeos.domain.model.EnvelopeTypeEnum as DomainEnvelopeType
+import com.daprox.financeos.core.Result
+import com.daprox.financeos.domain.usecase.AddTransactionUseCase
 import com.daprox.financeos.domain.usecase.ObserveActiveEnvelopesUseCase
 import com.daprox.financeos.domain.usecase.ObserveCurrentMonthUseCase
 import com.daprox.financeos.domain.usecase.ObserveMonthAllocationsUseCase
@@ -47,7 +49,10 @@ class BudgetViewModel(
     observeActiveEnvelopes: ObserveActiveEnvelopesUseCase,
     observeMonthAllocations: ObserveMonthAllocationsUseCase,
     observeMonthTransactions: ObserveMonthTransactionsUseCase,
+    private val addTransaction: AddTransactionUseCase,
 ) : ViewModel() {
+
+    private var currentMonthId = ""
 
     private val _state = MutableStateFlow(BudgetUiState())
     val state = _state.asStateFlow()
@@ -59,6 +64,7 @@ class BudgetViewModel(
         observeCurrentMonth()
             .filterNotNull()
             .flatMapLatest { month ->
+                currentMonthId = month.id
                 combine(
                     observeActiveEnvelopes(),
                     observeMonthAllocations(month.id),
@@ -117,7 +123,13 @@ class BudgetViewModel(
                 is BudgetUiAction.OnEnvelopeClick -> _events.send(BudgetUiEvent.NavigateToEnvelopeDetail(action.id))
                 is BudgetUiAction.OnAddExpenseClick -> _state.update { it.copy(isExpenseSheetVisible = true) }
                 is BudgetUiAction.OnExpenseDismiss -> _state.update { it.copy(isExpenseSheetVisible = false) }
-                is BudgetUiAction.OnExpenseSave -> _state.update { it.copy(isExpenseSheetVisible = false) }
+                is BudgetUiAction.OnExpenseSave -> {
+                    _state.update { it.copy(isSaving = true) }
+                    when (addTransaction(action.envelopeId, currentMonthId, action.amount, action.note)) {
+                        is Result.Success -> _state.update { it.copy(isSaving = false, isExpenseSheetVisible = false) }
+                        is Result.Error -> _state.update { it.copy(isSaving = false) }
+                    }
+                }
             }
         }
     }

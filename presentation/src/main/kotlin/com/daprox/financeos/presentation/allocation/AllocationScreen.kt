@@ -103,6 +103,7 @@ fun AllocationScreenRoot(
     ObserveAsEvents(viewModel.events) { event ->
         when (event) {
             is AllocationUiEvent.NavigateBack -> onNavigateBack()
+            is AllocationUiEvent.ShowError -> Unit
         }
     }
 

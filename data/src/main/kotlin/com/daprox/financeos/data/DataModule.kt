@@ -11,6 +11,9 @@ import com.daprox.financeos.domain.repository.EnvelopeRepository
 import com.daprox.financeos.domain.repository.MonthAllocationRepository
 import com.daprox.financeos.domain.repository.MonthRepository
 import com.daprox.financeos.domain.repository.TransactionRepository
+import com.daprox.financeos.domain.usecase.AddTransactionUseCase
+import com.daprox.financeos.domain.usecase.AllocateMonthUseCase
+import com.daprox.financeos.domain.usecase.CopyAllocationFromMonthUseCase
 import com.daprox.financeos.domain.usecase.ObserveAccountsUseCase
 import com.daprox.financeos.domain.usecase.ObserveActiveEnvelopesUseCase
 import com.daprox.financeos.domain.usecase.ObserveCurrentMonthUseCase
@@ -47,4 +50,7 @@ val dataModule = module {
     single { ObserveMonthTransactionsUseCase(get()) }
     single { ObserveEnvelopeTransactionsUseCase(get()) }
     single { ObserveAccountsUseCase(get()) }
+    single { AddTransactionUseCase(get()) }
+    single { AllocateMonthUseCase(get(), get()) }
+    single { CopyAllocationFromMonthUseCase(get()) }
 }

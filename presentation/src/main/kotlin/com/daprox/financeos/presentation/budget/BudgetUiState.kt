@@ -11,4 +11,5 @@ data class BudgetUiState(
     val groups: List<BudgetEnvelopeGroup> = emptyList(),
     val expenseEnvelopes: List<EnvelopeChipUiState> = emptyList(),
     val isExpenseSheetVisible: Boolean = false,
+    val isSaving: Boolean = false,
 )

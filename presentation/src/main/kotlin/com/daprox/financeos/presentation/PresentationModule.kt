@@ -11,8 +11,8 @@ import org.koin.dsl.module
 
 val presentationModule = module {
     viewModel { DashboardViewModel(get(), get(), get(), get(), get(), get()) }
-    viewModel { BudgetViewModel(get(), get(), get(), get()) }
-    viewModel { AllocationViewModel(get(), get(), get()) }
+    viewModel { BudgetViewModel(get(), get(), get(), get(), get()) }
+    viewModel { AllocationViewModel(get(), get(), get(), get(), get()) }
     viewModel { (id: String) -> EnvelopeDetailViewModel(id, get(), get(), get(), get()) }
     viewModel { PatrimoineViewModel(get()) }
     viewModel { HistoryViewModel(get()) }

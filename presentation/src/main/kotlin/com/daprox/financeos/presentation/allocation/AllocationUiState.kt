@@ -10,4 +10,5 @@ data class AllocationUiState(
     val selectedTemplate: TemplateTypeEnum = TemplateTypeEnum.PREVIOUS,
     val groups: List<AllocationEnvelopeGroup> = emptyList(),
     val remaining: Double = 0.0,
+    val isSaving: Boolean = false,
 )
