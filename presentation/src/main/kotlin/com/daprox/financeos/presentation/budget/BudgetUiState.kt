@@ -6,6 +6,8 @@ import com.daprox.financeos.presentation.expense.EnvelopeChipUiState
 
 @Stable
 data class BudgetUiState(
+    val isLoading: Boolean = true,
+    val isError: Boolean = false,
     val monthLabel: String = "Mai 2026",
     val globalCard: BudgetGlobalCardUiState = BudgetGlobalCardUiState(),
     val groups: List<BudgetEnvelopeGroup> = emptyList(),

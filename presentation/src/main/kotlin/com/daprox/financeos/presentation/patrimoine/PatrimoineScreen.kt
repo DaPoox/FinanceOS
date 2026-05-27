@@ -49,7 +49,9 @@ import com.daprox.financeos.core.extensions.frenchAmount
 import com.daprox.financeos.presentation.core.ObserveAsEvents
 import com.daprox.financeos.presentation.core.designsystem.FinanceOSTheme
 import com.daprox.financeos.presentation.core.designsystem.GeistMono
+import com.daprox.financeos.presentation.core.designsystem.component.ErrorStateView
 import com.daprox.financeos.presentation.core.designsystem.component.FinProgressBar
+import com.daprox.financeos.presentation.core.designsystem.component.ShimmerBox
 import com.daprox.financeos.presentation.core.designsystem.finColors
 import org.koin.androidx.compose.koinViewModel
 import kotlin.math.PI
@@ -77,37 +79,60 @@ fun PatrimoineScreen(
     state: PatrimoineUiState,
     onAction: (PatrimoineUiAction) -> Unit,
 ) {
+    val baseModifier = Modifier
+        .fillMaxSize()
+        .background(MaterialTheme.colorScheme.background)
+
+    when {
+        state.isLoading -> PatrimoineScreenSkeleton(modifier = baseModifier)
+        state.isError -> Column(modifier = baseModifier) {
+            ErrorStateView(onRetry = { onAction(PatrimoineUiAction.OnRetry) })
+        }
+        else -> Column(
+            modifier = baseModifier
+                .verticalScroll(rememberScrollState())
+                .padding(bottom = 24.dp),
+        ) {
+            PatrimoineHeader(
+                netWorth = state.netWorth,
+                deltaLabel = state.deltaLabel,
+                deltaPct = state.deltaPct,
+            )
+            Spacer(modifier = Modifier.height(22.dp))
+            DonutCard(
+                savings = state.savings,
+                investment = state.investment,
+                liquid = state.liquid,
+                modifier = Modifier.padding(horizontal = 20.dp),
+            )
+            Spacer(modifier = Modifier.height(14.dp))
+            SparklineCard(
+                data = state.sparklineData,
+                selectedRange = state.selectedRange,
+                onRangeSelected = { onAction(PatrimoineUiAction.OnRangeSelected(it)) },
+                modifier = Modifier.padding(horizontal = 20.dp),
+            )
+            Spacer(modifier = Modifier.height(22.dp))
+            AccountsSection(
+                accounts = state.accounts,
+                modifier = Modifier.padding(horizontal = 20.dp),
+            )
+        }
+    }
+}
+
+@Composable
+private fun PatrimoineScreenSkeleton(modifier: Modifier = Modifier) {
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+        modifier = modifier
             .verticalScroll(rememberScrollState())
-            .padding(bottom = 24.dp),
+            .padding(horizontal = 20.dp, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        PatrimoineHeader(
-            netWorth = state.netWorth,
-            deltaLabel = state.deltaLabel,
-            deltaPct = state.deltaPct,
-        )
-        Spacer(modifier = Modifier.height(22.dp))
-        DonutCard(
-            savings = state.savings,
-            investment = state.investment,
-            liquid = state.liquid,
-            modifier = Modifier.padding(horizontal = 20.dp),
-        )
-        Spacer(modifier = Modifier.height(14.dp))
-        SparklineCard(
-            data = state.sparklineData,
-            selectedRange = state.selectedRange,
-            onRangeSelected = { onAction(PatrimoineUiAction.OnRangeSelected(it)) },
-            modifier = Modifier.padding(horizontal = 20.dp),
-        )
-        Spacer(modifier = Modifier.height(22.dp))
-        AccountsSection(
-            accounts = state.accounts,
-            modifier = Modifier.padding(horizontal = 20.dp),
-        )
+        ShimmerBox(modifier = Modifier.fillMaxWidth().height(100.dp))
+        ShimmerBox(modifier = Modifier.fillMaxWidth().height(160.dp))
+        ShimmerBox(modifier = Modifier.fillMaxWidth().height(180.dp))
+        ShimmerBox(modifier = Modifier.fillMaxWidth().height(120.dp))
     }
 }
 
@@ -669,6 +694,7 @@ private fun PreviewPatrimoineScreen() {
     FinanceOSTheme {
         PatrimoineScreen(
             state = PatrimoineUiState(
+                isLoading = false,
                 netWorth = 60520.0,
                 deltaLabel = "+12 380 € · 6 mois",
                 deltaPct = "+11.8%",

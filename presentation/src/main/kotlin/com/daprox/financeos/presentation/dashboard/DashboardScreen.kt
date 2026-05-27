@@ -2,15 +2,21 @@ package com.daprox.financeos.presentation.dashboard
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.daprox.financeos.presentation.core.designsystem.component.ErrorStateView
+import com.daprox.financeos.presentation.core.designsystem.component.ShimmerBox
 import com.composables.icons.lucide.Car
 import com.composables.icons.lucide.House
 import com.composables.icons.lucide.Lucide
@@ -68,48 +74,74 @@ fun DashboardScreen(
     onAction: (DashboardUiAction) -> Unit,
 ) {
     val navBarPadding = WindowInsets.navigationBars.asPaddingValues()
+    val contentPadding = PaddingValues(
+        start = 16.dp,
+        end = 16.dp,
+        top = 16.dp,
+        bottom = 16.dp + navBarPadding.calculateBottomPadding(),
+    )
 
+    when {
+        state.isLoading -> DashboardScreenSkeleton(contentPadding = contentPadding)
+        state.isError -> LazyColumn(contentPadding = contentPadding) {
+            item { ErrorStateView(onRetry = { onAction(DashboardUiAction.OnRetry) }) }
+        }
+        else -> LazyColumn(
+            contentPadding = contentPadding,
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            item { NetWorthHeroCard(state = state.netWorthHero) }
+
+            item { InsightCard(state = state.insight) }
+
+            item {
+                BudgetMonthCard(
+                    state = state.budgetMonth,
+                    onTap = { onAction(DashboardUiAction.OnBudgetMonthClick) },
+                    onAllocateTap = { onAction(DashboardUiAction.OnAllocateBudgetClick) },
+                )
+            }
+
+            if (state.envelopes.isNotEmpty()) {
+                item {
+                    EnvelopeMiniGrid(
+                        envelopes = state.envelopes,
+                        onEnvelopeClick = { id -> onAction(DashboardUiAction.OnEnvelopeClick(id)) },
+                        onSeeAllClick = { onAction(DashboardUiAction.OnSeeAllEnvelopesClick) },
+                    )
+                }
+            }
+
+            item { SparklineCard(state = state.sparkline) }
+
+            if (state.recentMonths.isNotEmpty()) {
+                item {
+                    RecentMonthsSection(
+                        months = state.recentMonths,
+                        onMonthClick = { id -> onAction(DashboardUiAction.OnRecentMonthClick(id)) },
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DashboardScreenSkeleton(contentPadding: PaddingValues) {
     LazyColumn(
-        contentPadding = PaddingValues(
-            start = 16.dp,
-            end = 16.dp,
-            top = 16.dp,
-            bottom = 16.dp + navBarPadding.calculateBottomPadding(),
-        ),
+        contentPadding = contentPadding,
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        item { NetWorthHeroCard(state = state.netWorthHero) }
-
-        item { InsightCard(state = state.insight) }
-
+        item { ShimmerBox(modifier = Modifier.fillMaxWidth().height(180.dp)) }
+        item { ShimmerBox(modifier = Modifier.fillMaxWidth().height(60.dp)) }
+        item { ShimmerBox(modifier = Modifier.fillMaxWidth().height(100.dp)) }
         item {
-            BudgetMonthCard(
-                state = state.budgetMonth,
-                onTap = { onAction(DashboardUiAction.OnBudgetMonthClick) },
-                onAllocateTap = { onAction(DashboardUiAction.OnAllocateBudgetClick) },
-            )
-        }
-
-        if (state.envelopes.isNotEmpty()) {
-            item {
-                EnvelopeMiniGrid(
-                    envelopes = state.envelopes,
-                    onEnvelopeClick = { id -> onAction(DashboardUiAction.OnEnvelopeClick(id)) },
-                    onSeeAllClick = { onAction(DashboardUiAction.OnSeeAllEnvelopesClick) },
-                )
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                ShimmerBox(modifier = Modifier.weight(1f).height(80.dp))
+                ShimmerBox(modifier = Modifier.weight(1f).height(80.dp))
             }
         }
-
-        item { SparklineCard(state = state.sparkline) }
-
-        if (state.recentMonths.isNotEmpty()) {
-            item {
-                RecentMonthsSection(
-                    months = state.recentMonths,
-                    onMonthClick = { id -> onAction(DashboardUiAction.OnRecentMonthClick(id)) },
-                )
-            }
-        }
+        item { ShimmerBox(modifier = Modifier.fillMaxWidth().height(120.dp)) }
     }
 }
 
@@ -119,6 +151,7 @@ private fun DashboardScreenPreview() {
     FinanceOSTheme {
         DashboardScreen(
             state = DashboardUiState(
+                isLoading = false,
                 netWorthHero = NetWorthHeroUiState(
                     netWorth = 60580.0,
                     delta = 1840.0,

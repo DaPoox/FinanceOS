@@ -10,6 +10,8 @@ import com.daprox.financeos.presentation.dashboard.component.sparklinecard.Spark
 
 @Stable
 data class DashboardUiState(
+    val isLoading: Boolean = true,
+    val isError: Boolean = false,
     val netWorthHero: NetWorthHeroUiState = NetWorthHeroUiState(),
     val insight: InsightCardUiState? = null,
     val budgetMonth: BudgetMonthCardUiState = BudgetMonthCardUiState(),

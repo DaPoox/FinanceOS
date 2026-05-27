@@ -6,6 +6,8 @@ import com.daprox.financeos.presentation.dashboard.component.envelopeminigrid.En
 
 @Stable
 data class EnvelopeDetailUiState(
+    val isLoading: Boolean = true,
+    val isError: Boolean = false,
     val id: String = "",
     val name: String = "",
     val typeLabel: String = "",

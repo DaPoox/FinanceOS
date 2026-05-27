@@ -6,4 +6,5 @@ sealed interface AllocationUiAction {
     data class OnIncomeChanged(val value: String) : AllocationUiAction
     data class OnTemplateSelected(val template: TemplateTypeEnum) : AllocationUiAction
     data class OnEnvelopeAmountChanged(val id: String, val amount: String) : AllocationUiAction
+    data object OnRetry : AllocationUiAction
 }

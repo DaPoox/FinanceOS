@@ -6,4 +6,5 @@ sealed interface DashboardUiAction {
     data object OnSeeAllEnvelopesClick : DashboardUiAction
     data class OnEnvelopeClick(val id: String) : DashboardUiAction
     data class OnRecentMonthClick(val id: String) : DashboardUiAction
+    data object OnRetry : DashboardUiAction
 }
