@@ -57,6 +57,8 @@ import com.daprox.financeos.presentation.core.designsystem.FinanceOSTheme
 import com.daprox.financeos.presentation.core.designsystem.GeistMono
 import com.daprox.financeos.presentation.dashboard.component.envelopeminigrid.EnvelopeStatusEnum
 import com.daprox.financeos.presentation.dashboard.component.envelopeminigrid.EnvelopeTypeEnum
+import com.daprox.financeos.presentation.core.designsystem.component.ErrorStateView
+import com.daprox.financeos.presentation.core.designsystem.component.ShimmerBox
 import com.daprox.financeos.presentation.expense.EnvelopeChipUiState
 import com.daprox.financeos.presentation.expense.ExpenseSheet
 import org.koin.androidx.compose.koinViewModel
@@ -126,45 +128,52 @@ fun BudgetScreen(
             }
         },
     ) { innerPadding ->
-        LazyColumn(
-            contentPadding = PaddingValues(
-                top = innerPadding.calculateTopPadding(),
-                bottom = innerPadding.calculateBottomPadding() + navBarPadding.calculateBottomPadding() + 8.dp,
-            ),
-        ) {
-            item {
-                BudgetHeader(
-                    monthLabel = state.monthLabel,
-                    onAllouerClick = { onAction(BudgetUiAction.OnAllouerClick) },
-                )
-            }
+        val listPadding = PaddingValues(
+            top = innerPadding.calculateTopPadding(),
+            bottom = innerPadding.calculateBottomPadding() + navBarPadding.calculateBottomPadding() + 8.dp,
+        )
 
-            item {
-                BudgetGlobalCard(
-                    state = state.globalCard,
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                )
-            }
-
-            state.groups.forEach { group ->
-                item(key = "label_${group.label}") {
-                    BudgetSectionLabel(
-                        label = group.label,
-                        groupTotal = group.envelopes.sumOf { it.allocated },
+        when {
+            state.isLoading -> BudgetScreenSkeleton(contentPadding = listPadding)
+            state.isError -> ErrorStateView(
+                onRetry = { onAction(BudgetUiAction.OnRetry) },
+                modifier = Modifier.padding(innerPadding).padding(horizontal = 16.dp),
+            )
+            else -> LazyColumn(contentPadding = listPadding) {
+                item {
+                    BudgetHeader(
+                        monthLabel = state.monthLabel,
+                        onAllouerClick = { onAction(BudgetUiAction.OnAllouerClick) },
                     )
                 }
 
-                itemsIndexed(group.envelopes, key = { _, e -> e.id }) { index, envelope ->
-                    EnvelopeRow(
-                        state = envelope,
-                        onClick = { onAction(BudgetUiAction.OnEnvelopeClick(envelope.id)) },
-                        animationDelayMs = index * 40,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 3.dp),
+                item {
+                    BudgetGlobalCard(
+                        state = state.globalCard,
+                        modifier = Modifier.padding(horizontal = 16.dp),
                     )
                 }
-            }
 
-            item { Spacer(modifier = Modifier.height(8.dp)) }
+                state.groups.forEach { group ->
+                    item(key = "label_${group.label}") {
+                        BudgetSectionLabel(
+                            label = group.label,
+                            groupTotal = group.envelopes.sumOf { it.allocated },
+                        )
+                    }
+
+                    itemsIndexed(group.envelopes, key = { _, e -> e.id }) { index, envelope ->
+                        EnvelopeRow(
+                            state = envelope,
+                            onClick = { onAction(BudgetUiAction.OnEnvelopeClick(envelope.id)) },
+                            animationDelayMs = index * 40,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 3.dp),
+                        )
+                    }
+                }
+
+                item { Spacer(modifier = Modifier.height(8.dp)) }
+            }
         }
     }
 
@@ -175,6 +184,20 @@ fun BudgetScreen(
             onDismiss = { onAction(BudgetUiAction.OnExpenseDismiss) },
             onSave = { amount, id, note -> onAction(BudgetUiAction.OnExpenseSave(amount, id, note)) },
         )
+    }
+}
+
+@Composable
+private fun BudgetScreenSkeleton(contentPadding: PaddingValues) {
+    LazyColumn(
+        contentPadding = contentPadding,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        item { Spacer(modifier = Modifier.height(16.dp)) }
+        item { ShimmerBox(modifier = Modifier.fillMaxWidth().height(100.dp).padding(horizontal = 16.dp)) }
+        repeat(4) {
+            item { ShimmerBox(modifier = Modifier.fillMaxWidth().height(56.dp).padding(horizontal = 16.dp)) }
+        }
     }
 }
 
@@ -300,6 +323,7 @@ private fun BudgetScreenPreview() {
     FinanceOSTheme {
         BudgetScreen(
             state = BudgetUiState(
+                isLoading = false,
                 monthLabel = "Mai 2026",
                 globalCard = BudgetGlobalCardUiState(
                     income = 4200.0,

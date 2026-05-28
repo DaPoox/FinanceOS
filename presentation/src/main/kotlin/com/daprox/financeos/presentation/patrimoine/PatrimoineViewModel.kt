@@ -1,5 +1,6 @@
 package com.daprox.financeos.presentation.patrimoine
 
+import android.util.Log
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,7 +10,10 @@ import com.daprox.financeos.domain.usecase.ObserveAccountsUseCase
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
@@ -43,8 +47,10 @@ private fun Account.toUiState(): AccountUiState = AccountUiState(
 )
 
 class PatrimoineViewModel(
-    observeAccounts: ObserveAccountsUseCase,
+    private val observeAccounts: ObserveAccountsUseCase,
 ) : ViewModel() {
+
+    private val _retryTrigger = MutableStateFlow(0)
 
     private val _state = MutableStateFlow(
         run {
@@ -58,24 +64,36 @@ class PatrimoineViewModel(
     val events = _events.receiveAsFlow()
 
     init {
-        observeAccounts()
-            .onEach { accounts ->
-                val uiAccounts = accounts.map { it.toUiState() }
-                val liquid = uiAccounts.filter { it.type == AccountTypeEnum.COURANT }.sumOf { it.balance }
-                val savings = uiAccounts.filter { it.type == AccountTypeEnum.EPARGNE }.sumOf { it.balance }
-                val investment = uiAccounts.filter { it.type == AccountTypeEnum.INVESTISSEMENT }.sumOf { it.balance }
-                _state.update {
-                    it.copy(
-                        netWorth = liquid + savings + investment,
-                        savings = savings,
-                        investment = investment,
-                        liquid = liquid,
-                        accounts = uiAccounts,
-                        deltaLabel = "+12 380 € · 6 mois",
-                        deltaPct = "+11.8%",
-                    )
-                }
+        _retryTrigger
+            .flatMapLatest {
+                observeAccounts()
+                    .map { accounts ->
+                        val uiAccounts = accounts.map { it.toUiState() }
+                        val liquid = uiAccounts.filter { it.type == AccountTypeEnum.COURANT }.sumOf { it.balance }
+                        val savings = uiAccounts.filter { it.type == AccountTypeEnum.EPARGNE }.sumOf { it.balance }
+                        val investment = uiAccounts.filter { it.type == AccountTypeEnum.INVESTISSEMENT }.sumOf { it.balance }
+                        val currentRange = _state.value.selectedRange
+                        val (sparkData, sparkLabels) = sparklineFor(currentRange)
+                        PatrimoineUiState(
+                            isLoading = false,
+                            netWorth = liquid + savings + investment,
+                            savings = savings,
+                            investment = investment,
+                            liquid = liquid,
+                            accounts = uiAccounts,
+                            deltaLabel = "+12 380 € · 6 mois",
+                            deltaPct = "+11.8%",
+                            selectedRange = currentRange,
+                            sparklineData = sparkData,
+                            sparklineMonths = sparkLabels,
+                        )
+                    }
+                    .catch { e ->
+                        Log.e("PatrimoineViewModel", "Flow error", e)
+                        emit(PatrimoineUiState(isLoading = false, isError = true))
+                    }
             }
+            .onEach { _state.value = it }
             .launchIn(viewModelScope)
     }
 
@@ -85,6 +103,10 @@ class PatrimoineViewModel(
                 is PatrimoineUiAction.OnRangeSelected -> {
                     val (sparkData, sparkLabels) = sparklineFor(action.range)
                     _state.update { it.copy(selectedRange = action.range, sparklineData = sparkData, sparklineMonths = sparkLabels) }
+                }
+                is PatrimoineUiAction.OnRetry -> {
+                    _state.update { it.copy(isLoading = true, isError = false) }
+                    _retryTrigger.update { it + 1 }
                 }
             }
         }

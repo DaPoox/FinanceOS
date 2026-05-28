@@ -1,5 +1,6 @@
 package com.daprox.financeos.presentation.budget
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.daprox.financeos.domain.model.EnvelopeTypeEnum as DomainEnvelopeType
@@ -18,6 +19,7 @@ import com.daprox.financeos.presentation.expense.EnvelopeChipUiState
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
@@ -45,14 +47,15 @@ private fun List<EnvelopeRowUiState>.toGroups(): List<BudgetEnvelopeGroup> =
     }
 
 class BudgetViewModel(
-    observeCurrentMonth: ObserveCurrentMonthUseCase,
-    observeActiveEnvelopes: ObserveActiveEnvelopesUseCase,
-    observeMonthAllocations: ObserveMonthAllocationsUseCase,
-    observeMonthTransactions: ObserveMonthTransactionsUseCase,
+    private val observeCurrentMonth: ObserveCurrentMonthUseCase,
+    private val observeActiveEnvelopes: ObserveActiveEnvelopesUseCase,
+    private val observeMonthAllocations: ObserveMonthAllocationsUseCase,
+    private val observeMonthTransactions: ObserveMonthTransactionsUseCase,
     private val addTransaction: AddTransactionUseCase,
 ) : ViewModel() {
 
     private var currentMonthId = ""
+    private val _retryTrigger = MutableStateFlow(0)
 
     private val _state = MutableStateFlow(BudgetUiState())
     val state = _state.asStateFlow()
@@ -61,58 +64,74 @@ class BudgetViewModel(
     val events = _events.receiveAsFlow()
 
     init {
-        observeCurrentMonth()
-            .filterNotNull()
-            .flatMapLatest { month ->
-                currentMonthId = month.id
-                combine(
-                    observeActiveEnvelopes(),
-                    observeMonthAllocations(month.id),
-                    observeMonthTransactions(month.id),
-                ) { envelopes, allocations, transactions ->
-                    val allocMap = allocations.associateBy { it.envelopeId }
-                    val spendMap = transactions.groupBy { it.envelopeId }
-                        .mapValues { (_, txs) -> txs.sumOf { it.amount } }
+        _retryTrigger
+            .flatMapLatest {
+                observeCurrentMonth()
+                    .filterNotNull()
+                    .flatMapLatest { month ->
+                        currentMonthId = month.id
+                        combine(
+                            observeActiveEnvelopes(),
+                            observeMonthAllocations(month.id),
+                            observeMonthTransactions(month.id),
+                        ) { envelopes, allocations, transactions ->
+                            val allocMap = allocations.associateBy { it.envelopeId }
+                            val spendMap = transactions.groupBy { it.envelopeId }
+                                .mapValues { (_, txs) -> txs.sumOf { it.amount } }
 
-                    val rows = envelopes.map { env ->
-                        val alloc = allocMap[env.id]
-                        val allocated = alloc?.allocated ?: 0.0
-                        val accumulated = alloc?.accumulated ?: 0.0
-                        val spent = spendMap[env.id] ?: 0.0
-                        val type = env.type.toPresentation()
-                        val status = when {
-                            type == EnvelopeTypeEnum.FIXED -> EnvelopeStatusEnum.FIXED
-                            spent > allocated -> EnvelopeStatusEnum.OVER
-                            allocated > 0 && spent / allocated > 0.8 -> EnvelopeStatusEnum.WARNING
-                            else -> EnvelopeStatusEnum.OK
+                            val rows = envelopes.map { env ->
+                                val alloc = allocMap[env.id]
+                                val allocated = alloc?.allocated ?: 0.0
+                                val accumulated = alloc?.accumulated ?: 0.0
+                                val spent = spendMap[env.id] ?: 0.0
+                                val type = env.type.toPresentation()
+                                val status = when {
+                                    type == EnvelopeTypeEnum.FIXED -> EnvelopeStatusEnum.FIXED
+                                    spent > allocated -> EnvelopeStatusEnum.OVER
+                                    allocated > 0 && spent / allocated > 0.8 -> EnvelopeStatusEnum.WARNING
+                                    else -> EnvelopeStatusEnum.OK
+                                }
+                                val progress = if (allocated > 0) (spent / allocated).toFloat().coerceIn(0f, 1f) else 0f
+                                EnvelopeRowUiState(
+                                    id = env.id,
+                                    name = env.name,
+                                    icon = iconKeyToImageVector(env.iconKey),
+                                    type = type,
+                                    spent = spent,
+                                    allocated = allocated,
+                                    accumulated = accumulated,
+                                    status = status,
+                                    progress = progress,
+                                )
+                            }
+
+                            BudgetUiState(
+                                isLoading = false,
+                                monthLabel = month.label,
+                                globalCard = BudgetGlobalCardUiState(
+                                    income = month.income,
+                                    totalSpent = rows.sumOf { it.spent },
+                                    totalAllocated = rows.sumOf { it.allocated },
+                                ),
+                                groups = rows.toGroups(),
+                                expenseEnvelopes = rows.map { EnvelopeChipUiState(it.id, it.name, it.icon) },
+                            )
                         }
-                        val progress = if (allocated > 0) (spent / allocated).toFloat().coerceIn(0f, 1f) else 0f
-                        EnvelopeRowUiState(
-                            id = env.id,
-                            name = env.name,
-                            icon = iconKeyToImageVector(env.iconKey),
-                            type = type,
-                            spent = spent,
-                            allocated = allocated,
-                            accumulated = accumulated,
-                            status = status,
-                            progress = progress,
-                        )
                     }
-
-                    BudgetUiState(
-                        monthLabel = month.label,
-                        globalCard = BudgetGlobalCardUiState(
-                            income = month.income,
-                            totalSpent = rows.sumOf { it.spent },
-                            totalAllocated = rows.sumOf { it.allocated },
-                        ),
-                        groups = rows.toGroups(),
-                        expenseEnvelopes = rows.map { EnvelopeChipUiState(it.id, it.name, it.icon) },
+                    .catch { e ->
+                        Log.e("BudgetViewModel", "Flow error", e)
+                        emit(BudgetUiState(isLoading = false, isError = true))
+                    }
+            }
+            .onEach { newState ->
+                // Preserve transient UI state (expense sheet, saving indicator) on data refresh
+                _state.update { current ->
+                    newState.copy(
+                        isExpenseSheetVisible = current.isExpenseSheetVisible,
+                        isSaving = current.isSaving,
                     )
                 }
             }
-            .onEach { _state.value = it }
             .launchIn(viewModelScope)
     }
 
@@ -129,6 +148,10 @@ class BudgetViewModel(
                         is Result.Success -> _state.update { it.copy(isSaving = false, isExpenseSheetVisible = false) }
                         is Result.Error -> _state.update { it.copy(isSaving = false) }
                     }
+                }
+                is BudgetUiAction.OnRetry -> {
+                    _state.update { it.copy(isLoading = true, isError = false) }
+                    _retryTrigger.update { it + 1 }
                 }
             }
         }

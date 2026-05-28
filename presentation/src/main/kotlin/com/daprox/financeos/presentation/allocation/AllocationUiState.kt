@@ -4,6 +4,8 @@ import androidx.compose.runtime.Stable
 
 @Stable
 data class AllocationUiState(
+    val isLoading: Boolean = true,
+    val isError: Boolean = false,
     val step: Int = 0,
     val monthLabel: String = "Mai 2026",
     val income: String = "4200",

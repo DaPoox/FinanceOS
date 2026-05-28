@@ -26,6 +26,17 @@ Used when building UI from HTML/JSX design files. Component by component — nev
 
 ---
 
+## Tool Selection
+
+Before reaching for a network tool, exhaust local options first.
+
+- **git history / blame** → `git log --oneline` or `git blame` via Bash. Never MCP GitHub for reads — it's a network round-trip for data that's already local.
+- **MCP Linear / MCP GitHub** → write operations only (update ticket status, create PR, add comment). For reading project state, use Bash git commands.
+- **Symbol or pattern lookups** → `grep` / `find` via Bash before spawning an Explore agent.
+- **Already-read files** → use conversation context. Don't re-fetch a file you read in the same session.
+
+---
+
 ## Step 1 — Receive the Task
 
 Read the task fully. If the request is ambiguous, ask **one** clarifying question before proceeding.  
@@ -61,23 +72,28 @@ Output format:
 
 Propose a step-by-step implementation plan.  
 Each step is atomic — one file, one concern.  
-Do not write code yet.
+Do not write code.
+
+Rules:
+- Each item = file path + one-line description of what changes and why
+- No code snippets, no function signatures, no import lists, no pseudocode
+- Max ~10 items for a normal ticket
 
 Output format:
 
 ```
 ## Plan
-1. Create `Budget` domain model in :domain/budget/model/
-2. Create `BudgetRepository` interface in :domain/budget/repository/
-3. Create `BudgetEntity` + DAO in :data/budget/local/
-4. Implement `BudgetRepositoryImpl` in :data/budget/repository/
-5. Create `GetBudgetUseCase` in :domain/budget/usecase/
-6. Create `BudgetUiState`, `BudgetUiAction`, `BudgetUiEvent` in :presentation/budget/
-7. Implement `BudgetViewModel` in :presentation/budget/
-8. Create `BudgetScreen.kt` (ScreenRoot + Screen) in :presentation/budget/
-9. Add routes in :presentation/budget/navigation/
-10. Wire nav graph in :app/navigation/AppNavGraph.kt
-11. Update Koin modules in DataModule.kt + PresentationModule.kt
+1. :domain/budget/model/ — add Budget domain model
+2. :domain/budget/repository/ — add BudgetRepository interface
+3. :data/budget/local/ — add BudgetEntity + DAO
+4. :data/budget/repository/ — implement BudgetRepositoryImpl
+5. :domain/budget/usecase/ — add GetBudgetUseCase
+6. :presentation/budget/ — add UiState, UiAction, UiEvent files
+7. :presentation/budget/ — implement BudgetViewModel
+8. :presentation/budget/ — add BudgetScreen (ScreenRoot + Screen)
+9. :presentation/budget/navigation/ — add nav route + extension
+10. :app/navigation/AppNavGraph.kt — wire new screen
+11. DataModule.kt + PresentationModule.kt — register new bindings
 ```
 
 **→ Stop here. Wait for confirmation before executing.**

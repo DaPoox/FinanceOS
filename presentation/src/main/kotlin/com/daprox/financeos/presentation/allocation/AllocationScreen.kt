@@ -80,6 +80,8 @@ import com.daprox.financeos.core.extensions.frenchAmount
 import com.daprox.financeos.presentation.core.ObserveAsEvents
 import com.daprox.financeos.presentation.core.designsystem.FinanceOSTheme
 import com.daprox.financeos.presentation.core.designsystem.GeistMono
+import com.daprox.financeos.presentation.core.designsystem.component.ErrorStateView
+import com.daprox.financeos.presentation.core.designsystem.component.ShimmerBox
 import com.daprox.financeos.presentation.core.designsystem.finColors
 import com.daprox.financeos.presentation.dashboard.component.envelopeminigrid.EnvelopeTypeEnum
 import org.koin.androidx.compose.koinViewModel
@@ -136,26 +138,49 @@ fun AllocationScreen(
             )
         },
     ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .padding(innerPadding)
-                .verticalScroll(rememberScrollState()),
-        ) {
-            when (state.step) {
-                0 -> StepIncome(
-                    income = state.income,
-                    onIncomeChanged = { onAction(AllocationUiAction.OnIncomeChanged(it)) },
-                )
-                1 -> StepTemplate(
-                    selected = state.selectedTemplate,
-                    onSelect = { onAction(AllocationUiAction.OnTemplateSelected(it)) },
-                )
-                2 -> StepAdjust(
-                    groups = state.groups,
-                    onAmountChanged = { id, amt -> onAction(AllocationUiAction.OnEnvelopeAmountChanged(id, amt)) },
-                )
+        when {
+            state.isLoading -> AllocationScreenSkeleton(modifier = Modifier.padding(innerPadding))
+            state.isError -> ErrorStateView(
+                onRetry = { onAction(AllocationUiAction.OnRetry) },
+                modifier = Modifier.padding(innerPadding).padding(horizontal = 16.dp),
+            )
+            else -> Column(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .verticalScroll(rememberScrollState()),
+            ) {
+                when (state.step) {
+                    0 -> StepIncome(
+                        income = state.income,
+                        onIncomeChanged = { onAction(AllocationUiAction.OnIncomeChanged(it)) },
+                    )
+                    1 -> StepTemplate(
+                        selected = state.selectedTemplate,
+                        onSelect = { onAction(AllocationUiAction.OnTemplateSelected(it)) },
+                    )
+                    2 -> StepAdjust(
+                        groups = state.groups,
+                        onAmountChanged = { id, amt -> onAction(AllocationUiAction.OnEnvelopeAmountChanged(id, amt)) },
+                    )
+                }
+                Spacer(modifier = Modifier.height(8.dp))
             }
-            Spacer(modifier = Modifier.height(8.dp))
+        }
+    }
+}
+
+@Composable
+private fun AllocationScreenSkeleton(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier
+            .padding(horizontal = 20.dp, vertical = 16.dp)
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        ShimmerBox(modifier = Modifier.fillMaxWidth().height(80.dp))
+        ShimmerBox(modifier = Modifier.fillMaxWidth().height(120.dp))
+        repeat(3) {
+            ShimmerBox(modifier = Modifier.fillMaxWidth().height(56.dp))
         }
     }
 }
@@ -793,7 +818,7 @@ private fun AllocationFooter(
 private fun PreviewStep1() {
     FinanceOSTheme {
         AllocationScreen(
-            state = AllocationUiState(step = 0, income = "4200"),
+            state = AllocationUiState(isLoading = false, step = 0, income = "4200"),
             onAction = {},
         )
     }
@@ -855,6 +880,7 @@ private fun PreviewStep3() {
     FinanceOSTheme {
         AllocationScreen(
             state = AllocationUiState(
+                isLoading = false,
                 step = 2,
                 income = "4200",
                 groups = groups,

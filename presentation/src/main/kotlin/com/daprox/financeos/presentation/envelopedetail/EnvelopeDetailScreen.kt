@@ -55,7 +55,9 @@ import com.daprox.financeos.core.extensions.frenchAmount
 import com.daprox.financeos.presentation.core.ObserveAsEvents
 import com.daprox.financeos.presentation.core.designsystem.FinanceOSTheme
 import com.daprox.financeos.presentation.core.designsystem.GeistMono
+import com.daprox.financeos.presentation.core.designsystem.component.ErrorStateView
 import com.daprox.financeos.presentation.core.designsystem.component.FinProgressBar
+import com.daprox.financeos.presentation.core.designsystem.component.ShimmerBox
 import com.daprox.financeos.presentation.core.designsystem.finColors
 import com.daprox.financeos.presentation.dashboard.component.envelopeminigrid.EnvelopeStatusEnum
 import com.daprox.financeos.presentation.dashboard.component.envelopeminigrid.EnvelopeTypeEnum
@@ -88,49 +90,68 @@ fun EnvelopeDetailScreen(
     val navBarPadding = WindowInsets.navigationBars.asPaddingValues()
 
     Scaffold(containerColor = MaterialTheme.colorScheme.background) { innerPadding ->
-        LazyColumn(
-            contentPadding = PaddingValues(
-                top = innerPadding.calculateTopPadding(),
-                bottom = innerPadding.calculateBottomPadding() + navBarPadding.calculateBottomPadding() + 8.dp,
-            ),
-        ) {
-            item {
-                DetailScreenHeader(
-                    name = state.name,
-                    typeLabel = state.typeLabel,
-                    onBack = { onAction(EnvelopeDetailUiAction.OnBackClick) },
-                )
-            }
+        val listPadding = PaddingValues(
+            top = innerPadding.calculateTopPadding(),
+            bottom = innerPadding.calculateBottomPadding() + navBarPadding.calculateBottomPadding() + 8.dp,
+        )
 
-            item {
-                HeroStatusCard(
-                    state = state,
-                    isPerm = isPerm,
-                    onModifierAllocation = { onAction(EnvelopeDetailUiAction.OnModifierAllocationClick) },
-                    modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 8.dp),
-                )
-            }
-
-            item {
-                TransactionSection(
-                    transactions = state.transactions,
-                    modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 22.dp),
-                )
-            }
-
-            if (isPerm && state.monthlyHistory.size >= 2) {
+        when {
+            state.isLoading -> EnvelopeDetailScreenSkeleton(contentPadding = listPadding)
+            state.isError -> ErrorStateView(
+                onRetry = { onAction(EnvelopeDetailUiAction.OnRetry) },
+                modifier = Modifier.padding(innerPadding).padding(horizontal = 16.dp),
+            )
+            else -> LazyColumn(contentPadding = listPadding) {
                 item {
-                    HistorySection(
-                        history = state.monthlyHistory,
-                        monthsAgo = state.monthsAgo,
-                        accumulated = state.accumulated,
+                    DetailScreenHeader(
+                        name = state.name,
+                        typeLabel = state.typeLabel,
+                        onBack = { onAction(EnvelopeDetailUiAction.OnBackClick) },
+                    )
+                }
+
+                item {
+                    HeroStatusCard(
+                        state = state,
+                        isPerm = isPerm,
+                        onModifierAllocation = { onAction(EnvelopeDetailUiAction.OnModifierAllocationClick) },
+                        modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 8.dp),
+                    )
+                }
+
+                item {
+                    TransactionSection(
+                        transactions = state.transactions,
                         modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 22.dp),
                     )
                 }
-            }
 
-            item { Spacer(modifier = Modifier.height(8.dp)) }
+                if (isPerm && state.monthlyHistory.size >= 2) {
+                    item {
+                        HistorySection(
+                            history = state.monthlyHistory,
+                            monthsAgo = state.monthsAgo,
+                            accumulated = state.accumulated,
+                            modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 22.dp),
+                        )
+                    }
+                }
+
+                item { Spacer(modifier = Modifier.height(8.dp)) }
+            }
         }
+    }
+}
+
+@Composable
+private fun EnvelopeDetailScreenSkeleton(contentPadding: PaddingValues) {
+    LazyColumn(
+        contentPadding = contentPadding,
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        item { ShimmerBox(modifier = Modifier.fillMaxWidth().height(60.dp).padding(horizontal = 16.dp)) }
+        item { ShimmerBox(modifier = Modifier.fillMaxWidth().height(140.dp).padding(horizontal = 20.dp)) }
+        item { ShimmerBox(modifier = Modifier.fillMaxWidth().height(200.dp).padding(horizontal = 20.dp)) }
     }
 }
 
@@ -531,6 +552,7 @@ private fun PreviewOK() {
     FinanceOSTheme {
         EnvelopeDetailScreen(
             state = EnvelopeDetailUiState(
+                isLoading = false,
                 id = "courses",
                 name = "Courses",
                 typeLabel = "Variable standard",
@@ -555,6 +577,7 @@ private fun PreviewWarning() {
     FinanceOSTheme {
         EnvelopeDetailScreen(
             state = EnvelopeDetailUiState(
+                isLoading = false,
                 id = "restos",
                 name = "Restos",
                 typeLabel = "Variable standard",
@@ -579,6 +602,7 @@ private fun PreviewOver() {
     FinanceOSTheme {
         EnvelopeDetailScreen(
             state = EnvelopeDetailUiState(
+                isLoading = false,
                 id = "restos",
                 name = "Restos",
                 typeLabel = "Variable standard",
@@ -604,6 +628,7 @@ private fun PreviewPermanent() {
     FinanceOSTheme {
         EnvelopeDetailScreen(
             state = EnvelopeDetailUiState(
+                isLoading = false,
                 id = "fonds-urgence",
                 name = "Fonds urgence",
                 typeLabel = "Permanente • accumulée",

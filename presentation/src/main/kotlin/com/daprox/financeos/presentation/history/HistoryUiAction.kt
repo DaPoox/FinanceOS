@@ -1,3 +1,5 @@
 package com.daprox.financeos.presentation.history
 
-sealed interface HistoryUiAction
+sealed interface HistoryUiAction {
+    data object OnRetry : HistoryUiAction
+}

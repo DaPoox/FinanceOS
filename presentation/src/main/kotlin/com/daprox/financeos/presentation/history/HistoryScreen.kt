@@ -34,6 +34,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.daprox.financeos.core.extensions.frenchAmount
 import com.daprox.financeos.presentation.core.designsystem.FinanceOSTheme
 import com.daprox.financeos.presentation.core.designsystem.GeistMono
+import com.daprox.financeos.presentation.core.designsystem.component.ErrorStateView
+import com.daprox.financeos.presentation.core.designsystem.component.ShimmerBox
 import com.daprox.financeos.presentation.core.designsystem.finColors
 import org.koin.androidx.compose.koinViewModel
 import kotlin.math.roundToLong
@@ -43,35 +45,60 @@ fun HistoryScreenRoot(
     viewModel: HistoryViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    HistoryScreen(state = state)
+    HistoryScreen(state = state, onAction = viewModel::onAction)
 }
 
 @Composable
 fun HistoryScreen(
     state: HistoryUiState,
+    onAction: (HistoryUiAction) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val baseModifier = modifier
+        .fillMaxSize()
+        .background(MaterialTheme.colorScheme.background)
+
+    when {
+        state.isLoading -> HistoryScreenSkeleton(modifier = baseModifier)
+        state.isError -> Column(modifier = baseModifier) {
+            ErrorStateView(onRetry = { onAction(HistoryUiAction.OnRetry) })
+        }
+        else -> Column(
+            modifier = baseModifier
+                .verticalScroll(rememberScrollState())
+                .padding(bottom = 24.dp),
+        ) {
+            HistoryHeader()
+            Spacer(modifier = Modifier.height(14.dp))
+            AnnualSummaryCard(
+                totalIncome = state.totalIncome,
+                totalContrib = state.totalContrib,
+                avgSavingRate = state.avgSavingRate,
+                barData = state.barData,
+                modifier = Modifier.padding(horizontal = 20.dp),
+            )
+            Spacer(modifier = Modifier.height(20.dp))
+            MonthList(
+                months = state.months,
+                modifier = Modifier.padding(horizontal = 20.dp),
+            )
+        }
+    }
+}
+
+@Composable
+private fun HistoryScreenSkeleton(modifier: Modifier = Modifier) {
     Column(
         modifier = modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
             .verticalScroll(rememberScrollState())
-            .padding(bottom = 24.dp),
+            .padding(horizontal = 20.dp, vertical = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        HistoryHeader()
-        Spacer(modifier = Modifier.height(14.dp))
-        AnnualSummaryCard(
-            totalIncome = state.totalIncome,
-            totalContrib = state.totalContrib,
-            avgSavingRate = state.avgSavingRate,
-            barData = state.barData,
-            modifier = Modifier.padding(horizontal = 20.dp),
-        )
-        Spacer(modifier = Modifier.height(20.dp))
-        MonthList(
-            months = state.months,
-            modifier = Modifier.padding(horizontal = 20.dp),
-        )
+        ShimmerBox(modifier = Modifier.fillMaxWidth().height(60.dp))
+        ShimmerBox(modifier = Modifier.fillMaxWidth().height(160.dp))
+        repeat(3) {
+            ShimmerBox(modifier = Modifier.fillMaxWidth().height(56.dp))
+        }
     }
 }
 
@@ -392,6 +419,7 @@ private fun PreviewHistoryScreen() {
     FinanceOSTheme {
         HistoryScreen(
             state = HistoryUiState(
+                isLoading = false,
                 totalIncome = 33150.0,
                 totalContrib = 10220.0,
                 avgSavingRate = 30,
@@ -407,6 +435,7 @@ private fun PreviewHistoryScreen() {
                     MonthRowUiState("oct 25", 4200.0, 3290.0, 1180.0, MonthStatusEnum.GOOD),
                 ),
             ),
+            onAction = {},
         )
     }
 }

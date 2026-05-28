@@ -6,4 +6,5 @@ sealed interface BudgetUiAction {
     data object OnAddExpenseClick : BudgetUiAction
     data object OnExpenseDismiss : BudgetUiAction
     data class OnExpenseSave(val amount: Double, val envelopeId: String, val note: String) : BudgetUiAction
+    data object OnRetry : BudgetUiAction
 }

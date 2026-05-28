@@ -1,5 +1,6 @@
 package com.daprox.financeos.presentation.allocation
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.daprox.financeos.core.Result
@@ -15,6 +16,7 @@ import com.daprox.financeos.presentation.dashboard.component.envelopeminigrid.En
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
@@ -81,14 +83,15 @@ private fun AllocationUiState.withAllocationsApplied(allocations: List<MonthAllo
 }
 
 class AllocationViewModel(
-    observeCurrentMonth: ObserveCurrentMonthUseCase,
-    observeActiveEnvelopes: ObserveActiveEnvelopesUseCase,
-    observeMonthAllocations: ObserveMonthAllocationsUseCase,
+    private val observeCurrentMonth: ObserveCurrentMonthUseCase,
+    private val observeActiveEnvelopes: ObserveActiveEnvelopesUseCase,
+    private val observeMonthAllocations: ObserveMonthAllocationsUseCase,
     private val allocateMonth: AllocateMonthUseCase,
     private val copyAllocation: CopyAllocationFromMonthUseCase,
 ) : ViewModel() {
 
     private var currentMonthId = ""
+    private val _retryTrigger = MutableStateFlow(0)
 
     private val _state = MutableStateFlow(AllocationUiState())
     val state = _state.asStateFlow()
@@ -97,39 +100,53 @@ class AllocationViewModel(
     val events = _events.receiveAsFlow()
 
     init {
-        observeCurrentMonth()
-            .filterNotNull()
-            .flatMapLatest { month ->
-                currentMonthId = month.id
-                combine(
-                    observeActiveEnvelopes(),
-                    observeMonthAllocations(month.id),
-                ) { envelopes, allocations ->
-                    val allocMap = allocations.associateBy { it.envelopeId }
-                    val uiEnvelopes = envelopes.map { env ->
-                        val alloc = allocMap[env.id]
-                        AllocationEnvelopeUiState(
-                            id = env.id,
-                            name = env.name,
-                            icon = iconKeyToImageVector(env.iconKey),
-                            type = env.type.toPresentation(),
-                            amount = alloc?.allocated?.toLong()?.toString() ?: "0",
-                        )
+        _retryTrigger
+            .flatMapLatest {
+                observeCurrentMonth()
+                    .filterNotNull()
+                    .flatMapLatest { month ->
+                        currentMonthId = month.id
+                        combine(
+                            observeActiveEnvelopes(),
+                            observeMonthAllocations(month.id),
+                        ) { envelopes, allocations ->
+                            val allocMap = allocations.associateBy { it.envelopeId }
+                            val uiEnvelopes = envelopes.map { env ->
+                                val alloc = allocMap[env.id]
+                                AllocationEnvelopeUiState(
+                                    id = env.id,
+                                    name = env.name,
+                                    icon = iconKeyToImageVector(env.iconKey),
+                                    type = env.type.toPresentation(),
+                                    amount = alloc?.allocated?.toLong()?.toString() ?: "0",
+                                )
+                            }
+                            val income = month.income.toLong().toString()
+                            val groups = uiEnvelopes.toGroups()
+                            AllocationUiState(
+                                isLoading = false,
+                                income = income,
+                                groups = groups,
+                                remaining = computeRemaining(income, groups),
+                            )
+                        }
                     }
-                    val income = month.income.toLong().toString()
-                    val groups = uiEnvelopes.toGroups()
-                    AllocationUiState(
-                        income = income,
-                        groups = groups,
-                        remaining = computeRemaining(income, groups),
-                    )
-                }
+                    .catch { e ->
+                        Log.e("AllocationViewModel", "Flow error", e)
+                        emit(AllocationUiState(isLoading = false, isError = true))
+                    }
             }
             .onEach { newState ->
                 // Only update non-user-edited fields on first load; preserve step and template
                 _state.update { current ->
                     if (current.groups.isEmpty()) newState
-                    else current.copy(income = newState.income, groups = newState.groups, remaining = newState.remaining)
+                    else current.copy(
+                        isLoading = newState.isLoading,
+                        isError = newState.isError,
+                        income = newState.income,
+                        groups = newState.groups,
+                        remaining = newState.remaining,
+                    )
                 }
             }
             .launchIn(viewModelScope)
@@ -188,11 +205,15 @@ class AllocationViewModel(
                             group.copy(
                                 envelopes = group.envelopes.map { env ->
                                     if (env.id == action.id) env.copy(amount = action.amount) else env
-                                }
+                                },
                             )
                         }
                         state.copy(groups = newGroups, remaining = computeRemaining(state.income, newGroups))
                     }
+                }
+                is AllocationUiAction.OnRetry -> {
+                    _state.update { it.copy(isLoading = true, isError = false) }
+                    _retryTrigger.update { it + 1 }
                 }
             }
         }
