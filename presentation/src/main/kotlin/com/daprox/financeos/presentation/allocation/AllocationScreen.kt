@@ -511,12 +511,13 @@ private fun StepAdjust(
                 ),
                 color = MaterialTheme.colorScheme.onSurface,
             )
+            val allExpanded = groups.isNotEmpty() && groups.all { expandedGroups[it.label] == true }
             Text(
-                text = "Tout déplier",
+                text = if (allExpanded) "Tout replier" else "Tout déplier",
                 style = MaterialTheme.typography.labelMedium.copy(fontSize = 13.sp),
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier
-                    .clickable { groups.forEach { expandedGroups[it.label] = true } }
+                    .clickable { groups.forEach { expandedGroups[it.label] = !allExpanded } }
                     .padding(start = 8.dp, bottom = 2.dp),
             )
         }
