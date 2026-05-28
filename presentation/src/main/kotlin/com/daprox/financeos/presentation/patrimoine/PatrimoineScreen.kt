@@ -49,6 +49,9 @@ import com.daprox.financeos.core.extensions.frenchAmount
 import com.daprox.financeos.presentation.core.ObserveAsEvents
 import com.daprox.financeos.presentation.core.designsystem.FinanceOSTheme
 import com.daprox.financeos.presentation.core.designsystem.GeistMono
+import com.composables.icons.lucide.Building2
+import com.composables.icons.lucide.Lucide
+import com.daprox.financeos.presentation.core.designsystem.component.EmptyStateView
 import com.daprox.financeos.presentation.core.designsystem.component.ErrorStateView
 import com.daprox.financeos.presentation.core.designsystem.component.FinProgressBar
 import com.daprox.financeos.presentation.core.designsystem.component.ShimmerBox
@@ -62,12 +65,13 @@ import kotlin.math.sin
 @Composable
 fun PatrimoineScreenRoot(
     viewModel: PatrimoineViewModel = koinViewModel(),
+    onNavigateToAddAccount: () -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     ObserveAsEvents(viewModel.events) { event ->
         when (event) {
-            is PatrimoineUiEvent.NavigateToAddAccount -> Unit
+            is PatrimoineUiEvent.NavigateToAddAccount -> onNavigateToAddAccount()
         }
     }
 
@@ -87,6 +91,15 @@ fun PatrimoineScreen(
         state.isLoading -> PatrimoineScreenSkeleton(modifier = baseModifier)
         state.isError -> Column(modifier = baseModifier) {
             ErrorStateView(onRetry = { onAction(PatrimoineUiAction.OnRetry) })
+        }
+        state.isEmpty -> Column(modifier = baseModifier) {
+            EmptyStateView(
+                icon = Lucide.Building2,
+                title = "Aucun compte ajouté",
+                subtitle = "Ajoute tes comptes bancaires et livrets pour suivre ton patrimoine.",
+                ctaLabel = "Ajouter un compte",
+                onCta = { onAction(PatrimoineUiAction.OnAddAccountCta) },
+            )
         }
         else -> Column(
             modifier = baseModifier

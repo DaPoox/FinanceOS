@@ -6,6 +6,7 @@ import androidx.compose.runtime.Stable
 data class HistoryUiState(
     val isLoading: Boolean = true,
     val isError: Boolean = false,
+    val isEmpty: Boolean = false,
     val totalIncome: Double = 0.0,
     val totalContrib: Double = 0.0,
     val avgSavingRate: Int = 0,

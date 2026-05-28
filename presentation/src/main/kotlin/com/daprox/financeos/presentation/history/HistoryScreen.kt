@@ -34,6 +34,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.daprox.financeos.core.extensions.frenchAmount
 import com.daprox.financeos.presentation.core.designsystem.FinanceOSTheme
 import com.daprox.financeos.presentation.core.designsystem.GeistMono
+import com.composables.icons.lucide.CalendarDays
+import com.composables.icons.lucide.Lucide
+import com.daprox.financeos.presentation.core.designsystem.component.EmptyStateView
 import com.daprox.financeos.presentation.core.designsystem.component.ErrorStateView
 import com.daprox.financeos.presentation.core.designsystem.component.ShimmerBox
 import com.daprox.financeos.presentation.core.designsystem.finColors
@@ -62,6 +65,13 @@ fun HistoryScreen(
         state.isLoading -> HistoryScreenSkeleton(modifier = baseModifier)
         state.isError -> Column(modifier = baseModifier) {
             ErrorStateView(onRetry = { onAction(HistoryUiAction.OnRetry) })
+        }
+        state.isEmpty -> Column(modifier = baseModifier) {
+            EmptyStateView(
+                icon = Lucide.CalendarDays,
+                title = "Pas encore d'historique",
+                subtitle = "Ton historique apparaîtra ici après ton premier mois complet.",
+            )
         }
         else -> Column(
             modifier = baseModifier

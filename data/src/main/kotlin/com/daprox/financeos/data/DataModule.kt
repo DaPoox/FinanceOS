@@ -1,6 +1,8 @@
 package com.daprox.financeos.data
 
+import android.content.Context
 import com.daprox.financeos.data.db.FinanceDatabase
+import com.daprox.financeos.data.manager.FirstLaunchManager
 import com.daprox.financeos.data.repository.AccountRepositoryImpl
 import com.daprox.financeos.data.repository.EnvelopeRepositoryImpl
 import com.daprox.financeos.data.repository.MonthAllocationRepositoryImpl
@@ -27,6 +29,9 @@ import org.koin.dsl.module
 val dataModule = module {
     // Database
     single { FinanceDatabase.create(androidContext()) }
+
+    // Managers
+    single { FirstLaunchManager(androidContext().getSharedPreferences("fos_prefs", Context.MODE_PRIVATE)) }
 
     // DAOs
     single { get<FinanceDatabase>().envelopeDao() }

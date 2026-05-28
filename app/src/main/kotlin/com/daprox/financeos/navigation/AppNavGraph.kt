@@ -84,7 +84,9 @@ fun AppNavGraph() {
             allocationScreen(
                 onNavigateBack = { navController.popBackStack() },
             )
-            patrimoineScreen()
+            patrimoineScreen(
+                onNavigateToAddAccount = { /* TODO PRO-xx: AddAccountScreen not yet implemented */ },
+            )
             historyScreen()
         }
     }

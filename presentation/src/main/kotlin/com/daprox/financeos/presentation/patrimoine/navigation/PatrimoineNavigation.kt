@@ -8,8 +8,10 @@ import kotlinx.serialization.Serializable
 @Serializable
 object Patrimoine
 
-fun NavGraphBuilder.patrimoineScreen() {
+fun NavGraphBuilder.patrimoineScreen(
+    onNavigateToAddAccount: () -> Unit = {},
+) {
     composable<Patrimoine> {
-        PatrimoineScreenRoot()
+        PatrimoineScreenRoot(onNavigateToAddAccount = onNavigateToAddAccount)
     }
 }

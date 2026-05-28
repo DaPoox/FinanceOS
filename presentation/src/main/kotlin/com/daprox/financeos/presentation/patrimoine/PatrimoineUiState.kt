@@ -6,6 +6,7 @@ import androidx.compose.runtime.Stable
 data class PatrimoineUiState(
     val isLoading: Boolean = true,
     val isError: Boolean = false,
+    val isEmpty: Boolean = false,
     val netWorth: Double = 0.0,
     val deltaLabel: String = "",
     val deltaPct: String = "",

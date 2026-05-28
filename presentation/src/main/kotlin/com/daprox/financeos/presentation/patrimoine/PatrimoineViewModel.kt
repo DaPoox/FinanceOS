@@ -76,6 +76,7 @@ class PatrimoineViewModel(
                         val (sparkData, sparkLabels) = sparklineFor(currentRange)
                         PatrimoineUiState(
                             isLoading = false,
+                            isEmpty = uiAccounts.isEmpty(),
                             netWorth = liquid + savings + investment,
                             savings = savings,
                             investment = investment,
@@ -108,6 +109,7 @@ class PatrimoineViewModel(
                     _state.update { it.copy(isLoading = true, isError = false) }
                     _retryTrigger.update { it + 1 }
                 }
+                is PatrimoineUiAction.OnAddAccountCta -> _events.send(PatrimoineUiEvent.NavigateToAddAccount)
             }
         }
     }

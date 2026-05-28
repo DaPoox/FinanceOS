@@ -43,6 +43,7 @@ class HistoryViewModel(
                         val avgSavingRate = if (totalIncome > 0) ((totalContrib / totalIncome) * 100).roundToInt() else 0
                         HistoryUiState(
                             isLoading = false,
+                            isEmpty = rows.isEmpty(),
                             totalIncome = totalIncome,
                             totalContrib = totalContrib,
                             avgSavingRate = avgSavingRate,

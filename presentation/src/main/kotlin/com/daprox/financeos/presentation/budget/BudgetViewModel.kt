@@ -21,8 +21,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -67,8 +67,8 @@ class BudgetViewModel(
         _retryTrigger
             .flatMapLatest {
                 observeCurrentMonth()
-                    .filterNotNull()
                     .flatMapLatest { month ->
+                        if (month == null) return@flatMapLatest flowOf(BudgetUiState(isLoading = false, isEmpty = true))
                         currentMonthId = month.id
                         combine(
                             observeActiveEnvelopes(),
@@ -105,15 +105,17 @@ class BudgetViewModel(
                                 )
                             }
 
+                            val groups = rows.toGroups()
                             BudgetUiState(
                                 isLoading = false,
+                                isEmpty = groups.isEmpty(),
                                 monthLabel = month.label,
                                 globalCard = BudgetGlobalCardUiState(
                                     income = month.income,
                                     totalSpent = rows.sumOf { it.spent },
                                     totalAllocated = rows.sumOf { it.allocated },
                                 ),
-                                groups = rows.toGroups(),
+                                groups = groups,
                                 expenseEnvelopes = rows.map { EnvelopeChipUiState(it.id, it.name, it.icon) },
                             )
                         }

@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.composables.icons.lucide.ChartBar
 import com.composables.icons.lucide.House
+import com.composables.icons.lucide.LayoutGrid
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Plane
 import com.composables.icons.lucide.Plus
@@ -57,6 +58,7 @@ import com.daprox.financeos.presentation.core.designsystem.FinanceOSTheme
 import com.daprox.financeos.presentation.core.designsystem.GeistMono
 import com.daprox.financeos.presentation.dashboard.component.envelopeminigrid.EnvelopeStatusEnum
 import com.daprox.financeos.presentation.dashboard.component.envelopeminigrid.EnvelopeTypeEnum
+import com.daprox.financeos.presentation.core.designsystem.component.EmptyStateView
 import com.daprox.financeos.presentation.core.designsystem.component.ErrorStateView
 import com.daprox.financeos.presentation.core.designsystem.component.ShimmerBox
 import com.daprox.financeos.presentation.expense.EnvelopeChipUiState
@@ -138,6 +140,14 @@ fun BudgetScreen(
             state.isError -> ErrorStateView(
                 onRetry = { onAction(BudgetUiAction.OnRetry) },
                 modifier = Modifier.padding(innerPadding).padding(horizontal = 16.dp),
+            )
+            state.isEmpty -> EmptyStateView(
+                icon = Lucide.LayoutGrid,
+                title = "Aucune enveloppe",
+                subtitle = "Alloue ton premier mois pour créer tes enveloppes de budget.",
+                ctaLabel = "Allouer le mois",
+                onCta = { onAction(BudgetUiAction.OnAllouerClick) },
+                modifier = Modifier.padding(innerPadding),
             )
             else -> LazyColumn(contentPadding = listPadding) {
                 item {

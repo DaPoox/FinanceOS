@@ -29,8 +29,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -69,8 +69,8 @@ class DashboardViewModel(
         _retryTrigger
             .flatMapLatest {
                 observeCurrentMonth()
-                    .filterNotNull()
                     .flatMapLatest { month ->
+                        if (month == null) return@flatMapLatest flowOf(DashboardUiState(isLoading = false, isEmpty = true))
                         combine(
                             observeActiveEnvelopes(),
                             observeMonthAllocations(month.id),
@@ -163,6 +163,7 @@ class DashboardViewModel(
 
                             DashboardUiState(
                                 isLoading = false,
+                                isEmpty = false,
                                 netWorthHero = NetWorthHeroUiState(
                                     netWorth = netWorth,
                                     delta = contribSavings + contribInvest,

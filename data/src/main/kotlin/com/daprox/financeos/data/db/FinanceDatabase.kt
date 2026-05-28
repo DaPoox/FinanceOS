@@ -40,13 +40,18 @@ abstract class FinanceDatabase : RoomDatabase() {
     companion object {
         fun create(context: Context): FinanceDatabase {
             var instance: FinanceDatabase? = null
+            val isDebug = context.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE != 0
             instance = Room.databaseBuilder(context, FinanceDatabase::class.java, "finance_os.db")
                 .fallbackToDestructiveMigration()
-                .addCallback(object : Callback() {
-                    override fun onCreate(db: SupportSQLiteDatabase) {
-                        CoroutineScope(Dispatchers.IO).launch { DatabaseSeeder.seed(instance!!) }
+                .apply {
+                    if (isDebug) {
+                        addCallback(object : Callback() {
+                            override fun onCreate(db: SupportSQLiteDatabase) {
+                                CoroutineScope(Dispatchers.IO).launch { DatabaseSeeder.seed(instance!!) }
+                            }
+                        })
                     }
-                })
+                }
                 .build()
             return instance
         }

@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.daprox.financeos.presentation.core.designsystem.component.EmptyStateView
 import com.daprox.financeos.presentation.core.designsystem.component.ErrorStateView
 import com.daprox.financeos.presentation.core.designsystem.component.ShimmerBox
 import com.composables.icons.lucide.Car
@@ -22,6 +23,7 @@ import com.composables.icons.lucide.House
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.ShoppingCart
 import com.composables.icons.lucide.Utensils
+import com.composables.icons.lucide.Wallet
 import com.daprox.financeos.presentation.core.ObserveAsEvents
 import com.daprox.financeos.presentation.core.designsystem.FinanceOSTheme
 import com.daprox.financeos.presentation.dashboard.component.budgetmonthcard.BudgetMonthCard
@@ -85,6 +87,17 @@ fun DashboardScreen(
         state.isLoading -> DashboardScreenSkeleton(contentPadding = contentPadding)
         state.isError -> LazyColumn(contentPadding = contentPadding) {
             item { ErrorStateView(onRetry = { onAction(DashboardUiAction.OnRetry) }) }
+        }
+        state.isEmpty -> LazyColumn(contentPadding = contentPadding) {
+            item {
+                EmptyStateView(
+                    icon = Lucide.Wallet,
+                    title = "Bienvenue sur Finance OS",
+                    subtitle = "Commence par allouer ton premier mois pour suivre ton budget.",
+                    ctaLabel = "Allouer le mois",
+                    onCta = { onAction(DashboardUiAction.OnAllocateBudgetClick) },
+                )
+            }
         }
         else -> LazyColumn(
             contentPadding = contentPadding,
