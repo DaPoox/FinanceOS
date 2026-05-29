@@ -62,6 +62,16 @@ import com.daprox.financeos.presentation.core.designsystem.finColors
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 
+/**
+ * Root composable for the account form screen.
+ *
+ * Bridges [AccountFormViewModel] and [AccountFormScreen], collecting state and observing
+ * navigation events.
+ *
+ * @param accountId null = create mode; non-null = edit mode for that account
+ * @param viewModel injected via Koin with parameters
+ * @param onNavigateBack callback to navigate back after successful save or delete
+ */
 @Composable
 fun AccountFormScreenRoot(
     accountId: String?,
@@ -73,13 +83,23 @@ fun AccountFormScreenRoot(
     ObserveAsEvents(viewModel.events) { event ->
         when (event) {
             is AccountFormUiEvent.NavigateBack -> onNavigateBack()
-            is AccountFormUiEvent.ShowDeleteDialog -> Unit // handled via UiState
+            is AccountFormUiEvent.ShowDeleteDialog -> Unit
         }
     }
 
     AccountFormScreen(state = state, onAction = viewModel::onAction)
 }
 
+/**
+ * Account form screen UI.
+ *
+ * Displays create or edit form with avatar preview, name, type selector (radio cards), balance,
+ * optional cap field (EPARGNE only), and color picker. Shows loading skeleton and error states.
+ * Save/Delete buttons in footer. Delete confirmation dialog in edit mode.
+ *
+ * @param state current form state (inputs, loading, errors)
+ * @param onAction callback to dispatch actions to ViewModel
+ */
 @Composable
 fun AccountFormScreen(
     state: AccountFormUiState,

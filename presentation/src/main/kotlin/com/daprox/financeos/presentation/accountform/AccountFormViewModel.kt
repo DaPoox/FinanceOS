@@ -16,8 +16,22 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+/**
+ * ViewModel for account creation and editing screens.
+ *
+ * Manages form state (name, type, balance, cap, color) and provides two modes:
+ * - **Create**: null [accountId]
+ * - **Edit**: non-null [accountId], loads account and populates form
+ *
+ * Validates before save (name required). Cap field is only persisted for EPARGNE type.
+ * Deletion (edit mode) is handled via [DeleteAccountUseCase].
+ *
+ * @param accountId null = create mode; non-null = edit mode for that account
+ * @param getAccountById fetches account when loading in edit mode
+ * @param saveAccount persists new or updated account
+ * @param deleteAccount deletes account in edit mode
+ */
 class AccountFormViewModel(
-    // null → create mode; non-null → edit mode
     private val accountId: String?,
     private val getAccountById: GetAccountByIdUseCase,
     private val saveAccount: SaveAccountUseCase,
@@ -34,6 +48,7 @@ class AccountFormViewModel(
         if (accountId != null) loadAccount(accountId)
     }
 
+    /** Fetches account data and populates form fields in edit mode. */
     private fun loadAccount(id: String) {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
@@ -56,6 +71,7 @@ class AccountFormViewModel(
         }
     }
 
+    /** Handles all user actions from the form screen. */
     fun onAction(action: AccountFormUiAction) {
         viewModelScope.launch {
             when (action) {
@@ -81,7 +97,7 @@ class AccountFormViewModel(
 
                 is AccountFormUiAction.OnDeleteConfirmed -> deleteConfirmed()
 
-                is AccountFormUiAction.OnDeleteDismissed -> Unit // dialog closed, no-op
+                is AccountFormUiAction.OnDeleteDismissed -> Unit
 
                 is AccountFormUiAction.OnBackClick ->
                     _events.send(AccountFormUiEvent.NavigateBack)
@@ -89,6 +105,7 @@ class AccountFormViewModel(
         }
     }
 
+    /** Validates form and persists account. Cap is only saved for EPARGNE type. Clears isSaving flag on error. */
     private fun save() {
         viewModelScope.launch {
             val s = _state.value
@@ -109,6 +126,7 @@ class AccountFormViewModel(
         }
     }
 
+    /** Deletes the account in edit mode. */
     private fun deleteConfirmed() {
         val id = accountId ?: return
         viewModelScope.launch {

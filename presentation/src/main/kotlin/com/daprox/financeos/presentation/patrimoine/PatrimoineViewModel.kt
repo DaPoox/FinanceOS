@@ -47,6 +47,15 @@ private fun Account.toUiState(): AccountUiState = AccountUiState(
     color = Color(android.graphics.Color.parseColor(colorHex)),
 )
 
+/**
+ * ViewModel for the patrimoine (net worth / wealth) screen.
+ *
+ * Observes all accounts and computes aggregates by type (liquid, savings, investment).
+ * Exposes sparkline data (hardcoded per range) and responds to range selection.
+ * Retry mechanism via [_retryTrigger] re-fetches accounts on error.
+ *
+ * @param observeAccounts fetches and observes all accounts
+ */
 class PatrimoineViewModel(
     private val observeAccounts: ObserveAccountsUseCase,
 ) : ViewModel() {
@@ -99,6 +108,7 @@ class PatrimoineViewModel(
             .launchIn(viewModelScope)
     }
 
+    /** Handles all user actions from the patrimoine screen. */
     fun onAction(action: PatrimoineUiAction) {
         viewModelScope.launch {
             when (action) {

@@ -62,6 +62,16 @@ import kotlin.math.cos
 import kotlin.math.roundToLong
 import kotlin.math.sin
 
+/**
+ * Root composable for the patrimoine screen.
+ *
+ * Bridges [PatrimoineViewModel] and [PatrimoineScreen], collecting state and observing
+ * navigation events for account management.
+ *
+ * @param viewModel injected via Koin
+ * @param onNavigateToAddAccount callback to navigate to account create screen
+ * @param onNavigateToEditAccount callback to navigate to account edit screen with given id
+ */
 @Composable
 fun PatrimoineScreenRoot(
     viewModel: PatrimoineViewModel = koinViewModel(),
@@ -80,6 +90,16 @@ fun PatrimoineScreenRoot(
     PatrimoineScreen(state = state, onAction = viewModel::onAction)
 }
 
+/**
+ * Patrimoine (net worth) screen UI.
+ *
+ * Displays wealth summary (net worth, deltas), account breakdown pie chart, sparkline trend
+ * chart with range selector (M6/M12/Y3), and detailed account list. Shows loading skeleton,
+ * error, and empty states.
+ *
+ * @param state current screen state (loading, data, breakdowns)
+ * @param onAction callback to dispatch actions to ViewModel
+ */
 @Composable
 fun PatrimoineScreen(
     state: PatrimoineUiState,

@@ -43,6 +43,13 @@ import com.daprox.financeos.presentation.core.designsystem.finColors
 import org.koin.androidx.compose.koinViewModel
 import kotlin.math.roundToLong
 
+/**
+ * Root composable for the history screen.
+ *
+ * Bridges [HistoryViewModel] and [HistoryScreen], collecting state and dispatching actions.
+ *
+ * @param viewModel injected via Koin
+ */
 @Composable
 fun HistoryScreenRoot(
     viewModel: HistoryViewModel = koinViewModel(),
@@ -51,6 +58,17 @@ fun HistoryScreenRoot(
     HistoryScreen(state = state, onAction = viewModel::onAction)
 }
 
+/**
+ * History (12-month summary) screen UI.
+ *
+ * Displays aggregate stats (total income, total savings, average savings rate), a bar chart
+ * of monthly contributions, and a detailed month-by-month list with status badges. Shows loading
+ * skeleton, error, and empty states.
+ *
+ * @param state current screen state (loading, data, summary stats)
+ * @param onAction callback to dispatch actions to ViewModel
+ * @param modifier optional modifier for the screen container
+ */
 @Composable
 fun HistoryScreen(
     state: HistoryUiState,

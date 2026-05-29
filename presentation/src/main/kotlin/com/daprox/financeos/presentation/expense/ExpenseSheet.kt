@@ -62,8 +62,17 @@ import com.daprox.financeos.presentation.core.designsystem.finColors
 import kotlinx.coroutines.delay
 
 /**
- * Expense entry bottom sheet. Caller owns visibility via [sheetState].
- * Resets all internal state 250ms after the sheet closes.
+ * Bottom sheet for quick expense entry.
+ *
+ * Provides a numeric keypad, envelope selector, note input, and confirmation flow. Caller
+ * controls visibility via [sheetState]. Internal state (amount, selection, note) resets
+ * automatically 250ms after sheet closes. Confirmation view displays amount + envelope name
+ * for 700ms with optional checkmark animation before triggering [onSave].
+ *
+ * @param envelopes list of selectable budget envelopes
+ * @param sheetState manages sheet visibility and drag state
+ * @param onDismiss callback when sheet is dismissed (back button or outside tap)
+ * @param onSave callback with validated amount, selected envelope, and optional note
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

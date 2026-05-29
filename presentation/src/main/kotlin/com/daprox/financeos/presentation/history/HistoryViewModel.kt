@@ -15,6 +15,14 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
+/**
+ * ViewModel for the history (12-month financial summary) screen.
+ *
+ * Observes all months and computes aggregate stats (total income, total contributions, average
+ * savings rate). Responds to retry action on error by incrementing [_retryTrigger].
+ *
+ * @param observeMonths fetches and observes all months with financial data
+ */
 class HistoryViewModel(
     private val observeMonths: ObserveMonthsUseCase,
 ) : ViewModel() {
@@ -60,6 +68,7 @@ class HistoryViewModel(
             .launchIn(viewModelScope)
     }
 
+    /** Handles user actions from the history screen. */
     fun onAction(action: HistoryUiAction) {
         when (action) {
             is HistoryUiAction.OnRetry -> {

@@ -62,6 +62,17 @@ import com.daprox.financeos.presentation.core.designsystem.iconKeyToImageVector
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 
+/**
+ * Root composable for the envelope form screen.
+ *
+ * Bridges [EnvelopeFormViewModel] and [EnvelopeFormScreen], collecting state and observing
+ * navigation events.
+ *
+ * @param envelopeId null = create mode; non-null = edit mode for that envelope
+ * @param presetType serialized EnvelopeTypeEnum name to pre-select in create mode
+ * @param viewModel injected via Koin with parameters
+ * @param onNavigateBack callback to navigate back after successful save or delete
+ */
 @Composable
 fun EnvelopeFormScreenRoot(
     envelopeId: String?,
@@ -80,6 +91,16 @@ fun EnvelopeFormScreenRoot(
     EnvelopeFormScreen(state = state, onAction = viewModel::onAction)
 }
 
+/**
+ * Envelope form screen UI.
+ *
+ * Displays create or edit form with name, type selector (radio cards), icon grid, amount input,
+ * and conditional fields (accumulated for PERMANENT, cap for SAVINGS). Shows loading skeleton and
+ * error states. Save/Delete buttons in footer.
+ *
+ * @param state current form state (inputs, loading, errors)
+ * @param onAction callback to dispatch actions to ViewModel
+ */
 @Composable
 fun EnvelopeFormScreen(
     state: EnvelopeFormUiState,

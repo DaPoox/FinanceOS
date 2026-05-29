@@ -8,10 +8,13 @@ import com.daprox.financeos.presentation.envelopeform.EnvelopeFormScreenRoot
 import kotlinx.serialization.Serializable
 
 /**
- * Route for the envelope form screen.
- *   - envelopeId = null → create mode
- *   - envelopeId = non-null → edit mode for that envelope
- *   - presetType = serialized EnvelopeTypeEnum name, pre-selects the type in create mode
+ * Route configuration for the envelope form screen.
+ *
+ * Supports both create and edit modes via the [envelopeId] parameter. The [presetType] allows
+ * pre-selection of envelope type (e.g. when creating a new SAVINGS envelope from the dashboard).
+ *
+ * @property envelopeId null = create mode; non-null = edit mode for that envelope
+ * @property presetType serialized EnvelopeTypeEnum name; pre-selected in create mode (e.g. "SAVINGS")
  */
 @Serializable
 data class EnvelopeForm(
@@ -19,6 +22,13 @@ data class EnvelopeForm(
     val presetType: String? = null,
 )
 
+/**
+ * Registers the envelope form screen in the navigation graph.
+ *
+ * Parses route arguments, validates presetType, and sets up navigation callbacks.
+ *
+ * @param onNavigateBack callback on successful save, delete, or back action
+ */
 fun NavGraphBuilder.envelopeFormScreen(onNavigateBack: () -> Unit = {}) {
     composable<EnvelopeForm> { backStackEntry ->
         val route = backStackEntry.toRoute<EnvelopeForm>()

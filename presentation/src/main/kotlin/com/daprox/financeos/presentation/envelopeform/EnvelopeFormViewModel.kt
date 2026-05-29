@@ -17,10 +17,24 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+/**
+ * ViewModel for envelope creation and editing screens.
+ *
+ * Manages form state (name, type, icon, amount, accumulated, cap) and provides two modes:
+ * - **Create**: null [envelopeId], optionally pre-select type via [presetTypeKey]
+ * - **Edit**: non-null [envelopeId], loads envelope and populates form
+ *
+ * Validates before save (name required) and persists via [SaveEnvelopeUseCase].
+ * Deletion (edit mode) is handled via [ArchiveEnvelopeUseCase].
+ *
+ * @param envelopeId null = create mode; non-null = edit mode for that envelope
+ * @param presetTypeKey serialized EnvelopeTypeEnum name to pre-select in create mode (e.g. "VARIABLE")
+ * @param observeActiveEnvelopes fetches active envelopes when loading in edit mode
+ * @param saveEnvelope persists new or updated envelope
+ * @param archiveEnvelope archives (soft-deletes) envelope in edit mode
+ */
 class EnvelopeFormViewModel(
-    // null → create mode; non-null → edit mode
     private val envelopeId: String?,
-    // serialized EnvelopeTypeEnum name; pre-sets type in create mode
     presetTypeKey: String?,
     private val observeActiveEnvelopes: ObserveActiveEnvelopesUseCase,
     private val saveEnvelope: SaveEnvelopeUseCase,
@@ -45,10 +59,10 @@ class EnvelopeFormViewModel(
         if (envelopeId != null) loadEnvelope(envelopeId)
     }
 
+    /** Fetches envelope data and populates form fields in edit mode. */
     private fun loadEnvelope(id: String) {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
-            // Observe active envelopes and take the first emission to find the envelope
             val envelope = observeActiveEnvelopes().first().find { it.id == id }
             if (envelope != null) {
                 _state.update {
@@ -66,6 +80,7 @@ class EnvelopeFormViewModel(
         }
     }
 
+    /** Handles all user actions from the form screen. */
     fun onAction(action: EnvelopeFormUiAction) {
         viewModelScope.launch {
             when (action) {
@@ -97,6 +112,7 @@ class EnvelopeFormViewModel(
         }
     }
 
+    /** Validates form and persists envelope. Clears isSaving flag on error. */
     private fun save() {
         viewModelScope.launch {
             val s = _state.value
@@ -117,6 +133,7 @@ class EnvelopeFormViewModel(
         }
     }
 
+    /** Archives (soft-deletes) the envelope in edit mode. */
     private fun deleteConfirmed() {
         val id = envelopeId ?: return
         viewModelScope.launch {
@@ -128,6 +145,7 @@ class EnvelopeFormViewModel(
         }
     }
 
+    /** Returns hex color for envelope type; used at persist time. */
     private fun colorHexForType(type: EnvelopeTypeEnum): String = when (type) {
         EnvelopeTypeEnum.FIXED -> "#4a5568"
         EnvelopeTypeEnum.VARIABLE -> "#e8eef5"
