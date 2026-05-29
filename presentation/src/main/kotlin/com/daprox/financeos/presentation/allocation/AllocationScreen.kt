@@ -98,6 +98,12 @@ import com.daprox.financeos.presentation.dashboard.component.envelopeminigrid.En
 import org.koin.androidx.compose.koinViewModel
 import kotlin.math.abs
 
+/**
+ * Returns the appropriate add button label for a given envelope type.
+ *
+ * @param type The envelope type to get the label for
+ * @return The localized add button label, or null if the type doesn't support quick creation
+ */
 private fun addButtonLabel(type: EnvelopeTypeEnum?): String? = when (type) {
     EnvelopeTypeEnum.VARIABLE -> "+ Ajouter une catégorie"
     EnvelopeTypeEnum.MONTHLY -> "+ Nouvelle dépense du mois"
@@ -106,6 +112,15 @@ private fun addButtonLabel(type: EnvelopeTypeEnum?): String? = when (type) {
     else -> null
 }
 
+/**
+ * Root composable for the Allocation screen.
+ *
+ * Manages ViewModel injection, event observation, and navigation callbacks.
+ * Displays the [AllocationScreen] with collected state.
+ *
+ * @param viewModel The [AllocationViewModel] providing state and action handling
+ * @param onNavigateBack Callback invoked when navigation back is requested
+ */
 @Composable
 fun AllocationScreenRoot(
     viewModel: AllocationViewModel = koinViewModel(),
@@ -123,6 +138,21 @@ fun AllocationScreenRoot(
     AllocationScreen(state = state, onAction = viewModel::onAction)
 }
 
+/**
+ * Main Allocation screen composable.
+ *
+ * A three-step wizard for monthly budget allocation:
+ * - Step 0: Income input
+ * - Step 1: Template selection (Previous month, Past month, Default, From scratch)
+ * - Step 2: Envelope amount adjustment with swipe-to-delete undo support
+ *
+ * Displays loading skeleton, error state, or the current step's content.
+ * Shows undo snackbar when an envelope is swipe-deleted.
+ * Renders the new envelope bottom sheet when triggered.
+ *
+ * @param state The current [AllocationUiState]
+ * @param onAction Callback to dispatch [AllocationUiAction]s
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AllocationScreen(
@@ -210,6 +240,13 @@ fun AllocationScreen(
     }
 }
 
+/**
+ * Loading skeleton placeholder for the Allocation screen.
+ *
+ * Displays shimmer boxes while data is being loaded.
+ *
+ * @param modifier Optional modifier for layout customization
+ */
 @Composable
 private fun AllocationScreenSkeleton(modifier: Modifier = Modifier) {
     Column(
@@ -226,6 +263,16 @@ private fun AllocationScreenSkeleton(modifier: Modifier = Modifier) {
     }
 }
 
+/**
+ * Top bar for the Allocation screen.
+ *
+ * Displays the back button, screen title with month label, and step indicator (3 animated dots).
+ *
+ * @param monthLabel The localized month label (e.g., "Mai 2026")
+ * @param step The current step (0–2)
+ * @param onBack Callback invoked when the back button is clicked
+ * @param modifier Optional modifier for layout customization
+ */
 @Composable
 private fun AllocationTopBar(
     monthLabel: String,
@@ -268,6 +315,14 @@ private fun AllocationTopBar(
     }
 }
 
+/**
+ * Animated step indicator with 3 dots.
+ *
+ * The current step's dot expands; completed steps maintain width; future steps remain compact.
+ *
+ * @param step The current step (0–2)
+ * @param modifier Optional modifier for layout customization
+ */
 @Composable
 private fun StepIndicator(step: Int, modifier: Modifier = Modifier) {
     Row(
@@ -294,6 +349,16 @@ private fun StepIndicator(step: Int, modifier: Modifier = Modifier) {
     }
 }
 
+/**
+ * Step 1: Income input screen.
+ *
+ * Allows users to enter their monthly income with a large text field, quick suggestion buttons,
+ * and a decorative gradient underline.
+ *
+ * @param income The current income value as a string
+ * @param onIncomeChanged Callback invoked when income is updated; filters to digits only
+ * @param modifier Optional modifier for layout customization
+ */
 @Composable
 private fun StepIncome(
     income: String,
@@ -401,6 +466,19 @@ private fun StepIncome(
     }
 }
 
+/**
+ * Step 2: Template selection screen.
+ *
+ * Allows users to choose a starting point for their allocation:
+ * - Previous month (recommended)
+ * - A past month (custom selection)
+ * - Default template (user's saved default)
+ * - From scratch
+ *
+ * @param selected The currently selected [TemplateTypeEnum]
+ * @param onSelect Callback invoked when a template is selected
+ * @param modifier Optional modifier for layout customization
+ */
 @Composable
 private fun StepTemplate(
     selected: TemplateTypeEnum,
@@ -518,6 +596,21 @@ private fun StepTemplate(
     }
 }
 
+/**
+ * Step 3: Envelope adjustment screen.
+ *
+ * Displays envelopes grouped by type with collapsible sections. Users can:
+ * - Edit envelope amounts
+ * - Swipe left to delete (with undo snackbar support)
+ * - Add new envelopes to supported types
+ * - Toggle "Expand All / Collapse All"
+ *
+ * @param groups The list of [AllocationEnvelopeGroup]s to display
+ * @param onAmountChanged Callback for envelope amount changes; parameters are envelope ID and new amount
+ * @param onEnvelopeDeleted Callback invoked when an envelope is swipe-deleted
+ * @param onAddEnvelopeClick Callback invoked when the add envelope button is clicked; parameter is envelope type key
+ * @param modifier Optional modifier for layout customization
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun StepAdjust(
@@ -665,6 +758,19 @@ private fun SwipeableAdjustRow(
     }
 }
 
+/**
+ * Header for a collapsible envelope group.
+ *
+ * Displays the group label, envelope count, total amount, and an animated chevron icon.
+ * Clickable to toggle the group's expanded state.
+ *
+ * @param label The group label (e.g., "VARIABLES")
+ * @param count Number of envelopes in this group
+ * @param total Sum of allocated amounts for all envelopes in the group
+ * @param expanded Whether the group is currently expanded
+ * @param onToggle Callback invoked when the header is clicked
+ * @param modifier Optional modifier for layout customization
+ */
 @Composable
 private fun CollapsableGroupHeader(
     label: String,
@@ -715,6 +821,16 @@ private fun CollapsableGroupHeader(
     }
 }
 
+/**
+ * Button to add a new envelope to a group.
+ *
+ * Displayed at the bottom of an expanded envelope group.
+ * Features a dashed border and the appropriate label for the envelope type.
+ *
+ * @param label The button label (e.g., "+ Ajouter une catégorie")
+ * @param onClick Callback invoked when the button is clicked
+ * @param modifier Optional modifier for layout customization
+ */
 @Composable
 private fun AddGroupButton(
     label: String,
@@ -752,6 +868,17 @@ private fun AddGroupButton(
     }
 }
 
+/**
+ * A single envelope row in the adjustment step.
+ *
+ * Displays the envelope icon, name, allocated amount input field, and a delete button.
+ * The row is contained in a surface with border.
+ *
+ * @param envelope The [AllocationEnvelopeUiState] to display
+ * @param onAmountChanged Callback invoked when the amount field is updated
+ * @param onDelete Callback invoked when the delete button is clicked
+ * @param modifier Optional modifier for layout customization
+ */
 @Composable
 private fun AdjustRow(
     envelope: AllocationEnvelopeUiState,
@@ -838,6 +965,23 @@ private fun AdjustRow(
     }
 }
 
+/**
+ * Bottom footer bar for the Allocation screen.
+ *
+ * On Step 3, displays "Non alloué" (unallocated amount) with color coding:
+ * - Green for surplus (allocated < income)
+ * - Orange for warning (allocated ≈ income)
+ * - Red for deficit (allocated > income)
+ *
+ * Always shows the primary action button ("Continuer" or "Valider l'allocation").
+ *
+ * @param step The current step (0–2)
+ * @param remaining The remaining (unallocated) amount
+ * @param incomeBlank Whether the income field is empty (disables the button on Step 0)
+ * @param onNext Callback invoked when the main action button is clicked
+ * @param navBarPadding Padding to accommodate the system navigation bar
+ * @param modifier Optional modifier for layout customization
+ */
 @Composable
 private fun AllocationFooter(
     step: Int,

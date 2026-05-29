@@ -55,7 +55,18 @@ private val FORM_TYPES = setOf(
 
 /**
  * Bottom sheet for creating a new envelope directly from StepAdjust.
- * SAVINGS/INVESTMENT types are complex — shows a redirect message instead of the full form.
+ *
+ * Displays a form for VARIABLE and MONTHLY envelope types with fields for:
+ * - Name input
+ * - Icon picker (8-column grid)
+ * - Amount input
+ *
+ * For SAVINGS/INVESTMENT/PERMANENT/FIXED types, shows a redirect message instead
+ * (users must create these from the dedicated Envelopes screen).
+ *
+ * @param presetTypeKey The envelope type key to pre-select (e.g., "VARIABLE"), or null
+ * @param onDismiss Callback invoked when the sheet is dismissed
+ * @param onSave Callback invoked when the form is submitted; parameters are name, typeKey, iconKey, and amount
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -88,7 +99,19 @@ fun NewEnvelopeSheet(
 }
 
 /**
- * Full form — name, icon picker, amount — for VARIABLE and MONTHLY envelope types.
+ * Full form for creating a new envelope (VARIABLE and MONTHLY types only).
+ *
+ * Fields:
+ * - Name: Required, custom input with placeholder
+ * - Icon: 8-column grid picker from the design system's icon library
+ * - Amount: Required, numeric input with decimal support
+ *
+ * The save button is disabled until name and amount are both valid.
+ *
+ * @param typeKey The envelope type key (e.g., "VARIABLE")
+ * @param typeLabel The localized type label for display (e.g., "Variable")
+ * @param onDismiss Callback invoked when the sheet is dismissed
+ * @param onSave Callback invoked when the form is submitted; parameters are name, typeKey, iconKey, and amount
  */
 @Composable
 private fun NewEnvelopeForm(
@@ -293,7 +316,12 @@ private fun NewEnvelopeForm(
 }
 
 /**
- * Shown for SAVINGS/INVESTMENT types — redirect to the full EnvelopeForm screen.
+ * Redirect message for complex envelope types.
+ *
+ * Shown for SAVINGS/INVESTMENT/PERMANENT/FIXED types, instructing users
+ * to create these envelope types from the dedicated Envelopes screen.
+ *
+ * @param onDismiss Callback invoked when the close button is clicked
  */
 @Composable
 private fun NewEnvelopeRedirect(onDismiss: () -> Unit) {
@@ -327,6 +355,12 @@ private fun NewEnvelopeRedirect(onDismiss: () -> Unit) {
     }
 }
 
+/**
+ * Returns the localized label for an envelope type.
+ *
+ * @param type The [EnvelopeTypeEnum]
+ * @return The localized label (e.g., "Variable", "Du mois")
+ */
 private fun typeLabelFor(type: EnvelopeTypeEnum): String = when (type) {
     EnvelopeTypeEnum.VARIABLE -> "Variable"
     EnvelopeTypeEnum.MONTHLY -> "Du mois"

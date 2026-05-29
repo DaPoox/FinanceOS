@@ -27,6 +27,25 @@ import kotlinx.coroutines.launch
 
 private fun DomainEnvelopeType.toPresentation(): EnvelopeTypeEnum = EnvelopeTypeEnum.valueOf(name)
 
+/**
+ * ViewModel for the Fixes screen.
+ *
+ * Displays fixed envelope charges (FIXED type only) for the current month,
+ * showing allocated vs. spent amounts with progress indicators and status badges.
+ *
+ * Features:
+ * - Real-time status computation (OK, WARNING, OVER)
+ * - Animated progress bar for total spend
+ * - Loading, error, and retry states
+ * - Empty state when no fixed charges exist
+ *
+ * State is provided via a [StateFlow<FixesUiState>]; events are sent through a [Channel<FixesUiEvent>].
+ *
+ * @param observeCurrentMonth UseCase to observe the current month
+ * @param observeActiveEnvelopes UseCase to observe all active envelopes
+ * @param observeMonthAllocations UseCase to observe allocations for the current month
+ * @param observeMonthTransactions UseCase to observe transactions for the current month
+ */
 class FixesViewModel(
     private val observeCurrentMonth: ObserveCurrentMonthUseCase,
     private val observeActiveEnvelopes: ObserveActiveEnvelopesUseCase,
@@ -97,6 +116,15 @@ class FixesViewModel(
             .launchIn(viewModelScope)
     }
 
+    /**
+     * Processes UI actions dispatched from the Fixes screen.
+     *
+     * Action handlers:
+     * - [FixesUiAction.OnBackClick]: Navigate back
+     * - [FixesUiAction.OnRetry]: Retry after an error
+     *
+     * @param action The [FixesUiAction] to process
+     */
     fun onAction(action: FixesUiAction) {
         viewModelScope.launch {
             when (action) {

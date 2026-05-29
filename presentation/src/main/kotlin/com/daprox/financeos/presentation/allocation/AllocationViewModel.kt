@@ -93,6 +93,30 @@ private fun colorHexForType(type: DomainEnvelopeType): String = when (type) {
     DomainEnvelopeType.INVESTMENT -> "#a78bfa"
 }
 
+/**
+ * ViewModel for the Allocation screen (3-step budget allocation wizard).
+ *
+ * Manages the allocation workflow:
+ * - Step 0: Monthly income input
+ * - Step 1: Template selection (Previous month, Past month, Default, From scratch)
+ * - Step 2: Envelope amount adjustment
+ *
+ * Features:
+ * - Swipe-to-delete envelope support with undo snackbar
+ * - New envelope creation via bottom sheet for VARIABLE and MONTHLY types
+ * - Automatic allocation copying from previous month
+ * - Real-time "remaining" (unallocated) amount calculation
+ * - Loading, error, and retry states
+ *
+ * State is provided via a [StateFlow<AllocationUiState>]; events are sent through a [Channel<AllocationUiEvent>].
+ *
+ * @param observeCurrentMonth UseCase to observe the current month
+ * @param observeActiveEnvelopes UseCase to observe all active envelopes
+ * @param observeMonthAllocations UseCase to observe allocations for the current month
+ * @param allocateMonth UseCase to save the final allocation for the month
+ * @param copyAllocation UseCase to copy allocations from another month
+ * @param addEnvelopeToMonth UseCase to create and add a new envelope to a month
+ */
 class AllocationViewModel(
     private val observeCurrentMonth: ObserveCurrentMonthUseCase,
     private val observeActiveEnvelopes: ObserveActiveEnvelopesUseCase,
@@ -182,6 +206,25 @@ class AllocationViewModel(
             .launchIn(viewModelScope)
     }
 
+    /**
+     * Processes UI actions dispatched from the Allocation screen.
+     *
+     * Action handlers:
+     * - [AllocationUiAction.OnNext]: Advance to the next step or finalize allocation
+     * - [AllocationUiAction.OnBack]: Return to the previous step or navigate back
+     * - [AllocationUiAction.OnIncomeChanged]: Update the income value and recalculate remaining
+     * - [AllocationUiAction.OnTemplateSelected]: Select a template and optionally copy allocations
+     * - [AllocationUiAction.OnEnvelopeAmountChanged]: Update a single envelope's amount
+     * - [AllocationUiAction.OnEnvelopeDeleted]: Mark an envelope as deleted (undo via snackbar)
+     * - [AllocationUiAction.OnEnvelopeRestored]: Re-insert a deleted envelope into its group
+     * - [AllocationUiAction.OnClearRemovedEnvelope]: Clear the undo state after snackbar dismissal
+     * - [AllocationUiAction.OnAddEnvelopeClick]: Open the new envelope creation sheet
+     * - [AllocationUiAction.OnNewEnvelopeDismiss]: Close the new envelope sheet
+     * - [AllocationUiAction.OnNewEnvelopeSaved]: Create and add a new envelope to the month
+     * - [AllocationUiAction.OnRetry]: Retry after an error
+     *
+     * @param action The [AllocationUiAction] to process
+     */
     fun onAction(action: AllocationUiAction) {
         viewModelScope.launch {
             when (action) {

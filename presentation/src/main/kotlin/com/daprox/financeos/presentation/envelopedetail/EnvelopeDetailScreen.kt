@@ -72,6 +72,17 @@ import com.daprox.financeos.presentation.dashboard.component.envelopeminigrid.En
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
 
+/**
+ * Root composable for the Envelope Detail screen.
+ *
+ * Manages ViewModel injection with the envelope ID, event observation, and navigation callbacks.
+ * Displays the [EnvelopeDetailScreen] with collected state.
+ *
+ * @param id The envelope ID to display details for
+ * @param viewModel The [EnvelopeDetailViewModel] providing state and action handling
+ * @param onNavigateBack Callback invoked when navigation back is requested
+ * @param onNavigateToEditEnvelope Callback invoked to navigate to the envelope edit screen; parameter is the envelope ID
+ */
 @Composable
 fun EnvelopeDetailScreenRoot(
     id: String,
@@ -91,6 +102,23 @@ fun EnvelopeDetailScreenRoot(
     EnvelopeDetailScreen(state = state, onAction = viewModel::onAction)
 }
 
+/**
+ * Envelope Detail screen composable.
+ *
+ * Displays comprehensive details for a single envelope, including:
+ * - Envelope name, type, and status
+ * - Allocated vs. spent amounts with progress bar
+ * - Accumulated balance (for permanent envelopes)
+ * - Transaction list for the current month
+ * - Monthly spending history chart
+ * - 3-dot overflow menu with Rename/Archive options
+ *
+ * Displays loading skeleton, error state, or the detailed view.
+ * Includes confirmation dialog for archiving.
+ *
+ * @param state The current [EnvelopeDetailUiState]
+ * @param onAction Callback to dispatch [EnvelopeDetailUiAction]s
+ */
 @Composable
 fun EnvelopeDetailScreen(
     state: EnvelopeDetailUiState,

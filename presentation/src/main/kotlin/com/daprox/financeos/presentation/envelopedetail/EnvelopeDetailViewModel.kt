@@ -46,6 +46,32 @@ private val TYPE_LABELS = mapOf(
     EnvelopeTypeEnum.INVESTMENT to "Investissement",
 )
 
+/**
+ * ViewModel for the Envelope Detail screen.
+ *
+ * Displays comprehensive details for a single envelope, including:
+ * - Name, type label, allocated vs. spent amounts
+ * - Progress bar with color coding (OK, WARNING, OVER)
+ * - Accumulated balance (for permanent envelopes)
+ * - Transaction list for the current month (sorted by date descending)
+ * - Monthly spending history
+ * - Status badge
+ *
+ * Features:
+ * - Menu toggle (Rename, Archive)
+ * - Archive confirmation dialog
+ * - Loading, error, and retry states
+ * - Transient UI state preservation (menu/dialog visibility across data reloads)
+ *
+ * State is provided via a [StateFlow<EnvelopeDetailUiState>]; events are sent through a [Channel<EnvelopeDetailUiEvent>].
+ *
+ * @param id The envelope ID to display details for
+ * @param observeCurrentMonth UseCase to observe the current month
+ * @param observeActiveEnvelopes UseCase to observe all active envelopes
+ * @param observeMonthAllocations UseCase to observe allocations for the current month
+ * @param observeEnvelopeTransactions UseCase to observe transactions for this envelope
+ * @param archiveEnvelope UseCase to archive the envelope
+ */
 class EnvelopeDetailViewModel(
     private val id: String,
     private val observeCurrentMonth: ObserveCurrentMonthUseCase,
@@ -115,6 +141,22 @@ class EnvelopeDetailViewModel(
             .launchIn(viewModelScope)
     }
 
+    /**
+     * Processes UI actions dispatched from the Envelope Detail screen.
+     *
+     * Action handlers:
+     * - [EnvelopeDetailUiAction.OnBackClick]: Navigate back
+     * - [EnvelopeDetailUiAction.OnModifierAllocationClick]: Reserved for future allocation editing
+     * - [EnvelopeDetailUiAction.OnRetry]: Retry after an error
+     * - [EnvelopeDetailUiAction.OnMenuClick]: Open the 3-dot overflow menu
+     * - [EnvelopeDetailUiAction.OnMenuDismiss]: Close the menu
+     * - [EnvelopeDetailUiAction.OnRenameClick]: Navigate to the envelope edit screen
+     * - [EnvelopeDetailUiAction.OnArchiveClick]: Open the archive confirmation dialog
+     * - [EnvelopeDetailUiAction.OnArchiveConfirm]: Archive the envelope (requires confirmation)
+     * - [EnvelopeDetailUiAction.OnArchiveDismiss]: Close the archive dialog without archiving
+     *
+     * @param action The [EnvelopeDetailUiAction] to process
+     */
     fun onAction(action: EnvelopeDetailUiAction) {
         viewModelScope.launch {
             when (action) {

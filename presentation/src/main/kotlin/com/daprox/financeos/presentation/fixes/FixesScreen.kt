@@ -57,6 +57,15 @@ import com.daprox.financeos.presentation.core.designsystem.finColors
 import com.daprox.financeos.presentation.dashboard.component.envelopeminigrid.EnvelopeStatusEnum
 import org.koin.androidx.compose.koinViewModel
 
+/**
+ * Root composable for the Fixes screen.
+ *
+ * Manages ViewModel injection, event observation, and navigation callbacks.
+ * Displays the [FixesScreen] with collected state.
+ *
+ * @param viewModel The [FixesViewModel] providing state and action handling
+ * @param onNavigateBack Callback invoked when navigation back is requested
+ */
 @Composable
 fun FixesScreenRoot(
     viewModel: FixesViewModel = koinViewModel(),
@@ -73,6 +82,19 @@ fun FixesScreenRoot(
     FixesScreen(state = state, onAction = viewModel::onAction)
 }
 
+/**
+ * Fixes screen composable — displays fixed envelope charges for the current month.
+ *
+ * Shows a list of fixed charges (envelope type = FIXED) with:
+ * - A summary card showing total allocated vs. spent
+ * - Individual rows for each charge with progress indicator and status badge
+ * - Color-coded status (OK, WARNING, OVER budget)
+ *
+ * Displays loading skeleton, error state, empty state, or the charges list.
+ *
+ * @param state The current [FixesUiState]
+ * @param onAction Callback to dispatch [FixesUiAction]s
+ */
 @Composable
 fun FixesScreen(
     state: FixesUiState,
@@ -138,6 +160,13 @@ fun FixesScreen(
     }
 }
 
+/**
+ * Loading skeleton placeholder for the Fixes screen.
+ *
+ * Displays shimmer boxes while data is being loaded.
+ *
+ * @param contentPadding Padding to apply to the list content
+ */
 @Composable
 private fun FixesScreenSkeleton(contentPadding: PaddingValues) {
     LazyColumn(
@@ -152,6 +181,15 @@ private fun FixesScreenSkeleton(contentPadding: PaddingValues) {
     }
 }
 
+/**
+ * Header for the Fixes screen.
+ *
+ * Displays the back button, screen title ("Charges fixes"), and the current month label.
+ *
+ * @param monthLabel The localized month label
+ * @param onBack Callback invoked when the back button is clicked
+ * @param modifier Optional modifier for layout customization
+ */
 @Composable
 private fun FixesScreenHeader(
     monthLabel: String,
@@ -197,7 +235,25 @@ private fun FixesScreenHeader(
     }
 }
 
-/** Summary card showing total allocated vs spent for all fixed charges this month. */
+/**
+ * Summary card showing total allocated vs. spent for all fixed charges this month.
+ *
+ * Displays:
+ * - Total allocated amount (large text)
+ * - Total spent amount
+ * - Animated progress bar with color coding
+ * - Charge count
+ *
+ * Progress bar color:
+ * - Green: OK (spent < 80% of allocated)
+ * - Orange: WARNING (spent 80–100% of allocated)
+ * - Red: OVER (spent > allocated)
+ *
+ * @param totalAllocated Total allocated amount for all fixed charges
+ * @param totalSpent Total spent amount for all fixed charges
+ * @param chargeCount Number of fixed charges
+ * @param modifier Optional modifier for layout customization
+ */
 @Composable
 private fun FixesTotalCard(
     totalAllocated: Double,
@@ -276,7 +332,23 @@ private fun FixesTotalCard(
 }
 
 /**
- * One fixed charge row: icon, name, status badge, spent/allocated amounts, and a thin progress bar.
+ * A single fixed charge row in the Fixes list.
+ *
+ * Displays:
+ * - Envelope icon in a surface
+ * - Envelope name
+ * - Status badge (color and label based on [EnvelopeStatusEnum])
+ * - Spent and allocated amounts
+ * - Animated progress bar with delayed animation
+ *
+ * Status badge colors:
+ * - Red: OVER (spent > allocated)
+ * - Orange: WARNING (spent 80–100% of allocated)
+ * - Gray: OK/FIXED (spent < 80% of allocated or FIXED type)
+ *
+ * @param charge The [FixesChargeUiState] to display
+ * @param animationDelayMs The animation delay in milliseconds for the progress bar
+ * @param modifier Optional modifier for layout customization
  */
 @Composable
 private fun FixesChargeRow(
