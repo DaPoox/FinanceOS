@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
@@ -35,13 +36,22 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
@@ -50,10 +60,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -73,10 +83,11 @@ import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Plane
 import com.composables.icons.lucide.ShoppingCart
 import com.composables.icons.lucide.TrendingUp
-import com.composables.icons.lucide.Utensils
 import com.composables.icons.lucide.Trash2
+import com.composables.icons.lucide.Utensils
 import com.composables.icons.lucide.Wallet
 import com.daprox.financeos.core.extensions.frenchAmount
+import com.daprox.financeos.presentation.allocation.newenvelope.NewEnvelopeSheet
 import com.daprox.financeos.presentation.core.ObserveAsEvents
 import com.daprox.financeos.presentation.core.designsystem.FinanceOSTheme
 import com.daprox.financeos.presentation.core.designsystem.GeistMono
@@ -112,15 +123,32 @@ fun AllocationScreenRoot(
     AllocationScreen(state = state, onAction = viewModel::onAction)
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AllocationScreen(
     state: AllocationUiState,
     onAction: (AllocationUiAction) -> Unit,
 ) {
     val navBarPadding = WindowInsets.navigationBars.asPaddingValues()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Show undo snackbar whenever an envelope is swipe-deleted
+    LaunchedEffect(state.lastRemovedEnvelope) {
+        val removed = state.lastRemovedEnvelope ?: return@LaunchedEffect
+        val result = snackbarHostState.showSnackbar(
+            message = "\"${removed.name}\" supprimé",
+            actionLabel = "Annuler",
+            duration = SnackbarDuration.Short,
+        )
+        when (result) {
+            SnackbarResult.ActionPerformed -> onAction(AllocationUiAction.OnEnvelopeRestored)
+            SnackbarResult.Dismissed -> onAction(AllocationUiAction.OnClearRemovedEnvelope)
+        }
+    }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             AllocationTopBar(
                 monthLabel = state.monthLabel,
@@ -161,11 +189,24 @@ fun AllocationScreen(
                     2 -> StepAdjust(
                         groups = state.groups,
                         onAmountChanged = { id, amt -> onAction(AllocationUiAction.OnEnvelopeAmountChanged(id, amt)) },
+                        onEnvelopeDeleted = { env -> onAction(AllocationUiAction.OnEnvelopeDeleted(env)) },
+                        onAddEnvelopeClick = { typeKey -> onAction(AllocationUiAction.OnAddEnvelopeClick(typeKey)) },
                     )
                 }
                 Spacer(modifier = Modifier.height(8.dp))
             }
         }
+    }
+
+    // New envelope bottom sheet — rendered above Scaffold
+    if (state.isNewEnvelopeSheetVisible) {
+        NewEnvelopeSheet(
+            presetTypeKey = state.newEnvelopePresetType,
+            onDismiss = { onAction(AllocationUiAction.OnNewEnvelopeDismiss) },
+            onSave = { name, typeKey, iconKey, amount ->
+                onAction(AllocationUiAction.OnNewEnvelopeSaved(name, typeKey, iconKey, amount))
+            },
+        )
     }
 }
 
@@ -477,10 +518,13 @@ private fun StepTemplate(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun StepAdjust(
     groups: List<AllocationEnvelopeGroup>,
     onAmountChanged: (String, String) -> Unit,
+    onEnvelopeDeleted: (AllocationEnvelopeUiState) -> Unit,
+    onAddEnvelopeClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val expandedGroups = remember(groups.map { it.label }) {
@@ -548,19 +592,76 @@ private fun StepAdjust(
                     modifier = Modifier.padding(top = 8.dp),
                 ) {
                     group.envelopes.forEach { envelope ->
-                        AdjustRow(
+                        SwipeableAdjustRow(
                             envelope = envelope,
                             onAmountChanged = { onAmountChanged(envelope.id, it) },
-                            onDelete = {},
+                            onDelete = { onEnvelopeDeleted(envelope) },
                         )
                     }
+                    // Only show the add button for types that support quick creation
                     addButtonLabel(group.envelopes.firstOrNull()?.type)?.let { label ->
+                        val typeKey = group.envelopes.firstOrNull()?.type?.name ?: return@let
                         Spacer(modifier = Modifier.height(4.dp))
-                        AddGroupButton(label = label, onClick = {})
+                        AddGroupButton(
+                            label = label,
+                            onClick = { onAddEnvelopeClick(typeKey) },
+                        )
                     }
                 }
             }
         }
+    }
+}
+
+/**
+ * AdjustRow wrapped in SwipeToDismissBox. Swiping left reveals a red delete background.
+ * The item is removed via [onDelete]; the snackbar in AllocationScreen offers undo.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SwipeableAdjustRow(
+    envelope: AllocationEnvelopeUiState,
+    onAmountChanged: (String) -> Unit,
+    onDelete: () -> Unit,
+) {
+    val dismissState = rememberSwipeToDismissBoxState(
+        confirmValueChange = { value ->
+            if (value == SwipeToDismissBoxValue.EndToStart) {
+                onDelete()
+            }
+            // Return false so the item snaps back — the list re-renders without it from state
+            false
+        },
+    )
+
+    SwipeToDismissBox(
+        state = dismissState,
+        enableDismissFromStartToEnd = false,
+        backgroundContent = {
+            // Red delete indicator shown during left swipe
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(MaterialTheme.colorScheme.error),
+                contentAlignment = Alignment.CenterEnd,
+            ) {
+                Icon(
+                    imageVector = Lucide.Trash2,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier
+                        .padding(end = 16.dp)
+                        .size(18.dp),
+                )
+            }
+        },
+    ) {
+        AdjustRow(
+            envelope = envelope,
+            onAmountChanged = onAmountChanged,
+            onDelete = onDelete,
+        )
     }
 }
 

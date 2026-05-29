@@ -9,6 +9,8 @@ import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.daprox.financeos.presentation.accountform.navigation.AccountForm
+import com.daprox.financeos.presentation.accountform.navigation.accountFormScreen
 import com.daprox.financeos.presentation.allocation.navigation.Allocation
 import com.daprox.financeos.presentation.allocation.navigation.allocationScreen
 import com.daprox.financeos.presentation.budget.navigation.Budget
@@ -18,11 +20,15 @@ import com.daprox.financeos.presentation.dashboard.navigation.Dashboard
 import com.daprox.financeos.presentation.dashboard.navigation.dashboardScreen
 import com.daprox.financeos.presentation.envelopedetail.navigation.EnvelopeDetail
 import com.daprox.financeos.presentation.envelopedetail.navigation.envelopeDetailScreen
+import com.daprox.financeos.presentation.envelopeform.navigation.EnvelopeForm
+import com.daprox.financeos.presentation.envelopeform.navigation.envelopeFormScreen
+import com.daprox.financeos.presentation.fixes.navigation.Fixes
+import com.daprox.financeos.presentation.fixes.navigation.fixesScreen
+import com.daprox.financeos.presentation.history.navigation.History
+import com.daprox.financeos.presentation.history.navigation.historyScreen
 import com.daprox.financeos.presentation.navigation.AppTab
 import com.daprox.financeos.presentation.patrimoine.navigation.Patrimoine
 import com.daprox.financeos.presentation.patrimoine.navigation.patrimoineScreen
-import com.daprox.financeos.presentation.history.navigation.History
-import com.daprox.financeos.presentation.history.navigation.historyScreen
 
 @Composable
 fun AppNavGraph() {
@@ -77,17 +83,29 @@ fun AppNavGraph() {
             budgetScreen(
                 onNavigateToAllocation = { navController.navigate(Allocation) },
                 onNavigateToEnvelopeDetail = { id -> navController.navigate(EnvelopeDetail(id)) },
+                onNavigateToFixes = { navController.navigate(Fixes) },
             )
             envelopeDetailScreen(
                 onNavigateBack = { navController.popBackStack() },
+                onNavigateToEditEnvelope = { id -> navController.navigate(EnvelopeForm(envelopeId = id)) },
             )
             allocationScreen(
                 onNavigateBack = { navController.popBackStack() },
             )
             patrimoineScreen(
-                onNavigateToAddAccount = { /* TODO PRO-xx: AddAccountScreen not yet implemented */ },
+                onNavigateToAddAccount = { navController.navigate(AccountForm()) },
+                onNavigateToEditAccount = { id -> navController.navigate(AccountForm(accountId = id)) },
             )
             historyScreen()
+            fixesScreen(
+                onNavigateBack = { navController.popBackStack() },
+            )
+            accountFormScreen(
+                onNavigateBack = { navController.popBackStack() },
+            )
+            envelopeFormScreen(
+                onNavigateBack = { navController.popBackStack() },
+            )
         }
     }
 }

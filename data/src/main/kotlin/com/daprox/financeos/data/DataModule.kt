@@ -13,9 +13,13 @@ import com.daprox.financeos.domain.repository.EnvelopeRepository
 import com.daprox.financeos.domain.repository.MonthAllocationRepository
 import com.daprox.financeos.domain.repository.MonthRepository
 import com.daprox.financeos.domain.repository.TransactionRepository
+import com.daprox.financeos.domain.usecase.AddEnvelopeToMonthUseCase
 import com.daprox.financeos.domain.usecase.AddTransactionUseCase
 import com.daprox.financeos.domain.usecase.AllocateMonthUseCase
+import com.daprox.financeos.domain.usecase.ArchiveEnvelopeUseCase
 import com.daprox.financeos.domain.usecase.CopyAllocationFromMonthUseCase
+import com.daprox.financeos.domain.usecase.DeleteAccountUseCase
+import com.daprox.financeos.domain.usecase.GetAccountByIdUseCase
 import com.daprox.financeos.domain.usecase.ObserveAccountsUseCase
 import com.daprox.financeos.domain.usecase.ObserveActiveEnvelopesUseCase
 import com.daprox.financeos.domain.usecase.ObserveCurrentMonthUseCase
@@ -23,6 +27,8 @@ import com.daprox.financeos.domain.usecase.ObserveEnvelopeTransactionsUseCase
 import com.daprox.financeos.domain.usecase.ObserveMonthAllocationsUseCase
 import com.daprox.financeos.domain.usecase.ObserveMonthTransactionsUseCase
 import com.daprox.financeos.domain.usecase.ObserveMonthsUseCase
+import com.daprox.financeos.domain.usecase.SaveAccountUseCase
+import com.daprox.financeos.domain.usecase.SaveEnvelopeUseCase
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
@@ -47,7 +53,7 @@ val dataModule = module {
     single<MonthAllocationRepository> { MonthAllocationRepositoryImpl(get()) }
     single<AccountRepository> { AccountRepositoryImpl(get()) }
 
-    // Use Cases
+    // Use Cases — Observe
     single { ObserveActiveEnvelopesUseCase(get()) }
     single { ObserveMonthsUseCase(get()) }
     single { ObserveCurrentMonthUseCase(get()) }
@@ -55,7 +61,15 @@ val dataModule = module {
     single { ObserveMonthTransactionsUseCase(get()) }
     single { ObserveEnvelopeTransactionsUseCase(get()) }
     single { ObserveAccountsUseCase(get()) }
+
+    // Use Cases — Write / Mutate
     single { AddTransactionUseCase(get()) }
     single { AllocateMonthUseCase(get(), get()) }
     single { CopyAllocationFromMonthUseCase(get()) }
+    single { SaveAccountUseCase(get()) }
+    single { DeleteAccountUseCase(get()) }
+    single { GetAccountByIdUseCase(get()) }
+    single { SaveEnvelopeUseCase(get()) }
+    single { ArchiveEnvelopeUseCase(get()) }
+    single { AddEnvelopeToMonthUseCase(get(), get()) }
 }

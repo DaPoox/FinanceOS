@@ -158,7 +158,18 @@ private fun DashboardScreenSkeleton(contentPadding: PaddingValues) {
     }
 }
 
-@Preview(showBackground = true, backgroundColor = 0xFF090C12)
+@Preview(showBackground = true, backgroundColor = 0xFF090C12, name = "Dashboard — Empty state")
+@Composable
+private fun DashboardScreenEmptyPreview() {
+    FinanceOSTheme {
+        DashboardScreen(
+            state = DashboardUiState(isLoading = false, isEmpty = true),
+            onAction = {},
+        )
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF090C12, name = "Dashboard — Content")
 @Composable
 private fun DashboardScreenPreview() {
     FinanceOSTheme {

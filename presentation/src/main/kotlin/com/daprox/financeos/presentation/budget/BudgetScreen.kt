@@ -52,6 +52,9 @@ import com.daprox.financeos.presentation.budget.component.budgetglobalcard.Budge
 import com.daprox.financeos.presentation.budget.component.budgetglobalcard.BudgetGlobalCardUiState
 import com.daprox.financeos.presentation.budget.component.enveloperow.EnvelopeRow
 import com.daprox.financeos.presentation.budget.component.enveloperow.EnvelopeRowUiState
+import com.daprox.financeos.presentation.budget.component.fixessummary.FixesSummaryCard
+import com.daprox.financeos.presentation.budget.component.fixessummary.FixesSummaryChargeUiState
+import com.daprox.financeos.presentation.budget.component.fixessummary.FixesSummaryUiState
 import com.daprox.financeos.presentation.core.ObserveAsEvents
 
 import com.daprox.financeos.presentation.core.designsystem.FinanceOSTheme
@@ -72,6 +75,7 @@ fun BudgetScreenRoot(
     viewModel: BudgetViewModel = koinViewModel(),
     onNavigateToAllocation: () -> Unit = {},
     onNavigateToEnvelopeDetail: (String) -> Unit = {},
+    onNavigateToFixes: () -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -79,6 +83,7 @@ fun BudgetScreenRoot(
         when (event) {
             is BudgetUiEvent.NavigateToAllocation -> onNavigateToAllocation()
             is BudgetUiEvent.NavigateToEnvelopeDetail -> onNavigateToEnvelopeDetail(event.id)
+            is BudgetUiEvent.NavigateToFixes -> onNavigateToFixes()
         }
     }
 
@@ -162,6 +167,17 @@ fun BudgetScreen(
                         state = state.globalCard,
                         modifier = Modifier.padding(horizontal = 16.dp),
                     )
+                }
+
+                // Fixed charges get their own collapsible card instead of a standard group row
+                if (state.fixesSummary.charges.isNotEmpty()) {
+                    item(key = "fixes_summary") {
+                        FixesSummaryCard(
+                            state = state.fixesSummary,
+                            onSeeDetail = { onAction(BudgetUiAction.OnFixesClick) },
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
+                        )
+                    }
                 }
 
                 state.groups.forEach { group ->

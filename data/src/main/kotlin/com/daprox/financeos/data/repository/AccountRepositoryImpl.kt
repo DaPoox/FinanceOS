@@ -12,7 +12,11 @@ class AccountRepositoryImpl(private val dao: AccountDao) : AccountRepository {
     override fun getAllAccounts(): Flow<List<Account>> =
         dao.getAllAccounts().map { list -> list.map { it.toDomain() } }
 
+    override suspend fun getById(id: String): Account? = dao.getById(id)?.toDomain()
+
     override suspend fun insert(account: Account) { dao.insert(account.toEntity()) }
 
     override suspend fun update(account: Account) { dao.update(account.toEntity()) }
+
+    override suspend fun delete(id: String) { dao.deleteById(id) }
 }

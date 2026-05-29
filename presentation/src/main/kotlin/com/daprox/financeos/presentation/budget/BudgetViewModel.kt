@@ -12,6 +12,8 @@ import com.daprox.financeos.domain.usecase.ObserveMonthAllocationsUseCase
 import com.daprox.financeos.domain.usecase.ObserveMonthTransactionsUseCase
 import com.daprox.financeos.presentation.budget.component.budgetglobalcard.BudgetGlobalCardUiState
 import com.daprox.financeos.presentation.budget.component.enveloperow.EnvelopeRowUiState
+import com.daprox.financeos.presentation.budget.component.fixessummary.FixesSummaryChargeUiState
+import com.daprox.financeos.presentation.budget.component.fixessummary.FixesSummaryUiState
 import com.daprox.financeos.presentation.core.designsystem.iconKeyToImageVector
 import com.daprox.financeos.presentation.dashboard.component.envelopeminigrid.EnvelopeStatusEnum
 import com.daprox.financeos.presentation.dashboard.component.envelopeminigrid.EnvelopeTypeEnum
@@ -105,16 +107,27 @@ class BudgetViewModel(
                                 )
                             }
 
-                            val groups = rows.toGroups()
+                            // FIXED envelopes go into their own FixesSummaryCard, not the regular group list
+                            val fixedRows = rows.filter { it.type == EnvelopeTypeEnum.FIXED }
+                            val nonFixedRows = rows.filter { it.type != EnvelopeTypeEnum.FIXED }
+                            val groups = nonFixedRows.toGroups()
+                            val fixesSummary = FixesSummaryUiState(
+                                totalAllocated = fixedRows.sumOf { it.allocated },
+                                totalSpent = fixedRows.sumOf { it.spent },
+                                charges = fixedRows.map { r ->
+                                    FixesSummaryChargeUiState(r.id, r.name, r.icon, r.spent, r.allocated)
+                                },
+                            )
                             BudgetUiState(
                                 isLoading = false,
-                                isEmpty = groups.isEmpty(),
+                                isEmpty = groups.isEmpty() && fixedRows.isEmpty(),
                                 monthLabel = month.label,
                                 globalCard = BudgetGlobalCardUiState(
                                     income = month.income,
                                     totalSpent = rows.sumOf { it.spent },
                                     totalAllocated = rows.sumOf { it.allocated },
                                 ),
+                                fixesSummary = fixesSummary,
                                 groups = groups,
                                 expenseEnvelopes = rows.map { EnvelopeChipUiState(it.id, it.name, it.icon) },
                             )
@@ -155,6 +168,7 @@ class BudgetViewModel(
                     _state.update { it.copy(isLoading = true, isError = false) }
                     _retryTrigger.update { it + 1 }
                 }
+                is BudgetUiAction.OnFixesClick -> _events.send(BudgetUiEvent.NavigateToFixes)
             }
         }
     }

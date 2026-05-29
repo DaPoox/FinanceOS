@@ -21,14 +21,18 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -48,7 +52,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.composables.icons.lucide.Archive
 import com.composables.icons.lucide.ArrowLeft
+import com.composables.icons.lucide.EllipsisVertical
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Pencil
 import com.composables.icons.lucide.Receipt
@@ -71,12 +77,14 @@ fun EnvelopeDetailScreenRoot(
     id: String,
     viewModel: EnvelopeDetailViewModel = koinViewModel(parameters = { parametersOf(id) }),
     onNavigateBack: () -> Unit = {},
+    onNavigateToEditEnvelope: (String) -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     ObserveAsEvents(viewModel.events) { event ->
         when (event) {
             is EnvelopeDetailUiEvent.NavigateBack -> onNavigateBack()
+            is EnvelopeDetailUiEvent.NavigateToEditEnvelope -> onNavigateToEditEnvelope(event.id)
         }
     }
 
@@ -108,7 +116,12 @@ fun EnvelopeDetailScreen(
                     DetailScreenHeader(
                         name = state.name,
                         typeLabel = state.typeLabel,
+                        isMenuVisible = state.isMenuVisible,
                         onBack = { onAction(EnvelopeDetailUiAction.OnBackClick) },
+                        onMenuClick = { onAction(EnvelopeDetailUiAction.OnMenuClick) },
+                        onMenuDismiss = { onAction(EnvelopeDetailUiAction.OnMenuDismiss) },
+                        onRenameClick = { onAction(EnvelopeDetailUiAction.OnRenameClick) },
+                        onArchiveClick = { onAction(EnvelopeDetailUiAction.OnArchiveClick) },
                     )
                 }
 
@@ -143,6 +156,16 @@ fun EnvelopeDetailScreen(
             }
         }
     }
+
+    // Archive confirmation dialog — shown on top of any content state
+    if (state.isArchiveDialogVisible) {
+        ArchiveConfirmDialog(
+            envelopeName = state.name,
+            isSaving = state.isSaving,
+            onConfirm = { onAction(EnvelopeDetailUiAction.OnArchiveConfirm) },
+            onDismiss = { onAction(EnvelopeDetailUiAction.OnArchiveDismiss) },
+        )
+    }
 }
 
 @Composable
@@ -157,11 +180,20 @@ private fun EnvelopeDetailScreenSkeleton(contentPadding: PaddingValues) {
     }
 }
 
+/**
+ * Top bar showing back button, envelope name/type, and the ⋯ overflow menu.
+ * The DropdownMenu is anchored to the overflow button via a wrapping Box.
+ */
 @Composable
 private fun DetailScreenHeader(
     name: String,
     typeLabel: String,
+    isMenuVisible: Boolean,
     onBack: () -> Unit,
+    onMenuClick: () -> Unit,
+    onMenuDismiss: () -> Unit,
+    onRenameClick: () -> Unit,
+    onArchiveClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -186,7 +218,8 @@ private fun DetailScreenHeader(
                     .size(16.dp),
             )
         }
-        Column {
+
+        Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = name,
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
@@ -198,7 +231,88 @@ private fun DetailScreenHeader(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
+
+        // Overflow menu button + anchored DropdownMenu
+        Box {
+            Surface(
+                onClick = onMenuClick,
+                shape = RoundedCornerShape(100.dp),
+                color = MaterialTheme.colorScheme.surface,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+            ) {
+                Icon(
+                    imageVector = Lucide.EllipsisVertical,
+                    contentDescription = "Options",
+                    tint = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .size(16.dp),
+                )
+            }
+            DropdownMenu(
+                expanded = isMenuVisible,
+                onDismissRequest = onMenuDismiss,
+            ) {
+                DropdownMenuItem(
+                    text = { Text("Renommer") },
+                    onClick = onRenameClick,
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Lucide.Pencil,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp),
+                        )
+                    },
+                )
+                DropdownMenuItem(
+                    text = { Text("Archiver", color = MaterialTheme.colorScheme.error) },
+                    onClick = onArchiveClick,
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Lucide.Archive,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(16.dp),
+                        )
+                    },
+                )
+            }
+        }
     }
+}
+
+/**
+ * Confirmation dialog before archiving an envelope — destructive action requires explicit user consent.
+ */
+@Composable
+private fun ArchiveConfirmDialog(
+    envelopeName: String,
+    isSaving: Boolean,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Archiver l'enveloppe ?") },
+        text = {
+            Text(
+                text = "\"$envelopeName\" sera archivée et ne recevra plus d'allocations. " +
+                    "L'historique des dépenses est conservé.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = onConfirm, enabled = !isSaving) {
+                Text("Archiver", color = MaterialTheme.colorScheme.error)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Annuler")
+            }
+        },
+    )
 }
 
 @Composable
@@ -560,6 +674,28 @@ private fun PreviewOK() {
                     TransactionUiState("t2", "Carrefour", "8 mai", 95.0),
                     TransactionUiState("t3", "Biocoop", "5 mai", 67.0),
                 ),
+            ),
+            onAction = {},
+        )
+    }
+}
+
+@Preview(name = "Menu ouvert", showBackground = true, backgroundColor = 0xFF090C12)
+@Composable
+private fun PreviewMenuOpen() {
+    FinanceOSTheme {
+        EnvelopeDetailScreen(
+            state = EnvelopeDetailUiState(
+                isLoading = false,
+                id = "courses",
+                name = "Courses",
+                typeLabel = "Variable standard",
+                type = EnvelopeTypeEnum.VARIABLE,
+                spent = 287.0,
+                allocated = 420.0,
+                status = EnvelopeStatusEnum.OK,
+                transactions = emptyList(),
+                isMenuVisible = true,
             ),
             onAction = {},
         )

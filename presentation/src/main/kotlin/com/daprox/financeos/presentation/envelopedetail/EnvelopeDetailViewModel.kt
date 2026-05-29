@@ -3,7 +3,9 @@ package com.daprox.financeos.presentation.envelopedetail
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.daprox.financeos.core.Result
 import com.daprox.financeos.domain.model.EnvelopeTypeEnum as DomainEnvelopeType
+import com.daprox.financeos.domain.usecase.ArchiveEnvelopeUseCase
 import com.daprox.financeos.domain.usecase.ObserveActiveEnvelopesUseCase
 import com.daprox.financeos.domain.usecase.ObserveCurrentMonthUseCase
 import com.daprox.financeos.domain.usecase.ObserveEnvelopeTransactionsUseCase
@@ -50,6 +52,7 @@ class EnvelopeDetailViewModel(
     private val observeActiveEnvelopes: ObserveActiveEnvelopesUseCase,
     private val observeMonthAllocations: ObserveMonthAllocationsUseCase,
     private val observeEnvelopeTransactions: ObserveEnvelopeTransactionsUseCase,
+    private val archiveEnvelope: ArchiveEnvelopeUseCase,
 ) : ViewModel() {
 
     private val _retryTrigger = MutableStateFlow(0)
@@ -83,6 +86,8 @@ class EnvelopeDetailViewModel(
                                 allocated > 0 && spent / allocated > 0.8 -> EnvelopeStatusEnum.WARNING
                                 else -> EnvelopeStatusEnum.OK
                             }
+                            // Preserve transient UI state (menu/dialog visibility)
+                            val current = _state.value
                             EnvelopeDetailUiState(
                                 isLoading = false,
                                 id = id,
@@ -96,6 +101,8 @@ class EnvelopeDetailViewModel(
                                 transactions = transactions
                                     .sortedByDescending { it.date }
                                     .map { tx -> TransactionUiState(tx.id, tx.note, tx.date.toDateLabel(), tx.amount) },
+                                isMenuVisible = current.isMenuVisible,
+                                isArchiveDialogVisible = current.isArchiveDialogVisible,
                             )
                         }
                     }
@@ -111,12 +118,45 @@ class EnvelopeDetailViewModel(
     fun onAction(action: EnvelopeDetailUiAction) {
         viewModelScope.launch {
             when (action) {
-                is EnvelopeDetailUiAction.OnBackClick -> _events.send(EnvelopeDetailUiEvent.NavigateBack)
+                is EnvelopeDetailUiAction.OnBackClick ->
+                    _events.send(EnvelopeDetailUiEvent.NavigateBack)
+
                 is EnvelopeDetailUiAction.OnModifierAllocationClick -> Unit
+
                 is EnvelopeDetailUiAction.OnRetry -> {
                     _state.update { it.copy(isLoading = true, isError = false) }
                     _retryTrigger.update { it + 1 }
                 }
+
+                // ⋯ overflow menu
+                is EnvelopeDetailUiAction.OnMenuClick ->
+                    _state.update { it.copy(isMenuVisible = true) }
+
+                is EnvelopeDetailUiAction.OnMenuDismiss ->
+                    _state.update { it.copy(isMenuVisible = false) }
+
+                is EnvelopeDetailUiAction.OnRenameClick -> {
+                    _state.update { it.copy(isMenuVisible = false) }
+                    _events.send(EnvelopeDetailUiEvent.NavigateToEditEnvelope(id))
+                }
+
+                is EnvelopeDetailUiAction.OnArchiveClick ->
+                    _state.update { it.copy(isMenuVisible = false, isArchiveDialogVisible = true) }
+
+                is EnvelopeDetailUiAction.OnArchiveConfirm -> archiveConfirmed()
+
+                is EnvelopeDetailUiAction.OnArchiveDismiss ->
+                    _state.update { it.copy(isArchiveDialogVisible = false) }
+            }
+        }
+    }
+
+    private fun archiveConfirmed() {
+        viewModelScope.launch {
+            _state.update { it.copy(isSaving = true, isArchiveDialogVisible = false) }
+            when (archiveEnvelope(id)) {
+                is Result.Success -> _events.send(EnvelopeDetailUiEvent.NavigateBack)
+                is Result.Error -> _state.update { it.copy(isSaving = false) }
             }
         }
     }

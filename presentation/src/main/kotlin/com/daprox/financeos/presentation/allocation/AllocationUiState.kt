@@ -13,4 +13,9 @@ data class AllocationUiState(
     val groups: List<AllocationEnvelopeGroup> = emptyList(),
     val remaining: Double = 0.0,
     val isSaving: Boolean = false,
+    // Swipe-to-delete undo state — non-null while the undo snackbar is showing
+    val lastRemovedEnvelope: AllocationEnvelopeUiState? = null,
+    // New envelope bottom sheet
+    val isNewEnvelopeSheetVisible: Boolean = false,
+    val newEnvelopePresetType: String? = null,
 )

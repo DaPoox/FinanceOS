@@ -35,6 +35,7 @@ private fun sparklineFor(range: SparklineRangeEnum): Pair<List<Double>, List<Str
 }
 
 private fun Account.toUiState(): AccountUiState = AccountUiState(
+    id = id,
     name = name,
     type = when (type) {
         DomainAccountType.COURANT -> AccountTypeEnum.COURANT
@@ -110,6 +111,8 @@ class PatrimoineViewModel(
                     _retryTrigger.update { it + 1 }
                 }
                 is PatrimoineUiAction.OnAddAccountCta -> _events.send(PatrimoineUiEvent.NavigateToAddAccount)
+                is PatrimoineUiAction.OnAddAccountClick -> _events.send(PatrimoineUiEvent.NavigateToAddAccount)
+                is PatrimoineUiAction.OnAccountClick -> _events.send(PatrimoineUiEvent.NavigateToEditAccount(action.id))
             }
         }
     }

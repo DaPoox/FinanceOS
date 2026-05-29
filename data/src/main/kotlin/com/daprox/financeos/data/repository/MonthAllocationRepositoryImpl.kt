@@ -12,6 +12,10 @@ class MonthAllocationRepositoryImpl(private val dao: MonthAllocationDao) : Month
     override fun getByMonth(monthId: String): Flow<List<MonthAllocation>> =
         dao.getByMonth(monthId).map { list -> list.map { it.toDomain() } }
 
+    override suspend fun insert(allocation: MonthAllocation) {
+        dao.insertAll(listOf(allocation.toEntity()))
+    }
+
     override suspend fun insertAll(allocations: List<MonthAllocation>) {
         dao.insertAll(allocations.map { it.toEntity() })
     }

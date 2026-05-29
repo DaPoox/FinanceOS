@@ -4,8 +4,10 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.daprox.financeos.core.Result
+import com.daprox.financeos.domain.model.Envelope
 import com.daprox.financeos.domain.model.EnvelopeTypeEnum as DomainEnvelopeType
 import com.daprox.financeos.domain.model.MonthAllocation
+import com.daprox.financeos.domain.usecase.AddEnvelopeToMonthUseCase
 import com.daprox.financeos.domain.usecase.AllocateMonthUseCase
 import com.daprox.financeos.domain.usecase.CopyAllocationFromMonthUseCase
 import com.daprox.financeos.domain.usecase.ObserveActiveEnvelopesUseCase
@@ -82,12 +84,22 @@ private fun AllocationUiState.withAllocationsApplied(allocations: List<MonthAllo
     return copy(groups = newGroups, remaining = computeRemaining(income, newGroups))
 }
 
+private fun colorHexForType(type: DomainEnvelopeType): String = when (type) {
+    DomainEnvelopeType.FIXED -> "#4a5568"
+    DomainEnvelopeType.VARIABLE -> "#e8eef5"
+    DomainEnvelopeType.MONTHLY -> "#fb923c"
+    DomainEnvelopeType.PERMANENT -> "#22c55e"
+    DomainEnvelopeType.SAVINGS -> "#7eb8f7"
+    DomainEnvelopeType.INVESTMENT -> "#a78bfa"
+}
+
 class AllocationViewModel(
     private val observeCurrentMonth: ObserveCurrentMonthUseCase,
     private val observeActiveEnvelopes: ObserveActiveEnvelopesUseCase,
     private val observeMonthAllocations: ObserveMonthAllocationsUseCase,
     private val allocateMonth: AllocateMonthUseCase,
     private val copyAllocation: CopyAllocationFromMonthUseCase,
+    private val addEnvelopeToMonth: AddEnvelopeToMonthUseCase,
 ) : ViewModel() {
 
     private var currentMonthId = ""
@@ -137,16 +149,34 @@ class AllocationViewModel(
                     }
             }
             .onEach { newState ->
-                // Only update non-user-edited fields on first load; preserve step and template
                 _state.update { current ->
-                    if (current.groups.isEmpty()) newState
-                    else current.copy(
-                        isLoading = newState.isLoading,
-                        isError = newState.isError,
-                        income = newState.income,
-                        groups = newState.groups,
-                        remaining = newState.remaining,
-                    )
+                    if (current.groups.isEmpty()) {
+                        // First emission — take everything but preserve sheet/undo transient state
+                        newState.copy(
+                            lastRemovedEnvelope = current.lastRemovedEnvelope,
+                            isNewEnvelopeSheetVisible = current.isNewEnvelopeSheetVisible,
+                            newEnvelopePresetType = current.newEnvelopePresetType,
+                        )
+                    } else {
+                        // Subsequent emissions — preserve user-edited amounts and filter out the
+                        // locally-deleted envelope so the DB re-emission doesn't undo the swipe
+                        val userAmounts = current.groups.flatMap { it.envelopes }.associate { it.id to it.amount }
+                        val removedId = current.lastRemovedEnvelope?.id
+                        val mergedGroups = newState.groups.map { group ->
+                            group.copy(
+                                envelopes = group.envelopes
+                                    .filter { it.id != removedId }
+                                    .map { env -> env.copy(amount = userAmounts[env.id] ?: env.amount) },
+                            )
+                        }.filter { it.envelopes.isNotEmpty() }
+                        current.copy(
+                            isLoading = newState.isLoading,
+                            isError = newState.isError,
+                            income = newState.income,
+                            groups = mergedGroups,
+                            remaining = computeRemaining(current.income, mergedGroups),
+                        )
+                    }
                 }
             }
             .launchIn(viewModelScope)
@@ -176,6 +206,7 @@ class AllocationViewModel(
                         }
                     }
                 }
+
                 is AllocationUiAction.OnBack -> {
                     val current = _state.value.step
                     if (current > 0) {
@@ -184,11 +215,12 @@ class AllocationViewModel(
                         _events.send(AllocationUiEvent.NavigateBack)
                     }
                 }
-                is AllocationUiAction.OnIncomeChanged -> {
+
+                is AllocationUiAction.OnIncomeChanged ->
                     _state.update { state ->
                         state.copy(income = action.value, remaining = computeRemaining(action.value, state.groups))
                     }
-                }
+
                 is AllocationUiAction.OnTemplateSelected -> {
                     _state.update { it.copy(selectedTemplate = action.template) }
                     if (action.template == TemplateTypeEnum.PREVIOUS) {
@@ -199,7 +231,8 @@ class AllocationViewModel(
                         }
                     }
                 }
-                is AllocationUiAction.OnEnvelopeAmountChanged -> {
+
+                is AllocationUiAction.OnEnvelopeAmountChanged ->
                     _state.update { state ->
                         val newGroups = state.groups.map { group ->
                             group.copy(
@@ -210,10 +243,73 @@ class AllocationViewModel(
                         }
                         state.copy(groups = newGroups, remaining = computeRemaining(state.income, newGroups))
                     }
-                }
+
                 is AllocationUiAction.OnRetry -> {
                     _state.update { it.copy(isLoading = true, isError = false) }
                     _retryTrigger.update { it + 1 }
+                }
+
+                // Remove envelope locally; the undo snackbar gives the user a chance to restore it
+                is AllocationUiAction.OnEnvelopeDeleted ->
+                    _state.update { state ->
+                        val newGroups = state.groups.map { group ->
+                            group.copy(envelopes = group.envelopes.filter { it.id != action.envelope.id })
+                        }.filter { it.envelopes.isNotEmpty() }
+                        state.copy(
+                            groups = newGroups,
+                            remaining = computeRemaining(state.income, newGroups),
+                            lastRemovedEnvelope = action.envelope,
+                        )
+                    }
+
+                // Re-insert the envelope into its correct group
+                is AllocationUiAction.OnEnvelopeRestored -> {
+                    val removed = _state.value.lastRemovedEnvelope ?: return@launch
+                    _state.update { state ->
+                        val targetLabel = TYPE_LABELS[removed.type] ?: return@update state
+                        val newGroups = if (state.groups.any { it.label == targetLabel }) {
+                            state.groups.map { group ->
+                                if (group.label == targetLabel) {
+                                    group.copy(envelopes = group.envelopes + removed)
+                                } else group
+                            }
+                        } else {
+                            // Group was fully removed — add it back in the correct order
+                            (state.groups + AllocationEnvelopeGroup(targetLabel, listOf(removed)))
+                                .sortedBy { g -> TYPE_LABELS.values.indexOf(g.label) }
+                        }
+                        state.copy(
+                            groups = newGroups,
+                            remaining = computeRemaining(state.income, newGroups),
+                            lastRemovedEnvelope = null,
+                        )
+                    }
+                }
+
+                is AllocationUiAction.OnClearRemovedEnvelope ->
+                    _state.update { it.copy(lastRemovedEnvelope = null) }
+
+                is AllocationUiAction.OnAddEnvelopeClick ->
+                    _state.update { it.copy(isNewEnvelopeSheetVisible = true, newEnvelopePresetType = action.typeKey) }
+
+                is AllocationUiAction.OnNewEnvelopeDismiss ->
+                    _state.update { it.copy(isNewEnvelopeSheetVisible = false, newEnvelopePresetType = null) }
+
+                // Create the envelope and add it to the current month at the given amount
+                is AllocationUiAction.OnNewEnvelopeSaved -> {
+                    _state.update { it.copy(isNewEnvelopeSheetVisible = false, newEnvelopePresetType = null) }
+                    val domainType = runCatching { DomainEnvelopeType.valueOf(action.typeKey) }.getOrNull()
+                        ?: DomainEnvelopeType.VARIABLE
+                    val envelope = Envelope(
+                        id = "",
+                        name = action.name,
+                        type = domainType,
+                        iconKey = action.iconKey,
+                        colorHex = colorHexForType(domainType),
+                        isActive = true,
+                    )
+                    addEnvelopeToMonth(envelope, currentMonthId, action.amount)
+                    // DB flow emits; merge fix will pick up the new envelope with its saved amount
                 }
             }
         }

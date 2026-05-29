@@ -66,12 +66,14 @@ import kotlin.math.sin
 fun PatrimoineScreenRoot(
     viewModel: PatrimoineViewModel = koinViewModel(),
     onNavigateToAddAccount: () -> Unit = {},
+    onNavigateToEditAccount: (String) -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
     ObserveAsEvents(viewModel.events) { event ->
         when (event) {
             is PatrimoineUiEvent.NavigateToAddAccount -> onNavigateToAddAccount()
+            is PatrimoineUiEvent.NavigateToEditAccount -> onNavigateToEditAccount(event.id)
         }
     }
 
@@ -128,6 +130,8 @@ fun PatrimoineScreen(
             Spacer(modifier = Modifier.height(22.dp))
             AccountsSection(
                 accounts = state.accounts,
+                onAccountClick = { id -> onAction(PatrimoineUiAction.OnAccountClick(id)) },
+                onAddClick = { onAction(PatrimoineUiAction.OnAddAccountClick) },
                 modifier = Modifier.padding(horizontal = 20.dp),
             )
         }
@@ -549,6 +553,8 @@ private fun PatrimoineSparkline(
 @Composable
 private fun AccountsSection(
     accounts: List<AccountUiState>,
+    onAccountClick: (String) -> Unit,
+    onAddClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val grouped = accounts.groupBy { it.type }
@@ -580,6 +586,10 @@ private fun AccountsSection(
                     fontSize = 12.sp,
                 ),
                 color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(100.dp))
+                    .clickable(onClick = onAddClick)
+                    .padding(horizontal = 6.dp, vertical = 4.dp),
             )
         }
 
@@ -595,7 +605,7 @@ private fun AccountsSection(
             Spacer(modifier = Modifier.height(6.dp))
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 group.forEach { account ->
-                    AccountRow(account = account)
+                    AccountRow(account = account, onClick = { onAccountClick(account.id) })
                 }
             }
         }
@@ -605,6 +615,7 @@ private fun AccountsSection(
 @Composable
 private fun AccountRow(
     account: AccountUiState,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val hasCap = account.cap != null
@@ -615,6 +626,8 @@ private fun AccountRow(
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(14.dp))
             .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(14.dp))
+            .clip(RoundedCornerShape(14.dp))
+            .clickable(onClick = onClick)
             .padding(horizontal = 14.dp, vertical = 12.dp),
     ) {
         Row(
@@ -718,11 +731,11 @@ private fun PreviewPatrimoineScreen() {
                 sparklineMonths = listOf("jun", "jul", "aoû", "sep", "oct", "nov", "déc", "jan", "fév", "mar", "avr", "mai"),
                 selectedRange = SparklineRangeEnum.M12,
                 accounts = listOf(
-                    AccountUiState("Boursorama", AccountTypeEnum.COURANT, 4820.0, null, Color(0xFFE8EEF5)),
-                    AccountUiState("Livret A", AccountTypeEnum.EPARGNE, 18400.0, 22950.0, Color(0xFF7EB8F7)),
-                    AccountUiState("LDDS", AccountTypeEnum.EPARGNE, 8200.0, 12000.0, Color(0xFF7EB8F7)),
-                    AccountUiState("PEA", AccountTypeEnum.INVESTISSEMENT, 22680.0, null, Color(0xFFA78BFA)),
-                    AccountUiState("CTO Trade Rep.", AccountTypeEnum.INVESTISSEMENT, 6420.0, null, Color(0xFFA78BFA)),
+                    AccountUiState("1", "Boursorama", AccountTypeEnum.COURANT, 4820.0, null, Color(0xFFE8EEF5)),
+                    AccountUiState("2", "Livret A", AccountTypeEnum.EPARGNE, 18400.0, 22950.0, Color(0xFF7EB8F7)),
+                    AccountUiState("3", "LDDS", AccountTypeEnum.EPARGNE, 8200.0, 12000.0, Color(0xFF7EB8F7)),
+                    AccountUiState("4", "PEA", AccountTypeEnum.INVESTISSEMENT, 22680.0, null, Color(0xFFA78BFA)),
+                    AccountUiState("5", "CTO Trade Rep.", AccountTypeEnum.INVESTISSEMENT, 6420.0, null, Color(0xFFA78BFA)),
                 ),
             ),
             onAction = {},

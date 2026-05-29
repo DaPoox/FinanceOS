@@ -10,8 +10,12 @@ object Patrimoine
 
 fun NavGraphBuilder.patrimoineScreen(
     onNavigateToAddAccount: () -> Unit = {},
+    onNavigateToEditAccount: (String) -> Unit = {},
 ) {
     composable<Patrimoine> {
-        PatrimoineScreenRoot(onNavigateToAddAccount = onNavigateToAddAccount)
+        PatrimoineScreenRoot(
+            onNavigateToAddAccount = onNavigateToAddAccount,
+            onNavigateToEditAccount = onNavigateToEditAccount,
+        )
     }
 }

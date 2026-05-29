@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Finance OS — New designs</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  html, body { margin: 0; padding: 0; background: #06080d; min-height: 100%; font-family: 'DM Sans', system-ui, sans-serif; -webkit-font-smoothing: antialiased; color: #e8eef5; }
+  *::-webkit-scrollbar { display: none; }
+  * { scrollbar-width: none; }
+  button { font-family: inherit; }
+  #root { min-height: 100vh; }
+
+  @keyframes fos-slide-right { from { transform: translate3d(36px,0,0); opacity: 0; } to { transform: none; opacity: 1; } }
+  @keyframes fos-slide-left  { from { transform: translate3d(-36px,0,0); opacity: 0; } to { transform: none; opacity: 1; } }
+  @keyframes fos-slide-up    { from { transform: translate3d(0,36px,0); opacity: 0; } to { transform: none; opacity: 1; } }
+  @keyframes fos-pop         { 0% { transform: scale(0.4); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+  @keyframes fos-fade-in     { from { opacity: 0; } to { opacity: 1; } }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="data.jsx"></script>
+<script type="text/babel" src="primitives.jsx"></script>
+<script type="text/babel" src="phone.jsx"></script>
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="screen-empty-states.jsx"></script>
+<script type="text/babel" src="screen-envelope-form.jsx"></script>
+<script type="text/babel" src="screen-account-form.jsx"></script>
+<script type="text/babel" src="screen-new-month.jsx"></script>
+
+<script type="text/babel">
+// Phone artboard — wraps a screen-component in the device shell so it
+// reads as an in-app surface. Wraps the body in PhoneShell only when
+// the screen doesn't already provide it.
+
+function Phone({ children }) {
+  return (
+    <div style={{
+      width: 412, height: 892,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+    }}>
+      <PhoneShell>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, position: 'relative' }}>
+          {children}
+        </div>
+      </PhoneShell>
+    </div>
+  );
+}
+
+// Empty-state body wrapped in a phone shell + bottom nav so the canvas card
+// reads as a real screen. (The empty-state components are body-only by
+// design so they can drop into the live app shell directly.)
+function PhoneWithNav({ tab, children }) {
+  return (
+    <div style={{
+      width: 412, height: 892,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+    }}>
+      <PhoneShell>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0, position: 'relative' }}>
+          {children}
+        </div>
+        <BottomNav tab={tab} onChange={() => {}} />
+      </PhoneShell>
+    </div>
+  );
+}
+
+function NewDesigns() {
+  return (
+    <DesignCanvas>
+
+      {/* ── Brief 0 — Empty states ────────────────────────── */}
+      <DCSection
+        id="empty-states"
+        title="Brief 0 · Empty states"
+        subtitle="Fresh install / no-data states across the 5 main surfaces. Calm, minimal — never alarming."
+      >
+        <DCArtboard id="empty-home"      label="01 · Accueil — premier lancement"        width={412} height={892}>
+          <PhoneWithNav tab="home"><EmptyHomeScreen /></PhoneWithNav>
+        </DCArtboard>
+        <DCArtboard id="empty-budget"    label="02 · Budget — aucune enveloppe"          width={412} height={892}>
+          <PhoneWithNav tab="budget"><EmptyBudgetScreen /></PhoneWithNav>
+        </DCArtboard>
+        <DCArtboard id="empty-patri"     label="03 · Patrimoine — aucun compte"          width={412} height={892}>
+          <PhoneWithNav tab="patrimoine"><EmptyPatrimoineScreen /></PhoneWithNav>
+        </DCArtboard>
+        <DCArtboard id="empty-history"   label="04 · Historique — pas encore d'historique" width={412} height={892}>
+          <PhoneWithNav tab="history"><EmptyHistoryScreen /></PhoneWithNav>
+        </DCArtboard>
+        <DCArtboard id="empty-envdetail" label="05 · Enveloppe — aucune dépense ce mois"  width={412} height={892}>
+          <Phone>
+            <ScreenHeader title="Restos & cafés" subtitle="Mai 2026" onBack={() => {}} />
+            <EmptyEnvelopeTransactions />
+            <button style={{
+              position: 'absolute', right: 20, bottom: 28,
+              width: 60, height: 60, borderRadius: 22,
+              background: FOS.primary, color: FOS.onPrimary,
+              border: 'none', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: `0 12px 24px ${FOS.primary}55, 0 0 0 6px ${FOS.bg}`,
+              zIndex: 50,
+            }}>
+              <Icon name="plus" size={26} strokeWidth={2.4} />
+            </button>
+          </Phone>
+        </DCArtboard>
+      </DCSection>
+
+      {/* ── Brief 1 — Envelope form ──────────────────────── */}
+      <DCSection
+        id="envelope-form"
+        title="Brief 1 · Envelope — add & edit"
+        subtitle="One screen, two modes. ADHD-friendly form: name → type (with description) → icon → amount → conditional extras."
+      >
+        <DCArtboard id="env-create-var" label="Mode création · type Variable" width={412} height={892}>
+          <Phone><EnvelopeFormScreen mode="create" /></Phone>
+        </DCArtboard>
+        <DCArtboard id="env-create-perm" label="Création · type Permanente (cumul actuel)" width={412} height={892}>
+          <Phone>
+            <EnvelopeFormScreen mode="create" initial={{
+              name: 'Vacances Japon', type: 'perm', icon: 'plane', amount: '180', accumulated: '1840',
+            }} />
+          </Phone>
+        </DCArtboard>
+        <DCArtboard id="env-create-save" label="Création · type Épargne (plafond)" width={412} height={892}>
+          <Phone>
+            <EnvelopeFormScreen mode="create" initial={{
+              name: 'Livret A', type: 'save', icon: 'piggy-bank', amount: '300', cap: '22950',
+            }} />
+          </Phone>
+        </DCArtboard>
+        <DCArtboard id="env-edit" label="Mode édition · Restos & cafés" width={412} height={892}>
+          <Phone><EnvelopeFormScreen mode="edit" /></Phone>
+        </DCArtboard>
+      </DCSection>
+
+      {/* ── Brief 2 — Account form ───────────────────────── */}
+      <DCSection
+        id="account-form"
+        title="Brief 2 · Account — add & edit"
+        subtitle="Manual balance tracking. Live avatar preview at top updates as the user types. Cap field appears only for Épargne."
+      >
+        <DCArtboard id="acc-create-checking" label="Création · Compte courant" width={412} height={892}>
+          <Phone><AccountFormScreen mode="create" initial={{
+            name: 'Boursorama', type: 'Compte courant', balance: '4820', color: '#e8eef5',
+          }} /></Phone>
+        </DCArtboard>
+        <DCArtboard id="acc-create-savings" label="Création · Épargne (Livret A)" width={412} height={892}>
+          <Phone><AccountFormScreen mode="create" initial={{
+            name: 'Livret A', type: 'Épargne', balance: '18400', cap: '22950', color: '#7eb8f7',
+          }} /></Phone>
+        </DCArtboard>
+        <DCArtboard id="acc-create-invest" label="Création · Investissement (PEA)" width={412} height={892}>
+          <Phone><AccountFormScreen mode="create" initial={{
+            name: 'PEA', type: 'Investissement', balance: '22680', color: '#a78bfa',
+          }} /></Phone>
+        </DCArtboard>
+        <DCArtboard id="acc-edit" label="Édition · Livret A" width={412} height={892}>
+          <Phone><AccountFormScreen mode="edit" /></Phone>
+        </DCArtboard>
+      </DCSection>
+
+      {/* ── Brief 3 — New-month flow ─────────────────────── */}
+      <DCSection
+        id="new-month"
+        title="Brief 3 · New-month flow"
+        subtitle="Helpful nudge, not alert. Banner replaces BudgetMonthCard when the current month has no allocation. Allocation step indicator adapts to context."
+      >
+        <DCArtboard id="home-banner" label="A · HomeScreen — bannière mois non alloué" width={412} height={892}>
+          <PhoneWithNav tab="home"><HomeWithUnallocatedBanner showDesignNote={true} /></PhoneWithNav>
+        </DCArtboard>
+        <DCArtboard id="alloc-step1-new" label="B · AllocationScreen — Étape 1 sur 2 (premier mois)" width={412} height={892}>
+          <Phone><AllocationStep1NewMonth /></Phone>
+        </DCArtboard>
+        <DCArtboard id="alloc-template" label="C · AllocationScreen — Choix de template (mois récurrent)" width={412} height={892}>
+          <Phone><AllocationTemplatePicker previousMonth="Mai 2026" /></Phone>
+        </DCArtboard>
+
+        <DCPostIt id="note-flow" x={40} y={1020} w={320} color="amber">
+          <strong>Logique de transition</strong>
+          <br/><br/>
+          Au lancement, l'app lit la clé <code>YYYY-MM</code> du mois courant
+          en base.<br/>
+          → présent : flow normal (BudgetMonthCard)<br/>
+          → absent : bannière sur Home + notification système<br/><br/>
+          Le step indicator devient <em>1 / 2</em> pour un premier mois
+          (pas de template à proposer) et <em>1 / 3</em> dès le 2ème mois
+          (income → template → adjust).
+        </DCPostIt>
+      </DCSection>
+
+    </DesignCanvas>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<NewDesigns />);
+</script>
+</body>
+</html>

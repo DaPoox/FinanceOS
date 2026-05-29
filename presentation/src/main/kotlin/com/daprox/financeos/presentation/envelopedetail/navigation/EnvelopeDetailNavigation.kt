@@ -9,12 +9,16 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class EnvelopeDetail(val id: String)
 
-fun NavGraphBuilder.envelopeDetailScreen(onNavigateBack: () -> Unit = {}) {
+fun NavGraphBuilder.envelopeDetailScreen(
+    onNavigateBack: () -> Unit = {},
+    onNavigateToEditEnvelope: (String) -> Unit = {},
+) {
     composable<EnvelopeDetail> { backStackEntry ->
         val route = backStackEntry.toRoute<EnvelopeDetail>()
         EnvelopeDetailScreenRoot(
             id = route.id,
             onNavigateBack = onNavigateBack,
+            onNavigateToEditEnvelope = onNavigateToEditEnvelope,
         )
     }
 }

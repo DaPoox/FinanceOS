@@ -4,6 +4,7 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,21 +14,32 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.composables.icons.lucide.CalendarPlus
+import com.composables.icons.lucide.Lucide
 import com.daprox.financeos.core.extensions.frenchAmount
 import com.daprox.financeos.presentation.core.designsystem.FinanceOSTheme
 import com.daprox.financeos.presentation.core.designsystem.GeistMono
@@ -53,20 +65,20 @@ fun BudgetMonthCard(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(20.dp))
-                .clickable(onClick = onTap),
-            shape = RoundedCornerShape(20.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.outline),
-        ) {
-            if (!state.isAllocated) {
-                UnallocatedContent(onAllocateTap = onAllocateTap)
-            } else {
+        if (state.isAllocated) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(20.dp))
+                    .clickable(onClick = onTap),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                border = BorderStroke(width = 1.dp, color = MaterialTheme.colorScheme.outline),
+            ) {
                 AllocatedContent(state = state)
             }
+        } else {
+            UnallocatedMonthBanner(onAllocateTap = onAllocateTap)
         }
     }
 }
@@ -145,25 +157,94 @@ private fun AllocatedContent(state: BudgetMonthCardUiState) {
     }
 }
 
+/**
+ * Gold dashed banner shown when the current month has no allocation yet.
+ * Tapping "Allouer le mois →" triggers [onAllocateTap] to open the allocation flow.
+ */
 @Composable
-private fun UnallocatedContent(onAllocateTap: () -> Unit) {
+private fun UnallocatedMonthBanner(onAllocateTap: () -> Unit) {
+    val primary = MaterialTheme.colorScheme.primary
+    val borderColor = primary.copy(alpha = 0.4f)
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            // Dashed gold border drawn behind the content
+            .drawBehind {
+                val strokeWidth = 1.dp.toPx()
+                val cornerRadius = 20.dp.toPx()
+                drawRoundRect(
+                    color = borderColor,
+                    cornerRadius = CornerRadius(cornerRadius),
+                    style = Stroke(
+                        width = strokeWidth,
+                        pathEffect = PathEffect.dashPathEffect(floatArrayOf(8.dp.toPx(), 6.dp.toPx())),
+                    ),
+                )
+            }
+            // Subtle gold gradient background
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(primary.copy(alpha = 0.06f), Color.Transparent),
+                ),
+            )
             .padding(18.dp),
         contentAlignment = Alignment.Center,
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                text = "Mois non alloué",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            // Calendar icon in a tinted rounded box
+            Surface(
+                shape = RoundedCornerShape(12.dp),
+                color = primary.copy(alpha = 0.12f),
+                modifier = Modifier.size(44.dp),
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = Lucide.CalendarPlus,
+                        contentDescription = null,
+                        tint = primary,
+                        modifier = Modifier.size(22.dp),
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // "NOUVEAU MOIS" pill label
+            Surface(
+                shape = RoundedCornerShape(6.dp),
+                color = primary.copy(alpha = 0.12f),
+            ) {
+                Text(
+                    text = "NOUVEAU MOIS",
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        letterSpacing = 1.2.sp,
+                        fontWeight = FontWeight.SemiBold,
+                    ),
+                    color = primary,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                )
+            }
+
             Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = "Aucune allocation définie pour ce mois",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
             Text(
                 text = "Allouer le mois →",
                 style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
-                color = MaterialTheme.colorScheme.primary,
+                color = primary,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.clickable(onClick = onAllocateTap),
             )

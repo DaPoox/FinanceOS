@@ -11,11 +11,13 @@ object Budget
 fun NavGraphBuilder.budgetScreen(
     onNavigateToAllocation: () -> Unit = {},
     onNavigateToEnvelopeDetail: (String) -> Unit = {},
+    onNavigateToFixes: () -> Unit = {},
 ) {
     composable<Budget> {
         BudgetScreenRoot(
             onNavigateToAllocation = onNavigateToAllocation,
             onNavigateToEnvelopeDetail = onNavigateToEnvelopeDetail,
+            onNavigateToFixes = onNavigateToFixes,
         )
     }
 }
