@@ -47,7 +47,8 @@ abstract class FinanceDatabase : RoomDatabase() {
                     if (isDebug) {
                         addCallback(object : Callback() {
                             override fun onCreate(db: SupportSQLiteDatabase) {
-                                CoroutineScope(Dispatchers.IO).launch { DatabaseSeeder.seed(instance!!) }
+                                // Seeding disabled — run with fresh DB for real usage
+                                // CoroutineScope(Dispatchers.IO).launch { DatabaseSeeder.seed(instance!!) }
                             }
                         })
                     }
