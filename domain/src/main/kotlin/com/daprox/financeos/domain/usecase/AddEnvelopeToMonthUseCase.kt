@@ -8,13 +8,27 @@ import com.daprox.financeos.domain.repository.MonthAllocationRepository
 import java.util.UUID
 
 /**
- * Atomically inserts a new envelope and immediately allocates it for the given month.
- * Used from the NewEnvelopeSheet so the DB Flow picks up both changes at once.
+ * Creates a new envelope and immediately allocates funds to it for a specific month.
+ *
+ * This use case combines envelope creation and allocation in a single operation,
+ * ensuring the UI observes both changes atomically. Commonly triggered by the
+ * "New Envelope" sheet during budget allocation workflow.
+ *
+ * If the envelope has an empty ID, a UUID is generated. Side effect: persists
+ * envelope to the database and creates an allocation record.
  */
 class AddEnvelopeToMonthUseCase(
     private val envelopeRepo: EnvelopeRepository,
     private val allocationRepo: MonthAllocationRepository,
 ) {
+    /**
+     * Invokes the use case to create and allocate an envelope.
+     *
+     * @param envelope Envelope to create; if ID is empty, a UUID will be generated
+     * @param monthId Target month in "YYYY-MM" format
+     * @param amount Amount to allocate to the envelope for this month
+     * @return [Result.Success] if envelope and allocation are created; [Result.Error] on failure
+     */
     suspend operator fun invoke(
         envelope: Envelope,
         monthId: String,
