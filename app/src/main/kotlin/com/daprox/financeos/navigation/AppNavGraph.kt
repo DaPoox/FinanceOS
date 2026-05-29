@@ -30,14 +30,19 @@ import com.daprox.financeos.presentation.navigation.AppTab
 import com.daprox.financeos.presentation.patrimoine.navigation.Patrimoine
 import com.daprox.financeos.presentation.patrimoine.navigation.patrimoineScreen
 
+/**
+ * Main application navigation graph. Orchestrates all screens, bottom nav visibility, and route transitions.
+ * The bottom bar shows only on main tabs (Dashboard, Budget, Patrimoine, History).
+ */
 @Composable
 fun AppNavGraph() {
-    val navController = rememberNavController()
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentDest = navBackStackEntry?.destination
+  val navController = rememberNavController()
+  val navBackStackEntry by navController.currentBackStackEntryAsState()
+  val currentDest = navBackStackEntry?.destination
 
-    val showBottomBar = currentDest?.let { dest ->
-        dest.hasRoute<Dashboard>() == true ||
+  // Show bottom nav only on main tab screens, not detail/form screens.
+  val showBottomBar = currentDest?.let { dest ->
+    dest.hasRoute<Dashboard>() == true ||
             dest.hasRoute<Budget>() == true ||
             dest.hasRoute<Patrimoine>() == true ||
             dest.hasRoute<History>() == true

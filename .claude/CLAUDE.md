@@ -58,7 +58,12 @@ Unidirectional data flow. Layer boundaries are strict.
 
 ## Code Style
 
-See @.claude/docs/code-style.md. ktfmt Google style — no vertical `=` or `:` alignment, trailing commas on all multiline lists, KDoc on all public functions and classes, max 120 chars per line.
+See @.claude/docs/code-style.md. ktfmt Google style — no vertical `=` or `:` alignment, trailing commas on all multiline lists, max 120 chars per line.
+
+**Commenting**:
+- KDoc (`/** */`) on every public class, interface, and function — one line, explain what it IS and its responsibility.
+- Section headers (`// ─── Name ───`) inside large ViewModels and screens to mark logical blocks (Init, State, Actions, Private helpers).
+- Inline `//` comments only where the WHY is non-obvious: business rules, architecture constraints, workarounds, non-trivial logic. Do not narrate what the code does — that's the identifier's job.
 
 ---
 
