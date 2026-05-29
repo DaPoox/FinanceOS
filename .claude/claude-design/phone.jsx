@@ -59,7 +59,7 @@ function PhoneShell({ children, width = 412, height = 892 }) {
         position: 'relative',
       }}>
         <FOSStatusBar />
-        <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
+        <div style={{ flex: 1, overflow: 'clip', position: 'relative' }}>
           {children}
         </div>
         <FOSGestureBar />

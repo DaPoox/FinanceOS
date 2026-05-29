@@ -3,26 +3,29 @@
 
 const ENVELOPES = [
   // Fixes
-  { id: 'rent',    name: 'Loyer',           type: 'fixe', icon: '⌂',  allocated: 1180, spent: 1180, color: '#8ba4be' },
-  { id: 'subs',    name: 'Abonnements',     type: 'fixe', icon: '◐',  allocated: 84,   spent: 84,   color: '#8ba4be' },
-  { id: 'utils',   name: 'Énergie & Box',   type: 'fixe', icon: '◇',  allocated: 96,   spent: 96,   color: '#8ba4be' },
+  { id: 'rent',     name: 'Loyer',             type: 'fixe', icon: '⌂',  allocated: 1180, spent: 1180, color: '#8ba4be' },
+  { id: 'credit',   name: 'Crédit auto',        type: 'fixe', icon: '▬',  allocated: 215,  spent: 215,  color: '#8ba4be' },
+  { id: 'utils',    name: 'Énergie & Box',     type: 'fixe', icon: '◇',  allocated: 96,   spent: 96,   color: '#8ba4be' },
+  { id: 'subs',     name: 'Abonnements',       type: 'fixe', icon: '◐',  allocated: 84,   spent: 84,   color: '#8ba4be' },
+  { id: 'mutuelle', name: 'Mutuelle santé',    type: 'fixe', icon: '◍',  allocated: 72,   spent: 72,   color: '#8ba4be' },
+  { id: 'sport',    name: 'Salle de sport',    type: 'fixe', icon: '◉',  allocated: 35,   spent: 35,   color: '#8ba4be' },
+  { id: 'tel',      name: 'Téléphone mobile',  type: 'fixe', icon: '◑',  allocated: 28,   spent: 28,   color: '#8ba4be' },
+  { id: 'assur',    name: 'Assurance hab.',    type: 'fixe', icon: '◒',  allocated: 22,   spent: 22,   color: '#8ba4be' },
 
-  // Variables
-  { id: 'groceries', name: 'Courses',        type: 'var',  icon: '◢',  allocated: 420, spent: 287, color: '#e8eef5' },
-  { id: 'restos',    name: 'Restos & cafés', type: 'var',  icon: '◆',  allocated: 220, spent: 246, color: '#f87171' },
+  // Variables (rebalanced to keep total at 4200)
+  { id: 'groceries', name: 'Courses',        type: 'var',  icon: '◢',  allocated: 320, spent: 287, color: '#e8eef5' },
+  { id: 'restos',    name: 'Restos & cafés', type: 'var',  icon: '◆',  allocated: 180, spent: 246, color: '#f87171' },
   { id: 'transport', name: 'Transport',      type: 'var',  icon: '◣',  allocated: 90,  spent: 41,  color: '#e8eef5' },
-  { id: 'shopping',  name: 'Shopping',       type: 'var',  icon: '○',  allocated: 150, spent: 128, color: '#fb923c' },
+  { id: 'shopping',  name: 'Shopping',       type: 'var',  icon: '○',  allocated: 100, spent: 128, color: '#fb923c' },
 
   // Du mois
-  { id: 'ams',     name: 'Amsterdam',       type: 'month', icon: '✈', allocated: 480, spent: 312, color: '#e8eef5' },
+  { id: 'ams',     name: 'Amsterdam',       type: 'month', icon: '✈', allocated: 300, spent: 312, color: '#f87171' },
 
   // Permanentes
   { id: 'vacances', name: 'Vacances',       type: 'perm', icon: '∞', allocated: 150, spent: 0,    color: '#e8eef5', accumulated: 1840 },
-  { id: 'cadeaux',  name: 'Cadeaux femme',  type: 'perm', icon: '∞', allocated: 80,  spent: 0,    color: '#e8eef5', accumulated: 420 },
+  { id: 'cadeaux',  name: 'Cadeaux femme',  type: 'perm', icon: '∞', allocated: 78,  spent: 0,    color: '#e8eef5', accumulated: 420 },
 
-  // Épargne
-  { id: 'livretA', name: 'Livret A',        type: 'save', icon: '◢', allocated: 400, spent: 400, color: '#7eb8f7' },
-  { id: 'ldds',    name: 'LDDS',            type: 'save', icon: '◢', allocated: 200, spent: 200, color: '#7eb8f7' },
+  // Épargne — vide. Livret A et LDDS sont pleins, le surplus reste sur le compte courant.
 
   // Investissement
   { id: 'pea',     name: 'PEA',             type: 'inv',  icon: '◈', allocated: 500, spent: 500, color: '#a78bfa' },
@@ -83,7 +86,7 @@ const CURRENT = {
   netWorthDeltaPct: 3.13,
   income: 4200,
   // contributions this month
-  contribSavings: 600,
+  contribSavings: 0,
   contribInvest: 650,
   contribMarket: 590,
 };

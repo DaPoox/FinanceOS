@@ -59,11 +59,25 @@ function HomeScreen({ onOpenEnvelope, onOpenAllocation, onGoTo }) {
             </span>
           </div>
 
-          {/* contribution breakdown bars */}
-          <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <ContribRow label="Épargne"        value={CURRENT.contribSavings} total={dContrib} color={FOS.save}   />
-            <ContribRow label="Investissement" value={CURRENT.contribInvest}   total={dContrib} color={FOS.invest} />
-            <ContribRow label="Marché"         value={CURRENT.contribMarket}   total={dContrib} color="#4a5568"   />
+          {/* Divider */}
+          <div style={{ marginTop: 18, height: 1, background: FOS.outline }} />
+
+          {/* Section: contribution du mois */}
+          <div style={{ marginTop: 16 }}>
+            <SectionLabel style={{ padding: 0 }}>Contribution du mois</SectionLabel>
+
+            {/* Row 1: Épargne + Investissement, two columns, numbers only */}
+            <div style={{ marginTop: 12, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div>
+                <div style={{ fontFamily: 'DM Sans', fontSize: 12, color: FOS.textDim }}>Épargne</div>
+                <Num size={16} weight={600} color={FOS.text} style={{ marginTop: 4, display: 'inline-block' }}>+{CURRENT.contribSavings} €</Num>
+              </div>
+              <div>
+                <div style={{ fontFamily: 'DM Sans', fontSize: 12, color: FOS.textDim }}>Investissement</div>
+                <Num size={16} weight={600} color={FOS.text} style={{ marginTop: 4, display: 'inline-block' }}>+{CURRENT.contribInvest} €</Num>
+              </div>
+            </div>
+
           </div>
         </Card>
       </div>
@@ -203,8 +217,8 @@ function EnvelopeMini({ env, onClick }) {
         <div style={{
           width: 32, height: 32, borderRadius: 10,
           background: FOS.surfaceVar, display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 14, color: statusColor,
-        }}>{env.icon}</div>
+          color: statusColor,
+        }}><Icon name={iconFor(env)} size={16} /></div>
         {status === 'over' && <Pill color={FOS.err} bg={`${FOS.err}1F`} style={{ padding: '4px 7px', fontSize: 10 }}>↑</Pill>}
         {status === 'fixed' && <Pill color={FOS.textDim} bg="rgba(255,255,255,0.04)" style={{ padding: '4px 7px', fontSize: 10 }}>FIXE</Pill>}
       </div>

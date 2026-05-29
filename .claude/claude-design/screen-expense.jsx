@@ -105,7 +105,7 @@ function ExpenseSheet({ open, onClose, onSave }) {
                     fontFamily: 'DM Sans', fontSize: 13, fontWeight: 500,
                     cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6,
                   }}>
-                    <span style={{ fontSize: 14 }}>{c.icon}</span>
+                    <Icon name={iconFor(c)} size={14} />
                     {c.name}
                   </button>
                 );

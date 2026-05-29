@@ -13,7 +13,7 @@ function EnvelopeDetailScreen({ envId, onBack }) {
 
   return (
     <div style={{ flex: 1, overflow: 'auto', paddingBottom: 100 }}>
-      <ScreenHeader title={env.name} onBack={onBack} subtitle={typeLabel(env.type)} />
+      <ScreenHeader title={env.name} onBack={onBack} subtitle={typeLabel(env.type)} right={<EnvelopeMenu env={env} />} />
 
       {/* Hero status card */}
       <div style={{ padding: '8px 20px 0' }}>
@@ -110,9 +110,138 @@ function EnvelopeDetailScreen({ envId, onBack }) {
   );
 }
 
+function EnvelopeMenu({ env }) {
+  const [open, setOpen] = React.useState(false);
+  const [confirming, setConfirming] = React.useState(false);
+
+  return (
+    <>
+      <div style={{ position: 'relative' }}>
+        <button onClick={() => setOpen(!open)} style={{
+          width: 40, height: 40, borderRadius: 100,
+          background: FOS.surface, border: `1px solid ${FOS.outline}`,
+          color: FOS.text, cursor: 'pointer', display: 'flex',
+          alignItems: 'center', justifyContent: 'center', padding: 0,
+        }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="5" r="1.6" fill="currentColor"/>
+            <circle cx="12" cy="12" r="1.6" fill="currentColor"/>
+            <circle cx="12" cy="19" r="1.6" fill="currentColor"/>
+          </svg>
+        </button>
+        {open && (
+          <>
+            <div onClick={() => setOpen(false)} style={{ position: 'fixed', inset: 0, zIndex: 100 }} />
+            <div style={{
+              position: 'absolute', top: 48, right: 0,
+              background: FOS.surfaceCt, border: `1px solid ${FOS.outlineSt}`,
+              borderRadius: 14, padding: 4, minWidth: 210,
+              boxShadow: '0 16px 40px rgba(0,0,0,0.5)',
+              zIndex: 101,
+            }}>
+              <MenuItem
+                label="Renommer"
+                icon={
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <path d="M4 21h4l11-11-4-4L4 17v4z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/>
+                  </svg>
+                }
+                onClick={() => setOpen(false)}
+              />
+              <MenuItem
+                label="Archiver l'enveloppe"
+                color={FOS.err}
+                icon={
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                    <rect x="3" y="5" width="18" height="4" rx="1" stroke="currentColor" strokeWidth="1.8"/>
+                    <path d="M5 9v10a1 1 0 001 1h12a1 1 0 001-1V9M10 13h4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+                  </svg>
+                }
+                onClick={() => { setOpen(false); setConfirming(true); }}
+              />
+            </div>
+          </>
+        )}
+      </div>
+      {confirming && <ArchiveConfirm env={env} onCancel={() => setConfirming(false)} onConfirm={() => setConfirming(false)} />}
+    </>
+  );
+}
+
+function MenuItem({ label, icon, color, onClick }) {
+  const [hover, setHover] = React.useState(false);
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      style={{
+        width: '100%', padding: '10px 12px', borderRadius: 10,
+        background: hover ? 'rgba(255,255,255,0.04)' : 'transparent',
+        border: 'none', cursor: 'pointer',
+        display: 'flex', alignItems: 'center', gap: 10,
+        color: color || FOS.text,
+        fontFamily: 'DM Sans, sans-serif', fontSize: 13, fontWeight: 500,
+        textAlign: 'left',
+      }}>
+      {icon}
+      <span>{label}</span>
+    </button>
+  );
+}
+
+function ArchiveConfirm({ env, onCancel, onConfirm }) {
+  return (
+    <>
+      <div onClick={onCancel} style={{
+        position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.65)',
+        zIndex: 200, animation: 'fos-fade-in 200ms ease',
+      }} />
+      <div style={{
+        position: 'absolute', left: 20, right: 20, top: '32%',
+        background: FOS.surface, border: `1px solid ${FOS.outlineSt}`,
+        borderRadius: 20, padding: 20, zIndex: 201,
+        boxShadow: '0 24px 60px rgba(0,0,0,0.6)',
+        animation: 'fos-pop 280ms cubic-bezier(0.34,1.56,0.64,1)',
+      }}>
+        <div style={{
+          width: 44, height: 44, borderRadius: 12,
+          background: `${FOS.err}1F`, color: FOS.err,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <rect x="3" y="5" width="18" height="4" rx="1" stroke="currentColor" strokeWidth="1.8"/>
+            <path d="M5 9v10a1 1 0 001 1h12a1 1 0 001-1V9M10 13h4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+          </svg>
+        </div>
+        <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 17, fontWeight: 600, color: FOS.text, marginTop: 14 }}>
+          Archiver « {env.name} » ?
+        </div>
+        <div style={{ fontFamily: 'DM Sans, sans-serif', fontSize: 13, color: FOS.textDim, marginTop: 6, lineHeight: 1.5 }}>
+          L'enveloppe n'apparaîtra plus à partir du mois prochain. L'historique des transactions reste consultable depuis Historique.
+        </div>
+        <div style={{ display: 'flex', gap: 8, marginTop: 18 }}>
+          <button onClick={onCancel} style={{
+            flex: 1, padding: '12px', borderRadius: 12,
+            background: FOS.surfaceVar, color: FOS.text,
+            border: `1px solid ${FOS.outlineSt}`,
+            fontFamily: 'DM Sans, sans-serif', fontSize: 14, fontWeight: 600, cursor: 'pointer',
+          }}>Annuler</button>
+          <button onClick={onConfirm} style={{
+            flex: 1, padding: '12px', borderRadius: 12,
+            background: FOS.err, color: '#fff',
+            border: 'none', cursor: 'pointer',
+            fontFamily: 'DM Sans, sans-serif', fontSize: 14, fontWeight: 700,
+          }}>Archiver</button>
+        </div>
+      </div>
+    </>
+  );
+}
+
 function typeLabel(t) {
   return { fixe: 'Enveloppe fixe', var: 'Variable standard', month: 'Enveloppe du mois',
            perm: 'Permanente • accumulée', save: 'Épargne', inv: 'Investissement' }[t] || '';
 }
 
-Object.assign(window, { EnvelopeDetailScreen });
+Object.assign(window, { EnvelopeDetailScreen, EnvelopeMenu });
