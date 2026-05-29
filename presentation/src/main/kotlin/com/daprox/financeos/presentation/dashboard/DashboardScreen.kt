@@ -45,6 +45,10 @@ import com.daprox.financeos.presentation.dashboard.component.sparklinecard.Spark
 import com.daprox.financeos.presentation.dashboard.component.sparklinecard.SparklineTrendEnum
 import org.koin.androidx.compose.koinViewModel
 
+/**
+ * Root composable for the Dashboard screen. Handles ViewModel initialization, state collection,
+ * and event observation. Routes navigation events to appropriate callbacks.
+ */
 @Composable
 fun DashboardScreenRoot(
     viewModel: DashboardViewModel = koinViewModel(),
@@ -70,6 +74,10 @@ fun DashboardScreenRoot(
     )
 }
 
+/**
+ * Dashboard screen displaying net worth, insights, budget, envelopes, and recent months.
+ * Renders loading skeleton, error state, empty state, or full content based on state.
+ */
 @Composable
 fun DashboardScreen(
     state: DashboardUiState,
@@ -139,6 +147,9 @@ fun DashboardScreen(
     }
 }
 
+/**
+ * Loading skeleton for Dashboard screen with animated shimmer placeholders.
+ */
 @Composable
 private fun DashboardScreenSkeleton(contentPadding: PaddingValues) {
     LazyColumn(

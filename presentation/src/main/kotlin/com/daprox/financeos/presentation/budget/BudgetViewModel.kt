@@ -48,6 +48,24 @@ private fun List<EnvelopeRowUiState>.toGroups(): List<BudgetEnvelopeGroup> =
         if (items.isEmpty()) null else BudgetEnvelopeGroup(label, items)
     }
 
+/**
+ * ViewModel for Budget screen. Drives envelope budget view grouped by type (FIXED, VARIABLE, etc.).
+ * Handles allocations, transactions, global budget summary, and expense entry.
+ *
+ * ## Init
+ * Observes current month and combines with envelopes, allocations, transactions.
+ * Groups envelopes by type (FIXED shown separately, others in groups).
+ * Calculates progress bars and statuses. Preserves transient UI state (expense sheet, saving) on refresh.
+ *
+ * ## State
+ * [state] emits BudgetUiState with global card, fixed summary, envelope groups.
+ *
+ * ## Actions
+ * [onAction] routes user interactions: navigate, add expense, save transaction, retry.
+ *
+ * ## Private Helpers
+ * Grouping envelopes by type, status calculation (OK/WARNING/OVER/FIXED), progress normalization.
+ */
 class BudgetViewModel(
     private val observeCurrentMonth: ObserveCurrentMonthUseCase,
     private val observeActiveEnvelopes: ObserveActiveEnvelopesUseCase,
@@ -150,6 +168,11 @@ class BudgetViewModel(
             .launchIn(viewModelScope)
     }
 
+    /**
+     * Handles user actions from Budget screen. Routes navigation, saves transactions, or updates state.
+     *
+     * @param action user action from UI
+     */
     fun onAction(action: BudgetUiAction) {
         viewModelScope.launch {
             when (action) {

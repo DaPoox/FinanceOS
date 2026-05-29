@@ -48,6 +48,26 @@ private fun DomainMonthStatus.toDashboardStatus(): MonthStatusEnum = when (this)
     DomainMonthStatus.HARD -> MonthStatusEnum.NEGATIVE
 }
 
+/**
+ * ViewModel for Dashboard screen. Drives net worth hero, budget month, envelopes, and trends.
+ * Combines current month, envelopes, allocations, transactions, and accounts to render the dashboard.
+ * Handles allocation of top 4 envelopes, insight generation, and recent month history.
+ *
+ * ## Init
+ * Observes current month and related allocations, transactions, accounts in a complex combine flow.
+ * Transforms domain models to UI models (e.g., DomainEnvelopeType -> EnvelopeTypeEnum).
+ * Handles errors with retry trigger and emits loading/error/empty/content states.
+ *
+ * ## State
+ * [state] emits DashboardUiState with net worth, insights, budget, envelopes, sparkline data.
+ *
+ * ## Actions
+ * [onAction] routes user interactions: navigate to budget, allocate, envelope detail, month history, retry.
+ *
+ * ## Private Helpers
+ * Domain type conversions, insight calculation based on worst-performing envelope,
+ * recent months summary (last 2), sparkline data (hardcoded for 6M demo).
+ */
 class DashboardViewModel(
     private val observeCurrentMonth: ObserveCurrentMonthUseCase,
     private val observeActiveEnvelopes: ObserveActiveEnvelopesUseCase,
@@ -199,6 +219,11 @@ class DashboardViewModel(
             .launchIn(viewModelScope)
     }
 
+    /**
+     * Handles user actions from Dashboard screen. Sends navigation events or updates state.
+     *
+     * @param action user action from UI
+     */
     fun onAction(action: DashboardUiAction) {
         viewModelScope.launch {
             when (action) {

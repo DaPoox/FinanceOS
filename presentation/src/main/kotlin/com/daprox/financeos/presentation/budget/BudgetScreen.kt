@@ -69,6 +69,10 @@ import com.daprox.financeos.presentation.expense.ExpenseSheet
 import org.koin.androidx.compose.koinViewModel
 
 
+/**
+ * Root composable for the Budget screen. Handles ViewModel initialization, state collection,
+ * and event observation. Routes navigation events to appropriate callbacks.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BudgetScreenRoot(
@@ -93,6 +97,10 @@ fun BudgetScreenRoot(
     )
 }
 
+/**
+ * Budget screen displaying global budget summary, envelope groups (FIXED separate),
+ * and expense entry bottom sheet. Renders loading, error, empty, or full content based on state.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BudgetScreen(
