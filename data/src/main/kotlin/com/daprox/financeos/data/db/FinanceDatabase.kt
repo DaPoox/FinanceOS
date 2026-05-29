@@ -27,7 +27,7 @@ import kotlinx.coroutines.launch
         MonthAllocationEntity::class,
         AccountEntity::class,
     ],
-    version = 1,
+    version = 2,
     exportSchema = false,
 )
 abstract class FinanceDatabase : RoomDatabase() {
