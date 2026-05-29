@@ -35,6 +35,38 @@ import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Wallet
 import com.daprox.financeos.presentation.core.designsystem.FinanceOSTheme
 
+/**
+ * Custom bottom navigation bar component.
+ *
+ * Renders a row of navigation items with smooth color transitions and optional selection
+ * state. Each item displays an icon and label, with the selected item highlighted in
+ * primary color and an optional semi-transparent background.
+ *
+ * The component includes a top divider and styled container background.
+ *
+ * @param items            List of [BottomNavItem]s to display.
+ * @param selectedIndex    The index of the currently selected item (0-based).
+ * @param onItemSelected   Callback invoked with the index when an item is tapped.
+ * @param modifier         Optional modifier for layout customization.
+ *
+ * Example:
+ * ```kotlin
+ * val items = listOf(
+ *   BottomNavItem("Home", Lucide.House),
+ *   BottomNavItem("Budget", Lucide.Calendar),
+ *   BottomNavItem("Wealth", Lucide.Wallet),
+ * )
+ * var selectedIndex by remember { mutableIntStateOf(0) }
+ *
+ * FinanceOSBottomNav(
+ *   items = items,
+ *   selectedIndex = selectedIndex,
+ *   onItemSelected = { selectedIndex = it }
+ * )
+ * ```
+ *
+ * @see BottomNavItem
+ */
 @Composable
 fun FinanceOSBottomNav(
     items: List<BottomNavItem>,
@@ -66,6 +98,17 @@ fun FinanceOSBottomNav(
     }
 }
 
+/**
+ * Individual navigation item within the bottom nav bar.
+ *
+ * Renders an icon inside a pill-shaped container with optional background color,
+ * and a label below. The item animates to show selection state with color and
+ * font weight changes.
+ *
+ * @param item       The [BottomNavItem] to render.
+ * @param isSelected Whether this item is currently selected.
+ * @param onSelected Callback invoked when the user taps this item.
+ */
 @Composable
 private fun NavItem(
     item: BottomNavItem,
@@ -118,6 +161,9 @@ private fun NavItem(
     }
 }
 
+/**
+ * Preview of the bottom navigation bar in light mode with sample navigation items.
+ */
 @Preview(showBackground = true, backgroundColor = 0xFF090C12)
 @Composable
 private fun BottomNavPreview() {

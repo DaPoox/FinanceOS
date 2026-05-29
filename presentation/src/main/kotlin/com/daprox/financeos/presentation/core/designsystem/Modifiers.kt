@@ -12,7 +12,18 @@ import androidx.compose.ui.unit.dp
 
 /**
  * Draws a colored blur glow behind the composable using BlurMaskFilter.
- * Unlike Modifier.shadow(), this works reliably on dark backgrounds.
+ *
+ * Unlike Modifier.shadow(), this approach reliably renders colored glows on dark backgrounds
+ * and supports custom blur and offset parameters. Useful for creating depth and emphasis
+ * on cards, buttons, and other prominent components.
+ *
+ * @param color       The color of the glow/shadow.
+ * @param borderRadius Optional corner radius for the glow shape; defaults to 0dp for sharp shadows.
+ * @param blurRadius  Optional blur amount in dp; defaults to 0dp for a sharp edge.
+ * @param offsetX     Optional horizontal offset from the component; defaults to 0dp.
+ * @param offsetY     Optional vertical offset from the component; defaults to 0dp.
+ *
+ * @return A new Modifier with the colored shadow effect applied.
  */
 fun Modifier.coloredShadow(
     color: Color,

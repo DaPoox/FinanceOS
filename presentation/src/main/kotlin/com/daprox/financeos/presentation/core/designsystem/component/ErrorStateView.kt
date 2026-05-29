@@ -22,10 +22,26 @@ import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.TriangleAlert
 
 /**
- * Full-width error state with an icon, message, and a ghost retry button.
+ * Full-width error state component displayed when data loading fails.
  *
- * @param onRetry Called when the user taps "Réessayer".
- * @param message Human-readable error label shown below the icon.
+ * Renders a centered column with a warning triangle icon, error message, and a ghost
+ * "Réessayer" (Retry) button. Use this to inform the user of a failed operation and
+ * offer them the ability to retry.
+ *
+ * @param onRetry  Callback invoked when the user taps the "Réessayer" button.
+ * @param modifier Optional modifier for layout customization.
+ * @param message  Human-readable error message shown below the icon.
+ *                 Defaults to "Une erreur est survenue".
+ *
+ * Example:
+ * ```kotlin
+ * if (uiState.isError) {
+ *   ErrorStateView(
+ *     onRetry = { onAction(UiAction.Retry) },
+ *     message = "Failed to load transactions"
+ *   )
+ * }
+ * ```
  */
 @Composable
 fun ErrorStateView(

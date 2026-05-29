@@ -2,12 +2,32 @@ package com.daprox.financeos.presentation.core.designsystem
 
 import androidx.compose.ui.graphics.Color
 
+/**
+ * # Color System
+ *
+ * Raw palette definitions and semantic tokens for the FinanceOS design system.
+ * The color system is split into two layers:
+ *
+ * 1. **Raw Palette** — Pure color values (Navy, Gold, etc.)
+ * 2. **Semantic Tokens** — Named slots (Primary, Surface, OnSurface, etc.)
+ *
+ * Always use semantic tokens in components; the raw palette is implementation detail.
+ */
+
 // ─────────────────────────────────────────────
 // RAW PALETTE — valeurs brutes, ne pas utiliser
 // directement dans les composants.
 // Toujours passer par les tokens sémantiques.
 // ─────────────────────────────────────────────
 
+/**
+ * Raw color palette containing all base colors used in the design system.
+ *
+ * This object defines the atomic color values (Navy, Gold, text colors, semantic
+ * colors) that feed into semantic token definitions. Do not use these colors
+ * directly in Composables; always access them through semantic tokens
+ * (Primary, Surface, Error, etc.) defined below.
+ */
 internal object Palette {
     // Navy
     val Navy950 = Color(0xFF090C12)
@@ -46,40 +66,40 @@ internal object Palette {
 // Ces valeurs alimentent MaterialTheme.colorScheme.
 // ─────────────────────────────────────────────
 
-// Background — fond de chaque écran
+/** Semantic color token: screen background — darkest navy (Navy 950). */
 internal val BackgroundDark = Palette.Navy950
 
-// Surface — fond des cards et sheets
+/** Semantic color token: card and sheet surfaces — navy 900. */
 internal val SurfaceDark = Palette.Navy900
 
-// SurfaceVariant — cards secondaires, chips non sélectionnées
+/** Semantic color token: secondary cards and unselected chips — navy 800. */
 internal val SurfaceVariantDark = Palette.Navy800
 
-// SurfaceContainer — inputs, bottom nav, bottom sheet
+/** Semantic color token: input fields, bottom nav, bottom sheet backgrounds — navy 700. */
 internal val SurfaceContainerDark = Palette.Navy700
 
-// Primary — CTA, nav active, accent principal
+/** Semantic color token: primary accent for CTAs, active nav items, and highlights — gold 400. */
 internal val PrimaryDark = Palette.Gold400
 
-// OnPrimary — texte/icône sur fond primary
+/** Semantic color token: text and icons on primary background — gold 900. */
 internal val OnPrimaryDark = Palette.Gold900
 
-// OnSurface — texte principal sur fond surface
+/** Semantic color token: primary text on surface backgrounds — white. */
 internal val OnSurfaceDark = Palette.White
 
-// OnSurfaceVariant — texte secondaire, labels, sous-titres
+/** Semantic color token: secondary text, labels, and subtitles — slate light. */
 internal val OnSurfaceVariantDark = Palette.SlateLight
 
-// Outline — bordures subtiles
+/** Semantic color token: subtle borders and dividers — 6% white overlay. */
 internal val OutlineDark = Palette.BorderSubtle
 
-// OutlineVariant — bordures légèrement plus visibles
+/** Semantic color token: more visible borders — 11% white overlay. */
 internal val OutlineVariantDark = Palette.BorderDefault
 
-// Error — dépassement de budget, états d'erreur
+/** Semantic color token: error states and budget overruns — red 400. */
 internal val ErrorDark = Palette.Red400
 
-// OnError — texte sur fond error
+/** Semantic color token: text on error backgrounds — white. */
 internal val OnErrorDark = Palette.White
 
 // ─────────────────────────────────────────────
@@ -88,22 +108,45 @@ internal val OnErrorDark = Palette.White
 // Préfixés pour éviter la confusion avec M3.
 // ─────────────────────────────────────────────
 
-// Indicateur positif — deltas patrimoniaux, état OK
-// RÈGLE : jamais pour du texte générique ou des montants neutres.
-// Uniquement pour signaler une progression confirmée.
+/**
+ * Custom semantic token: positive indicator for wealth deltas and OK states — emerald 500.
+ *
+ * Use only to signal confirmed progression in net worth or positive changes.
+ * Never use for generic text or neutral amounts.
+ */
 internal val FinPositive = Palette.Emerald500
 
-// Warning — enveloppe entre 80% et 100% du budget
+/**
+ * Custom semantic token: warning state for budget envelope utilization between 80–100% — orange 400.
+ *
+ * Warns the user that they are approaching or have nearly reached their envelope limit.
+ */
 internal val FinWarning = Palette.Orange400
 
-// Savings — couleur dédiée épargne dans les charts et donuts
+/**
+ * Custom semantic token: savings category color for charts, donuts, and category badges — blue 300.
+ *
+ * Consistently identifies savings allocation in visual breakdowns.
+ */
 internal val FinSavings = Palette.Blue300
 
-// Investment — couleur dédiée investissement dans les charts
+/**
+ * Custom semantic token: investment category color for charts and category badges — violet 400.
+ *
+ * Consistently identifies investment allocation in visual breakdowns.
+ */
 internal val FinInvestment = Palette.Violet400
 
-// Market — barre neutre pour la contribution marché dans les charts
+/**
+ * Custom semantic token: neutral bar color for market contribution in wealth charts — slate neutral.
+ *
+ * Represents the portion of wealth gain attributable to market movement.
+ */
 internal val FinMarket = Palette.SlateNeutral
 
-// Scrim — overlay semi-transparent pour les bottom sheets
+/**
+ * Custom semantic token: semi-transparent overlay for bottom sheet scrim — 80% opacity navy 950.
+ *
+ * Dims the background when a modal or bottom sheet is presented.
+ */
 internal val ScrimDark = Color(0xCC090C12)  // 80% Navy950

@@ -23,6 +23,17 @@ import com.composables.icons.lucide.Utensils
 import com.composables.icons.lucide.Wallet
 import com.composables.icons.lucide.Zap
 
+/**
+ * Maps string icon keys to Lucide ImageVector icons.
+ *
+ * Use this function to convert stored icon string identifiers (from the database or forms)
+ * into composable ImageVectors. Falls back to a generic Circle icon if the key is unrecognized.
+ *
+ * @param key The icon key string (e.g., "house", "car", "zap").
+ * @return The corresponding Lucide ImageVector, or Lucide.Circle if not found.
+ *
+ * @see ENVELOPE_ICON_KEYS for the list of supported envelope icon keys.
+ */
 fun iconKeyToImageVector(key: String): ImageVector = when (key) {
     "house"            -> Lucide.House
     "car"              -> Lucide.Car
@@ -46,7 +57,15 @@ fun iconKeyToImageVector(key: String): ImageVector = when (key) {
     else               -> Lucide.Circle
 }
 
-/** All envelope icon options shown in EnvelopeFormScreen's icon picker. */
+/**
+ * All envelope icon options available in the envelope form screen's icon picker.
+ *
+ * This list defines the predefined icons users can choose when creating or editing
+ * budget envelopes. Each key maps to a Lucide icon via [iconKeyToImageVector].
+ *
+ * @see iconKeyToImageVector to convert a key to an ImageVector.
+ * @see EnvelopeFormScreen which displays these icons for user selection.
+ */
 val ENVELOPE_ICON_KEYS = listOf(
     "house", "car", "zap", "shopping_basket",
     "utensils", "shopping_bag", "bus", "plane",

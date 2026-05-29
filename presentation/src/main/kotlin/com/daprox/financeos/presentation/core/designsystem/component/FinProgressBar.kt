@@ -13,12 +13,31 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /**
- * Styled progress bar with consistent clipping and track color.
- * Callers own animation and color logic; this enforces shared visual style.
+ * Styled progress bar component with consistent clipping and theming.
  *
- * @param progress Animated float in [0, 1].
- * @param color    Fill color — computed by the caller based on thresholds.
- * @param height   Bar height; defaults to 8dp for cards, pass 4dp for row items.
+ * This composable enforces a shared visual style for progress indicators. It delegates
+ * animation and color selection logic to the caller — the caller is responsible for
+ * computing the fill color (e.g., based on budget utilization thresholds).
+ *
+ * The bar includes a rounded clip shape and uses the outline color for the track background.
+ *
+ * @param progress Animated float in the range [0, 1] representing completion percentage.
+ * @param color    Fill color for the progress indicator — computed by the caller based on
+ *                 domain logic (e.g., green for OK, orange for warning, red for error).
+ * @param modifier Optional modifier for layout customization.
+ * @param height   Bar height in dp; defaults to 8dp for cards. Pass 4dp for compact
+ *                 row items or smaller indicators.
+ *
+ * Example:
+ * ```kotlin
+ * val progress = remember { Animatable(0.75f) }
+ * val color = when {
+ *   progress.value > 1f -> MaterialTheme.colorScheme.error
+ *   progress.value > 0.8f -> MaterialTheme.finColors.warning
+ *   else -> MaterialTheme.finColors.positive
+ * }
+ * FinProgressBar(progress = progress.value, color = color)
+ * ```
  */
 @Composable
 fun FinProgressBar(

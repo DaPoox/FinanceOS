@@ -16,7 +16,29 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
 
-/** Generic animated shimmer placeholder. Alpha pulses between 0.05 and 0.15. */
+/**
+ * Generic animated shimmer placeholder component.
+ *
+ * Renders a pulsing box with alpha fading between 0.05 and 0.15 to simulate
+ * loading state. Use this component to build skeleton screens for content that
+ * is being fetched or processed.
+ *
+ * The shimmer animation runs indefinitely and respects compose lifecycle bounds.
+ *
+ * @param modifier Optional modifier for layout customization (size, padding, etc.).
+ * @param shape    Optional shape for the shimmer box; defaults to RoundedCornerShape(12.dp).
+ *
+ * Example:
+ * ```kotlin
+ * Column {
+ *   ShimmerBox(modifier = Modifier.size(width = 200.dp, height = 20.dp))
+ *   Spacer(modifier = Modifier.height(8.dp))
+ *   ShimmerBox(modifier = Modifier.fillMaxWidth().height(16.dp))
+ * }
+ * ```
+ *
+ * @see ErrorStateView for displaying error states instead of shimmer.
+ */
 @Composable
 fun ShimmerBox(
     modifier: Modifier = Modifier,

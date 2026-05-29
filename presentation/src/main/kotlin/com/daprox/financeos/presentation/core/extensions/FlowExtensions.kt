@@ -11,7 +11,34 @@ import kotlinx.coroutines.withContext
 
 /**
  * Collects a Flow as one-shot events, respecting the composition lifecycle.
- * Use in ScreenRoot composables to consume Channel-backed UiEvent flows.
+ *
+ * Use in ScreenRoot composables to consume Channel-backed UiEvent flows (navigation,
+ * snackbar, bottom sheet). Automatically stops collecting when the lifecycle is paused
+ * and resumes when it returns to the STARTED state.
+ *
+ * The optional `key1` and `key2` parameters allow you to specify extra dependencies
+ * for the LaunchedEffect. Use them when the callback or event handler changes.
+ *
+ * @param T        The event type emitted by the flow.
+ * @param flow     The event Flow to observe — typically a Channel converted to Flow.
+ * @param key1     Optional dependency for LaunchedEffect; triggers re-collection if changed.
+ * @param key2     Optional dependency for LaunchedEffect; triggers re-collection if changed.
+ * @param onEvent  Callback invoked for each emitted event; fires once per event.
+ *
+ * Example:
+ * ```kotlin
+ * ObserveAsEvents(
+ *   flow = viewModel.eventFlow,
+ *   onEvent = { event ->
+ *     when (event) {
+ *       is UiEvent.Navigate -> navController.navigate(event.route)
+ *       is UiEvent.ShowSnackbar -> { /* show snackbar */ }
+ *     }
+ *   }
+ * )
+ * ```
+ *
+ * @see com.daprox.financeos.presentation.core.ObserveAsEvents for the simpler overload.
  */
 @Composable
 fun <T> ObserveAsEvents(

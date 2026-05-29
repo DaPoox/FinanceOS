@@ -4,14 +4,27 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Shapes
 import androidx.compose.ui.unit.dp
 
-// Shape scale. The design spec calls for maximum, pill-shaped roundedness —
-// the full scale leans toward fully rounded corners. ExtraSmall is the only
-// "conservative" step; every larger size pushes toward pill territory.
-
+/**
+ * # Shape System
+ *
+ * Rounded corner scale for the FinanceOS design system.
+ *
+ * The design spec calls for maximum roundedness, with the scale leaning toward
+ * pill-shaped (fully rounded) corners at larger sizes. ExtraSmall is the only
+ * "conservative" step; every larger increment pushes further toward pill territory.
+ *
+ * These shapes are fed into MaterialTheme and automatically applied to standard
+ * Compose components (Button, Card, TextField) when using FinanceOSTheme.
+ */
 internal val FinanceOSShapes = Shapes(
-    extraSmall = RoundedCornerShape(8.dp), // chips, tooltips, small badges
-    small = RoundedCornerShape(12.dp), // input fields, small cards
-    medium = RoundedCornerShape(16.dp), // cards, dialogs, bottom sheets
-    large = RoundedCornerShape(24.dp), // modals, drawers
-    extraLarge = RoundedCornerShape(32.dp), // full-bleed containers, FABs
+    /** 8dp — conservative roundedness for chips, tooltips, and small badges. */
+    extraSmall = RoundedCornerShape(8.dp),
+    /** 12dp — input fields, small cards, and tight form elements. */
+    small = RoundedCornerShape(12.dp),
+    /** 16dp — standard cards, dialogs, and bottom sheets. */
+    medium = RoundedCornerShape(16.dp),
+    /** 24dp — prominent modals, drawers, and large surfaces. */
+    large = RoundedCornerShape(24.dp),
+    /** 32dp — full-bleed containers, FABs, and ultra-rounded surfaces (pill-shaped). */
+    extraLarge = RoundedCornerShape(32.dp),
 )
