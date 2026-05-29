@@ -32,44 +32,54 @@ import com.daprox.financeos.domain.usecase.SaveEnvelopeUseCase
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
+/**
+ * Koin dependency injection module for the :data module.
+ *
+ * Configures all database, repository, and use case dependencies.
+ * This module is loaded by the app and provides the complete data layer.
+ */
 val dataModule = module {
-    // Database
-    single { FinanceDatabase.create(androidContext()) }
+  // Database and low-level services
+  single { FinanceDatabase.create(androidContext()) }
 
-    // Managers
-    single { FirstLaunchManager(androidContext().getSharedPreferences("fos_prefs", Context.MODE_PRIVATE)) }
+  // Managers
+  single {
+    FirstLaunchManager(
+      androidContext().getSharedPreferences("fos_prefs", Context.MODE_PRIVATE)
+    )
+  }
 
-    // DAOs
-    single { get<FinanceDatabase>().envelopeDao() }
-    single { get<FinanceDatabase>().transactionDao() }
-    single { get<FinanceDatabase>().monthDao() }
-    single { get<FinanceDatabase>().monthAllocationDao() }
-    single { get<FinanceDatabase>().accountDao() }
+  // Data Access Objects (DAOs)
+  single { get<FinanceDatabase>().envelopeDao() }
+  single { get<FinanceDatabase>().transactionDao() }
+  single { get<FinanceDatabase>().monthDao() }
+  single { get<FinanceDatabase>().monthAllocationDao() }
+  single { get<FinanceDatabase>().accountDao() }
 
-    // Repositories
-    single<EnvelopeRepository> { EnvelopeRepositoryImpl(get()) }
-    single<TransactionRepository> { TransactionRepositoryImpl(get()) }
-    single<MonthRepository> { MonthRepositoryImpl(get()) }
-    single<MonthAllocationRepository> { MonthAllocationRepositoryImpl(get()) }
-    single<AccountRepository> { AccountRepositoryImpl(get()) }
+  // Repository implementations (abstract behind domain interfaces)
+  single<EnvelopeRepository> { EnvelopeRepositoryImpl(get()) }
+  single<TransactionRepository> { TransactionRepositoryImpl(get()) }
+  single<MonthRepository> { MonthRepositoryImpl(get()) }
+  single<MonthAllocationRepository> { MonthAllocationRepositoryImpl(get()) }
+  single<AccountRepository> { AccountRepositoryImpl(get()) }
 
-    // Use Cases — Observe
-    single { ObserveActiveEnvelopesUseCase(get()) }
-    single { ObserveMonthsUseCase(get()) }
-    single { ObserveCurrentMonthUseCase(get()) }
-    single { ObserveMonthAllocationsUseCase(get()) }
-    single { ObserveMonthTransactionsUseCase(get()) }
-    single { ObserveEnvelopeTransactionsUseCase(get()) }
-    single { ObserveAccountsUseCase(get()) }
+  // Use cases — Read-only operations
+  single { ObserveActiveEnvelopesUseCase(get()) }
+  single { ObserveMonthsUseCase(get()) }
+  single { ObserveCurrentMonthUseCase(get()) }
+  single { ObserveMonthAllocationsUseCase(get()) }
+  single { ObserveMonthTransactionsUseCase(get()) }
+  single { ObserveEnvelopeTransactionsUseCase(get()) }
+  single { ObserveAccountsUseCase(get()) }
 
-    // Use Cases — Write / Mutate
-    single { AddTransactionUseCase(get()) }
-    single { AllocateMonthUseCase(get(), get()) }
-    single { CopyAllocationFromMonthUseCase(get()) }
-    single { SaveAccountUseCase(get()) }
-    single { DeleteAccountUseCase(get()) }
-    single { GetAccountByIdUseCase(get()) }
-    single { SaveEnvelopeUseCase(get()) }
-    single { ArchiveEnvelopeUseCase(get()) }
-    single { AddEnvelopeToMonthUseCase(get(), get()) }
+  // Use cases — Write/Mutation operations
+  single { AddTransactionUseCase(get()) }
+  single { AllocateMonthUseCase(get(), get()) }
+  single { CopyAllocationFromMonthUseCase(get()) }
+  single { SaveAccountUseCase(get()) }
+  single { DeleteAccountUseCase(get()) }
+  single { GetAccountByIdUseCase(get()) }
+  single { SaveEnvelopeUseCase(get()) }
+  single { ArchiveEnvelopeUseCase(get()) }
+  single { AddEnvelopeToMonthUseCase(get(), get()) }
 }
