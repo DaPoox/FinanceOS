@@ -64,11 +64,11 @@ function EmptyTopBar({ kicker, title, right }) {
 // ────────────────────────────────────────────────────────────
 // 1. HomeScreen — no month allocated yet
 // ────────────────────────────────────────────────────────────
-function EmptyHomeScreen({ onAllocate }) {
+function EmptyHomeScreen({ onAllocate, monthLabel = 'Juin 2026' }) {
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
       <EmptyTopBar
-        kicker="Mai 2026"
+        kicker={monthLabel}
         title="Accueil"
         right={
           <div style={{
@@ -94,10 +94,10 @@ function EmptyHomeScreen({ onAllocate }) {
 // ────────────────────────────────────────────────────────────
 // 2. BudgetScreen — no envelopes
 // ────────────────────────────────────────────────────────────
-function EmptyBudgetScreen({ onAllocate }) {
+function EmptyBudgetScreen({ onAllocate, monthLabel = 'Juin 2026' }) {
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-      <EmptyTopBar kicker="Budget" title="Mai 2026" />
+      <EmptyTopBar kicker="Budget" title={monthLabel} />
       <EmptyState
         icon="layout-grid"
         title="Aucune enveloppe"

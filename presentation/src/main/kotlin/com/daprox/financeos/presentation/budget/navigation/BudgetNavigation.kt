@@ -15,17 +15,20 @@ object Budget
  * @param onNavigateToAllocation navigate to month allocation
  * @param onNavigateToEnvelopeDetail navigate to envelope detail with id
  * @param onNavigateToFixes navigate to fixed charges detail
+ * @param onNavigateToAddEnvelope navigate to envelope form in create mode with preset type name
  */
 fun NavGraphBuilder.budgetScreen(
     onNavigateToAllocation: () -> Unit = {},
     onNavigateToEnvelopeDetail: (String) -> Unit = {},
     onNavigateToFixes: () -> Unit = {},
+    onNavigateToAddEnvelope: (String) -> Unit = {},
 ) {
     composable<Budget> {
         BudgetScreenRoot(
             onNavigateToAllocation = onNavigateToAllocation,
             onNavigateToEnvelopeDetail = onNavigateToEnvelopeDetail,
             onNavigateToFixes = onNavigateToFixes,
+            onNavigateToAddEnvelope = onNavigateToAddEnvelope,
         )
     }
 }

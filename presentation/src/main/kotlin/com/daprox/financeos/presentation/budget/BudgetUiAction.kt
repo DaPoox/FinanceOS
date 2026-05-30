@@ -1,5 +1,7 @@
 package com.daprox.financeos.presentation.budget
 
+import com.daprox.financeos.presentation.dashboard.component.envelopeminigrid.EnvelopeTypeEnum
+
 /**
  * User actions dispatched from Budget screen.
  *
@@ -10,6 +12,7 @@ package com.daprox.financeos.presentation.budget
  * @property OnExpenseSave save expense transaction with amount, envelope, note
  * @property OnRetry retry data load after error
  * @property OnFixesClick fixed charges card or header clicked
+ * @property OnAddEnvelopeClick add envelope row tapped in a group, includes the preset type
  */
 sealed interface BudgetUiAction {
     data object OnAllouerClick : BudgetUiAction
@@ -19,4 +22,5 @@ sealed interface BudgetUiAction {
     data class OnExpenseSave(val amount: Double, val envelopeId: String, val note: String) : BudgetUiAction
     data object OnRetry : BudgetUiAction
     data object OnFixesClick : BudgetUiAction
+    data class OnAddEnvelopeClick(val type: EnvelopeTypeEnum) : BudgetUiAction
 }

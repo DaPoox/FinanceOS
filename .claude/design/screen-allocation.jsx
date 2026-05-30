@@ -3,18 +3,57 @@
 // Groups are collapsible. Rows have a trash icon (→ confirm modal) AND can be
 // swiped left to remove with an undo snackbar.
 
-function AllocationScreen({ onBack, onComplete, onAddEnvelope }) {
+// Default carry-over allocation (previous-month values; "du mois" excluded).
+function carryOverEdits() {
+  return Object.fromEntries(ENVELOPES.map(e => [
+    e.id,
+    e.type === 'month' ? null : String(e.allocated),
+  ]));
+}
+
+// Allocation prefill for each template choice.
+function editsForTemplate(template) {
+  if (template === 'blank') {
+    // Start from zero — keep every recurring envelope but empty its amount.
+    return Object.fromEntries(ENVELOPES.map(e => [
+      e.id, e.type === 'month' ? null : '',
+    ]));
+  }
+  if (template === 'average') {
+    // Lissé ~3 mois — small downward adjustment vs. last month.
+    return Object.fromEntries(ENVELOPES.map(e => [
+      e.id,
+      e.type === 'month' ? null : String(Math.round((e.allocated * 0.98) / 5) * 5),
+    ]));
+  }
+  return carryOverEdits(); // 'previous'
+}
+
+// AllocationScreen
+//   monthLabel    — lowercased month being allocated (e.g. "juin 2026")
+//   previousMonth — lowercased month the carry-over comes from
+//   hasTemplate   — when true, inserts a template-picker step (3 steps total)
+function AllocationScreen({ onBack, onComplete, onAddEnvelope, monthLabel = 'mai 2026', previousMonth = 'avril 2026', hasTemplate = false, fromScratch = false }) {
   const [step, setStep] = React.useState(0);
-  const [income, setIncome] = React.useState('4200');
+  // Virgin app → no income pre-filled; the user types their first salary.
+  const [income, setIncome] = React.useState(fromScratch ? '' : '4200');
+  const [template, setTemplate] = React.useState('previous');
+
+  // Step layout adapts to context:
+  //   recurring month → income · template · adjust  (3 steps)
+  //   first month      → income · adjust            (2 steps)
+  const steps = hasTemplate ? ['income', 'template', 'adjust'] : ['income', 'adjust'];
+  const stepName = steps[step];
+  const lastStep = steps.length - 1;
 
   // edits: id -> string amount, or null if excluded from this month.
-  // "Du mois" enveloppes start empty — they're month-specific by nature
-  // (trips, one-offs) and shouldn't carry over from the previous allocation.
+  // fromScratch (virgin app) → every envelope starts EXCLUDED (null); the user
+  // builds their first budget from nothing. Otherwise carry over last month.
+  // "Du mois" enveloppes always start empty — they're month-specific by nature.
   const [edits, setEdits] = React.useState(() =>
-    Object.fromEntries(ENVELOPES.map(e => [
-      e.id,
-      e.type === 'month' ? null : String(e.allocated),
-    ]))
+    fromScratch
+      ? Object.fromEntries(ENVELOPES.map(e => [e.id, null]))
+      : carryOverEdits()
   );
 
   // Confirmation dialog: { id } when asking, null when closed
@@ -47,11 +86,11 @@ function AllocationScreen({ onBack, onComplete, onAddEnvelope }) {
   return (
     <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
       <ScreenHeader
-        title="Allouer mai 2026"
+        title={`Allouer ${monthLabel}`}
         onBack={step === 0 ? onBack : () => setStep(step - 1)}
         right={
           <div style={{ display: 'flex', gap: 4 }}>
-            {[0,1].map(i => (
+            {steps.map((_, i) => (
               <div key={i} style={{
                 width: i === step ? 20 : 6, height: 6, borderRadius: 100,
                 background: i <= step ? FOS.primary : FOS.surfaceVar,
@@ -64,9 +103,31 @@ function AllocationScreen({ onBack, onComplete, onAddEnvelope }) {
 
       {/* Scroll area — minHeight:0 is required for flex children to scroll */}
       <div style={{ flex: 1, minHeight: 0, overflow: 'auto', paddingBottom: 130 }}>
-        {step === 0 && <StepIncome value={income} onChange={setIncome} />}
-        {step === 1 && (
+        {stepName === 'income' && (
+          <StepIncome
+            value={income}
+            onChange={setIncome}
+            step={step}
+            total={steps.length}
+            previousMonth={previousMonth}
+            hasTemplate={hasTemplate}
+            fromScratch={fromScratch}
+          />
+        )}
+        {stepName === 'template' && (
+          <StepTemplate
+            value={template}
+            onChange={setTemplate}
+            step={step}
+            total={steps.length}
+            previousMonth={previousMonth}
+          />
+        )}
+        {stepName === 'adjust' && (
           <StepAdjust
+            step={step}
+            total={steps.length}
+            fromScratch={fromScratch}
             edits={edits}
             setEdits={setEdits}
             onAddEnvelope={onAddEnvelope}
@@ -77,7 +138,7 @@ function AllocationScreen({ onBack, onComplete, onAddEnvelope }) {
       </div>
 
       {/* Undo snackbar */}
-      {step === 1 && pendingUndo && (
+      {stepName === 'adjust' && pendingUndo && (
         <UndoSnackbar
           key={pendingUndo.id + pendingUndo.expiresAt}
           envelopeName={ENVELOPES.find(e => e.id === pendingUndo.id)?.name || 'Enveloppe'}
@@ -101,7 +162,7 @@ function AllocationScreen({ onBack, onComplete, onAddEnvelope }) {
         borderTop: `1px solid ${FOS.outline}`,
         padding: '14px 20px 18px',
       }}>
-        {step === 1 && (
+        {stepName === 'adjust' && (
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
             <span style={{ fontFamily: 'DM Sans', fontSize: 12, color: FOS.textDim }}>Non alloué</span>
             <Num size={15} weight={600} color={remaining < 0 ? FOS.err : remaining < 50 ? FOS.warn : FOS.pos}>
@@ -109,13 +170,21 @@ function AllocationScreen({ onBack, onComplete, onAddEnvelope }) {
             </Num>
           </div>
         )}
-        <button onClick={() => step < 1 ? setStep(step + 1) : onComplete?.()} style={{
+        <button onClick={() => {
+          if (step < lastStep) {
+            // Leaving the template step → apply the chosen base allocation.
+            if (stepName === 'template') setEdits(editsForTemplate(template));
+            setStep(step + 1);
+          } else {
+            onComplete?.();
+          }
+        }} style={{
           width: '100%', padding: '16px', borderRadius: 16,
           background: FOS.primary, color: FOS.onPrimary, border: 'none',
           fontFamily: 'DM Sans', fontWeight: 700, fontSize: 15,
           cursor: 'pointer', letterSpacing: 0.3,
         }}>
-          {step < 1 ? 'Continuer' : 'Valider l\'allocation'}
+          {step < lastStep ? 'Continuer' : 'Valider l\'allocation'}
         </button>
       </div>
     </div>
@@ -125,11 +194,11 @@ function AllocationScreen({ onBack, onComplete, onAddEnvelope }) {
 // ────────────────────────────────────────────────────────────
 // Step 1 — Revenu
 // ────────────────────────────────────────────────────────────
-function StepIncome({ value, onChange }) {
+function StepIncome({ value, onChange, step = 0, total = 2, previousMonth = 'avril 2026', hasTemplate = false, fromScratch = false }) {
   return (
     <div style={{ padding: '8px 20px 0' }}>
       <div style={{ fontFamily: 'DM Sans', fontSize: 13, color: FOS.textDim, marginTop: 8 }}>
-        Étape 1 sur 2
+        Étape {step + 1} sur {total}
       </div>
       <div style={{ fontFamily: 'DM Sans', fontSize: 22, fontWeight: 600, color: FOS.text, marginTop: 4, lineHeight: 1.3 }}>
         Quel est ton revenu ce mois ?
@@ -178,17 +247,90 @@ function StepIncome({ value, onChange }) {
         fontFamily: 'DM Sans', fontSize: 12, color: FOS.textDim,
         textAlign: 'center', lineHeight: 1.5,
       }}>
-        Ton allocation est pré-remplie depuis <span style={{ color: FOS.text, fontWeight: 500 }}>avril 2026</span>.<br/>
-        Tu pourras ajuster ou retirer des enveloppes à l'étape suivante.
+        {fromScratch ? (
+          <>Tu créeras tes premières <span style={{ color: FOS.text, fontWeight: 500 }}>enveloppes</span> à l'étape suivante.<br/>Aucune donnée n'est pré-remplie — tu pars de zéro.</>
+        ) : hasTemplate ? (
+          <>Tu choisiras ta base d'allocation à <span style={{ color: FOS.text, fontWeight: 500 }}>l'étape suivante</span>.<br/>Tu pourras ensuite ajuster chaque enveloppe.</>
+        ) : (
+          <>Ton allocation est pré-remplie depuis <span style={{ color: FOS.text, fontWeight: 500, textTransform: 'capitalize' }}>{previousMonth}</span>.<br/>Tu pourras ajuster ou retirer des enveloppes à l'étape suivante.</>
+        )}
       </div>
     </div>
   );
 }
 
 // ────────────────────────────────────────────────────────────
+// Step (recurring months only) — Template / base picker
+// ────────────────────────────────────────────────────────────
+function StepTemplate({ value, onChange, step = 1, total = 3, previousMonth = 'mai 2026' }) {
+  // Totals computed from the live data so the meta lines stay honest.
+  const prevTotal = ENVELOPES.filter(e => e.type !== 'month').reduce((s, e) => s + e.allocated, 0);
+  const avgTotal  = ENVELOPES.filter(e => e.type !== 'month').reduce((s, e) => s + Math.round((e.allocated * 0.98) / 5) * 5, 0);
+
+  const options = [
+    { id: 'previous', title: `Mois précédent (${capitalize(previousMonth)})`, desc: 'Reprendre exactement la même allocation que le mois dernier.', icon: 'repeat',      meta: `Total : ${prevTotal.toLocaleString('fr-FR')} €` },
+    { id: 'average',  title: 'Moyenne 3 derniers mois',                       desc: 'Lissée sur les 3 derniers mois — utile si tes mois varient.',      icon: 'line-chart', meta: `Total : ${avgTotal.toLocaleString('fr-FR')} €` },
+    { id: 'blank',    title: 'Modèle vierge',                                  desc: 'Repartir de zéro et tout ré-allouer manuellement.',                icon: 'layout-grid', meta: 'Total : 0 €' },
+  ];
+
+  return (
+    <div style={{ padding: '8px 20px 0' }}>
+      <div style={{ fontFamily: 'DM Sans', fontSize: 13, color: FOS.textDim, marginTop: 8 }}>
+        Étape {step + 1} sur {total}
+      </div>
+      <div style={{ fontFamily: 'DM Sans', fontSize: 22, fontWeight: 600, color: FOS.text, marginTop: 4, lineHeight: 1.3 }}>
+        Sur quelle base partir ?
+      </div>
+      <div style={{ fontFamily: 'DM Sans', fontSize: 13, color: FOS.textDim, marginTop: 6, lineHeight: 1.5 }}>
+        Tu pourras ajuster chaque enveloppe à l'étape suivante.
+      </div>
+
+      <div style={{ marginTop: 18, display: 'flex', flexDirection: 'column', gap: 10 }}>
+        {options.map(o => {
+          const active = o.id === value;
+          return (
+            <button key={o.id} onClick={() => onChange(o.id)} style={{
+              display: 'flex', alignItems: 'flex-start', gap: 14,
+              padding: '16px 16px', borderRadius: 16,
+              background: active ? `${FOS.primary}14` : FOS.surface,
+              border: active ? `1px solid ${FOS.primary}` : `1px solid ${FOS.outline}`,
+              cursor: 'pointer', textAlign: 'left',
+            }}>
+              <div style={{
+                width: 38, height: 38, borderRadius: 12,
+                background: active ? `${FOS.primary}1F` : FOS.surfaceVar,
+                color: active ? FOS.primary : FOS.textDim,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+              }}><Icon name={o.icon} size={18} strokeWidth={1.7} /></div>
+
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontFamily: 'DM Sans', fontSize: 14, fontWeight: 600, color: active ? FOS.primary : FOS.text }}>{o.title}</span>
+                  {active && (
+                    <div style={{
+                      width: 20, height: 20, borderRadius: 100,
+                      background: FOS.primary, color: FOS.onPrimary,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                    }}><Icon name="check" size={12} strokeWidth={3} /></div>
+                  )}
+                </div>
+                <div style={{ fontFamily: 'DM Sans', fontSize: 12.5, color: FOS.textDim, marginTop: 4, lineHeight: 1.5 }}>{o.desc}</div>
+                <div style={{ marginTop: 8, fontFamily: '"Geist Mono", monospace', fontSize: 11, color: FOS.textDim, letterSpacing: 0.2 }}>{o.meta}</div>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function capitalize(s) { return s ? s.charAt(0).toUpperCase() + s.slice(1) : s; }
+
+// ────────────────────────────────────────────────────────────
 // Step 2 — Ajuste (collapsible groups)
 // ────────────────────────────────────────────────────────────
-function StepAdjust({ edits, setEdits, onAddEnvelope, onRequestRemove, onSwipeRemove }) {
+function StepAdjust({ edits, setEdits, onAddEnvelope, onRequestRemove, onSwipeRemove, step = 1, total = 2, fromScratch = false }) {
   const groups = [
     { label: 'Fixes',           type: 'fixe' },
     { label: 'Variables',       type: 'var' },
@@ -198,9 +340,13 @@ function StepAdjust({ edits, setEdits, onAddEnvelope, onRequestRemove, onSwipeRe
     { label: 'Investissement',  type: 'inv' },
   ];
 
-  // Open state per group — all closed by default. "Du mois" gets a hint of being
-  // the most likely to change so we open it (typical use case: add a trip).
-  const [openMap, setOpenMap] = React.useState({ month: true });
+  // Open state per group. From scratch → open everything so the add affordances
+  // are all visible. Otherwise keep groups collapsed except "Du mois".
+  const [openMap, setOpenMap] = React.useState(
+    fromScratch
+      ? { fixe: true, var: true, month: true, perm: true, save: true, inv: true }
+      : { month: true }
+  );
   const setOpen = (type, val) => setOpenMap(m => ({ ...m, [type]: val }));
 
   const allOpen = groups.every(g => openMap[g.type]);
@@ -212,11 +358,11 @@ function StepAdjust({ edits, setEdits, onAddEnvelope, onRequestRemove, onSwipeRe
   return (
     <div style={{ padding: '8px 20px 0' }}>
       <div style={{ fontFamily: 'DM Sans', fontSize: 13, color: FOS.textDim, marginTop: 8 }}>
-        Étape 2 sur 2
+        Étape {step + 1} sur {total}
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 4 }}>
         <div style={{ fontFamily: 'DM Sans', fontSize: 22, fontWeight: 600, color: FOS.text, lineHeight: 1.3 }}>
-          Ajuste tes enveloppes
+          {fromScratch ? 'Crée tes enveloppes' : 'Ajuste tes enveloppes'}
         </div>
         <button onClick={toggleAll} style={{
           background: 'transparent', border: 'none', cursor: 'pointer',
@@ -227,7 +373,11 @@ function StepAdjust({ edits, setEdits, onAddEnvelope, onRequestRemove, onSwipeRe
         </button>
       </div>
       <div style={{ fontFamily: 'DM Sans', fontSize: 12, color: FOS.textDim, marginTop: 6 }}>
-        Glisse une ligne ou tape <Icon name="trash" size={11} style={{ display: 'inline', verticalAlign: '-2px', margin: '0 2px' }} /> pour retirer une enveloppe de ce mois.
+        {fromScratch ? (
+          <>Ajoute tes premières enveloppes pour répartir ton revenu. Commence par tes charges fixes (loyer, abonnements).</>
+        ) : (
+          <>Glisse une ligne ou tape <Icon name="trash" size={11} style={{ display: 'inline', verticalAlign: '-2px', margin: '0 2px' }} /> pour retirer une enveloppe de ce mois.</>
+        )}
       </div>
 
       {groups.map(g => {

@@ -26,6 +26,39 @@ function App() {
   const [newEnv, setNewEnv] = React.useState(null);
   const [transitionKey, setTransitionKey] = React.useState(0);
 
+  // ── App data lifecycle ────────────────────────────────────
+  // Three nested states drive the whole shell:
+  //   hasData === false                      → FRESH INSTALL. Nothing exists.
+  //                                            Every tab shows its empty state.
+  //   hasData && !monthAllocated             → returning user, new month begun
+  //                                            (Brief 3 unallocated banner).
+  //   hasData && monthAllocated              → full dashboard.
+  // Defaults to a completely empty app — the true first-open experience.
+  const CUR_MONTH = 'Juin 2026';
+  const [hasData, setHasData] = React.useState(() => {
+    try { return localStorage.getItem('fos_has_data') === '1'; } catch { return false; }
+  });
+  const [monthAllocated, setMonthAllocated] = React.useState(() => {
+    try { return localStorage.getItem('fos_month_allocated') === '1'; } catch { return false; }
+  });
+  // Completing the first allocation seeds data AND marks the month allocated.
+  const allocateMonth = () => {
+    setHasData(true); setMonthAllocated(true);
+    try {
+      localStorage.setItem('fos_has_data', '1');
+      localStorage.setItem('fos_month_allocated', '1');
+    } catch (e) {}
+  };
+  // Demo reset → wipe back to the absolute empty state.
+  const resetMonth = () => {
+    setHasData(false); setMonthAllocated(false);
+    try {
+      localStorage.setItem('fos_has_data', '0');
+      localStorage.setItem('fos_month_allocated', '0');
+    } catch (e) {}
+    setOverlay(null); setTab('home'); setTransitionKey(k => k + 1);
+  };
+
   const goTab = (t) => { setTab(t); setTransitionKey(k => k + 1); };
   const openEnvelope = (id) => setOverlay({ kind: 'envelope', id });
   const openAllocation = () => setOverlay({ kind: 'allocation' });
@@ -33,7 +66,7 @@ function App() {
   const openNewEnvelope = (type) => setNewEnv({ type });
   const closeOverlay = () => setOverlay(null);
 
-  const showFAB = (tab === 'budget' || tab === 'home') && !overlay;
+  const showFAB = hasData && (tab === 'budget' || tab === 'home') && !overlay;
 
   // Which tab shows the floating bottom nav?
   const showNav = !overlay;
@@ -56,22 +89,37 @@ function App() {
         <ScreenSlide keyId={`tab-${tab}-${transitionKey}`}>
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             {tab === 'home' && (
-              <HomeScreen
-                onOpenEnvelope={openEnvelope}
-                onOpenAllocation={openAllocation}
-                onGoTo={goTab}
-              />
+              !hasData ? (
+                <EmptyHomeScreen monthLabel={CUR_MONTH} onAllocate={openAllocation} />
+              ) : monthAllocated ? (
+                <HomeScreen
+                  monthLabel={CUR_MONTH}
+                  onOpenEnvelope={openEnvelope}
+                  onOpenAllocation={openAllocation}
+                  onGoTo={goTab}
+                />
+              ) : (
+                <HomeWithUnallocatedBanner onAllocate={openAllocation} />
+              )
             )}
             {tab === 'budget' && (
-              <BudgetScreen
-                onOpenEnvelope={openEnvelope}
-                onOpenAllocation={openAllocation}
-                onOpenFixes={openFixes}
-                onAddEnvelope={openNewEnvelope}
-              />
+              !hasData ? (
+                <EmptyBudgetScreen monthLabel={CUR_MONTH} onAllocate={openAllocation} />
+              ) : (
+                <BudgetScreen
+                  onOpenEnvelope={openEnvelope}
+                  onOpenAllocation={openAllocation}
+                  onOpenFixes={openFixes}
+                  onAddEnvelope={openNewEnvelope}
+                />
+              )
             )}
-            {tab === 'patrimoine' && <PatrimoineScreen />}
-            {tab === 'history'    && <HistoryScreen />}
+            {tab === 'patrimoine' && (
+              !hasData ? <EmptyPatrimoineScreen onAddAccount={openAllocation} /> : <PatrimoineScreen />
+            )}
+            {tab === 'history' && (
+              !hasData ? <EmptyHistoryScreen /> : <HistoryScreen />
+            )}
           </div>
         </ScreenSlide>
 
@@ -86,7 +134,15 @@ function App() {
         {overlay?.kind === 'allocation' && (
           <div style={{ position: 'absolute', inset: 0, background: FOS.bg, display: 'flex', flexDirection: 'column', zIndex: 80 }}>
             <ScreenSlide keyId={`alloc`} dir="up">
-              <AllocationScreen onBack={closeOverlay} onComplete={closeOverlay} onAddEnvelope={openNewEnvelope} />
+              <AllocationScreen
+                monthLabel="juin 2026"
+                previousMonth="mai 2026"
+                hasTemplate={hasData && MONTH_HISTORY.length > 0}
+                fromScratch={!hasData}
+                onBack={closeOverlay}
+                onComplete={() => { allocateMonth(); closeOverlay(); }}
+                onAddEnvelope={openNewEnvelope}
+              />
             </ScreenSlide>
           </div>
         )}
@@ -103,6 +159,27 @@ function App() {
 
         {/* Bottom nav */}
         {showNav && <BottomNav tab={tab} onChange={goTab} />}
+
+        {/* Demo control — reset the prototype back to the absolute empty
+            (fresh-install) state. Prototype-only affordance. */}
+        {hasData && showNav && (
+          <button
+            onClick={resetMonth}
+            title="Réinitialiser (démo) — repartir d'une app vide"
+            style={{
+              position: 'absolute', left: 16, bottom: 34, zIndex: 60,
+              display: 'flex', alignItems: 'center', gap: 6,
+              padding: '7px 11px', borderRadius: 100,
+              background: 'rgba(255,255,255,0.05)', color: FOS.textDim,
+              border: `1px solid ${FOS.outline}`, cursor: 'pointer',
+              fontFamily: '"Geist Mono", monospace', fontSize: 10, letterSpacing: 0.3,
+              backdropFilter: 'blur(8px)',
+            }}
+          >
+            <Icon name="repeat" size={12} />
+            démo
+          </button>
+        )}
 
         {/* Expense sheet */}
         <ExpenseSheet open={sheet} onClose={() => setSheet(false)} />

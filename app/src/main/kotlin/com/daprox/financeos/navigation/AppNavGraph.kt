@@ -89,6 +89,7 @@ fun AppNavGraph() {
                 onNavigateToAllocation = { navController.navigate(Allocation) },
                 onNavigateToEnvelopeDetail = { id -> navController.navigate(EnvelopeDetail(id)) },
                 onNavigateToFixes = { navController.navigate(Fixes) },
+                onNavigateToAddEnvelope = { presetType -> navController.navigate(EnvelopeForm(presetType = presetType)) },
             )
             envelopeDetailScreen(
                 onNavigateBack = { navController.popBackStack() },

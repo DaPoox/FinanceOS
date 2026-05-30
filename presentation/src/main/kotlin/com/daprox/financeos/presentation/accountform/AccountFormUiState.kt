@@ -35,6 +35,7 @@ val ACCOUNT_COLOR_OPTIONS = listOf(
  * @property balance current balance as a string
  * @property cap maximum balance (EPARGNE accounts only, e.g. Livret A: 22950€)
  * @property colorHex hex color for account avatar background
+ * @property showDeleteDialog whether the delete confirmation dialog is visible (edit mode)
  */
 @Stable
 data class AccountFormUiState(
@@ -47,4 +48,5 @@ data class AccountFormUiState(
     val balance: String = "",
     val cap: String = "",
     val colorHex: String = "#e8eef5",
+    val showDeleteDialog: Boolean = false,
 )

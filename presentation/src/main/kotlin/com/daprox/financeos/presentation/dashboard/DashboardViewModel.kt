@@ -86,10 +86,12 @@ class DashboardViewModel(
     val events = _events.receiveAsFlow()
 
     init {
+        // Observe the retry trigger to allow manual refreshing of the data flow
         _retryTrigger
             .flatMapLatest {
                 observeCurrentMonth()
                     .flatMapLatest { month ->
+                        // If no month data is found, display the empty state immediately
                         if (month == null) return@flatMapLatest flowOf(DashboardUiState(isLoading = false, isEmpty = true))
                         combine(
                             observeActiveEnvelopes(),
@@ -98,11 +100,14 @@ class DashboardViewModel(
                             observeAccounts(),
                             observeMonths(),
                         ) { envelopes, allocations, transactions, accounts, months ->
+                            // Index data for efficient lookup during calculations
                             val allocMap = allocations.associateBy { it.envelopeId }
                             val spendMap = transactions.groupBy { it.envelopeId }
                                 .mapValues { (_, txs) -> txs.sumOf { it.amount } }
 
+                            // Calculate net worth based on current account balances
                             val netWorth = accounts.sumOf { it.balance }
+                            // Sum contributions specifically for savings and investment envelopes
                             val contribSavings = allocations
                                 .filter { alloc -> envelopes.find { it.id == alloc.envelopeId }?.type == DomainEnvelopeType.SAVINGS }
                                 .sumOf { it.allocated }
@@ -110,6 +115,7 @@ class DashboardViewModel(
                                 .filter { alloc -> envelopes.find { it.id == alloc.envelopeId }?.type == DomainEnvelopeType.INVESTMENT }
                                 .sumOf { it.allocated }
 
+                            // Determine the textual insight based on the current month's calculated status
                             val insightLabel = when (month.status) {
                                 DomainMonthStatus.BEST -> "Meilleur mois depuis 4 mois"
                                 DomainMonthStatus.GOOD -> null
@@ -117,12 +123,14 @@ class DashboardViewModel(
                                 DomainMonthStatus.HARD -> "Dépassement du budget ce mois"
                             }
 
+                            // Filter out savings/investments to calculate actual spending budget
                             val expenseEnvelopes = envelopes.filter {
                                 it.type !in listOf(DomainEnvelopeType.SAVINGS, DomainEnvelopeType.INVESTMENT)
                             }
                             val monthSpent = expenseEnvelopes.sumOf { spendMap[it.id] ?: 0.0 }
                             val monthAllocated = expenseEnvelopes.sumOf { allocMap[it.id]?.allocated ?: 0.0 }
 
+                            // Select the top 4 envelopes by spending to display in the mini-grid
                             val top4 = expenseEnvelopes
                                 .sortedByDescending { spendMap[it.id] ?: 0.0 }
                                 .take(4)
@@ -148,6 +156,7 @@ class DashboardViewModel(
                                     )
                                 }
 
+                            // Identify the envelope with the highest budget consumption (variable or monthly only)
                             val worstEnvelope = envelopes
                                 .filter { it.type == DomainEnvelopeType.VARIABLE || it.type == DomainEnvelopeType.MONTHLY }
                                 .maxByOrNull { env ->
@@ -155,6 +164,7 @@ class DashboardViewModel(
                                     val spent = spendMap[env.id] ?: 0.0
                                     if (alloc > 0) spent / alloc else 0.0
                                 }
+                            // Generate an insight card if a problematic envelope is found (spent > 50%)
                             val insight = worstEnvelope?.let { env ->
                                 val alloc = allocMap[env.id]?.allocated ?: 0.0
                                 val spent = spendMap[env.id] ?: 0.0
@@ -170,6 +180,7 @@ class DashboardViewModel(
                                 } else null
                             }
 
+                            // Take the two most recent historical months for the history section
                             val recentMonths = months.drop(1).take(2).map { m ->
                                 RecentMonthUiState(
                                     id = m.id,
@@ -181,6 +192,7 @@ class DashboardViewModel(
                                 )
                             }
 
+                            // Assemble the final UI state
                             DashboardUiState(
                                 isLoading = false,
                                 isEmpty = false,
@@ -212,10 +224,12 @@ class DashboardViewModel(
                     }
                     .catch { e ->
                         Log.e("DashboardViewModel", "Flow error", e)
+                        // Emit error state to show retry UI to the user
                         emit(DashboardUiState(isLoading = false, isError = true))
                     }
             }
             .onEach { _state.value = it }
+            // Keep the flow alive as long as the ViewModel is active
             .launchIn(viewModelScope)
     }
 

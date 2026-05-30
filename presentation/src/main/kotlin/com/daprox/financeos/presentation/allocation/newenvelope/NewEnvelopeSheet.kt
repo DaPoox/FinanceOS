@@ -42,31 +42,44 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.composables.icons.lucide.Lucide
-import com.composables.icons.lucide.PackageOpen
+import com.composables.icons.lucide.Wallet
+import com.composables.icons.lucide.X
 import com.daprox.financeos.presentation.core.designsystem.ENVELOPE_ICON_KEYS
 import com.daprox.financeos.presentation.core.designsystem.GeistMono
 import com.daprox.financeos.presentation.core.designsystem.iconKeyToImageVector
+import com.daprox.financeos.presentation.core.designsystem.finColors
 import com.daprox.financeos.presentation.dashboard.component.envelopeminigrid.EnvelopeTypeEnum
 
-private val FORM_TYPES = setOf(
-    EnvelopeTypeEnum.VARIABLE,
-    EnvelopeTypeEnum.MONTHLY,
+// SAVINGS and INVESTMENT are account-based — redirect to Patrimoine instead of showing a form
+private val ACCOUNT_TYPES = setOf(
+    EnvelopeTypeEnum.SAVINGS,
+    EnvelopeTypeEnum.INVESTMENT,
 )
 
+private data class EnvelopeTypeLabels(
+    val title: String,
+    val placeholder: String,
+    val amountLabel: String,
+    val showGoal: Boolean = false,
+)
+
+private fun labelsFor(type: EnvelopeTypeEnum): EnvelopeTypeLabels = when (type) {
+    EnvelopeTypeEnum.FIXED -> EnvelopeTypeLabels("Nouvelle charge fixe", "Mutuelle, Téléphone…", "Montant mensuel")
+    EnvelopeTypeEnum.VARIABLE -> EnvelopeTypeLabels("Nouvelle catégorie", "Loisirs, Pharmacie…", "Budget mensuel")
+    EnvelopeTypeEnum.MONTHLY -> EnvelopeTypeLabels("Nouvelle dépense du mois", "Vacances Lisbonne…", "Montant à allouer")
+    EnvelopeTypeEnum.PERMANENT -> EnvelopeTypeLabels("Nouvel objectif", "Voyage Japon, Vélo…", "Contribution mensuelle", showGoal = true)
+    else -> EnvelopeTypeLabels("Nouvelle enveloppe", "", "Montant")
+}
+
 /**
- * Bottom sheet for creating a new envelope directly from StepAdjust.
+ * Bottom sheet for creating a new envelope directly from the allocation adjustment step.
  *
- * Displays a form for VARIABLE and MONTHLY envelope types with fields for:
- * - Name input
- * - Icon picker (8-column grid)
- * - Amount input
+ * Shows a full creation form for FIXED, VARIABLE, MONTHLY, and PERMANENT types.
+ * SAVINGS and INVESTMENT redirect to Patrimoine (account-based flow).
  *
- * For SAVINGS/INVESTMENT/PERMANENT/FIXED types, shows a redirect message instead
- * (users must create these from the dedicated Envelopes screen).
- *
- * @param presetTypeKey The envelope type key to pre-select (e.g., "VARIABLE"), or null
+ * @param presetTypeKey The envelope type key to pre-select (e.g., "FIXED"), or null
  * @param onDismiss Callback invoked when the sheet is dismissed
- * @param onSave Callback invoked when the form is submitted; parameters are name, typeKey, iconKey, and amount
+ * @param onSave Callback invoked on save; parameters are name, typeKey, iconKey, amount
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -77,54 +90,38 @@ fun NewEnvelopeSheet(
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val presetType = presetTypeKey?.let { runCatching { EnvelopeTypeEnum.valueOf(it) }.getOrNull() }
-    val isFormType = presetType in FORM_TYPES
+    val isAccountType = presetType in ACCOUNT_TYPES
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
         containerColor = MaterialTheme.colorScheme.surface,
     ) {
-        if (isFormType && presetType != null) {
+        if (isAccountType || presetType == null) {
+            NewEnvelopePatrimoineRedirect(onDismiss = onDismiss)
+        } else {
             NewEnvelopeForm(
-                typeKey = presetType.name,
-                typeLabel = typeLabelFor(presetType),
+                type = presetType,
                 onDismiss = onDismiss,
                 onSave = onSave,
             )
-        } else {
-            // SAVINGS, INVESTMENT, PERMANENT, FIXED — redirect to the full form screen
-            NewEnvelopeRedirect(onDismiss = onDismiss)
         }
     }
 }
 
-/**
- * Full form for creating a new envelope (VARIABLE and MONTHLY types only).
- *
- * Fields:
- * - Name: Required, custom input with placeholder
- * - Icon: 8-column grid picker from the design system's icon library
- * - Amount: Required, numeric input with decimal support
- *
- * The save button is disabled until name and amount are both valid.
- *
- * @param typeKey The envelope type key (e.g., "VARIABLE")
- * @param typeLabel The localized type label for display (e.g., "Variable")
- * @param onDismiss Callback invoked when the sheet is dismissed
- * @param onSave Callback invoked when the form is submitted; parameters are name, typeKey, iconKey, and amount
- */
 @Composable
 private fun NewEnvelopeForm(
-    typeKey: String,
-    typeLabel: String,
+    type: EnvelopeTypeEnum,
     onDismiss: () -> Unit,
     onSave: (name: String, typeKey: String, iconKey: String, amount: Double) -> Unit,
 ) {
+    val labels = labelsFor(type)
     var name by remember { mutableStateOf("") }
     var selectedIconKey by remember { mutableStateOf(ENVELOPE_ICON_KEYS.first()) }
     var amount by remember { mutableStateOf("") }
+    var goal by remember { mutableStateOf("") }
     val primary = MaterialTheme.colorScheme.primary
-    val canSave = name.isNotBlank() && amount.toDoubleOrNull() != null
+    val canSave = name.isNotBlank() && amount.isNotBlank()
 
     Column(
         modifier = Modifier
@@ -132,40 +129,47 @@ private fun NewEnvelopeForm(
             .padding(horizontal = 20.dp)
             .padding(bottom = 32.dp),
     ) {
-        // Sheet title
+        // Header
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(
-                text = "Nouvelle enveloppe",
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-            Text(
-                text = typeLabel,
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            Column {
+                Text(
+                    text = "CRÉER",
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        letterSpacing = 1.4.sp,
+                    ),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text(
+                    text = labels.title,
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+            }
+            Icon(
+                imageVector = Lucide.X,
+                contentDescription = "Fermer",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier
+                    .size(20.dp)
+                    .clickable(onClick = onDismiss),
             )
         }
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Name input
-        Text(
-            text = "NOM",
-            style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 1.sp),
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        // Name
+        SheetFieldLabel("NOM")
         Spacer(modifier = Modifier.height(6.dp))
         BasicTextField(
             value = name,
             onValueChange = { name = it },
-            textStyle = TextStyle(
-                fontSize = 15.sp,
-                color = MaterialTheme.colorScheme.onSurface,
-            ),
+            textStyle = TextStyle(fontSize = 15.sp, color = MaterialTheme.colorScheme.onSurface),
             cursorBrush = SolidColor(primary),
             singleLine = true,
             decorationBox = { inner ->
@@ -178,7 +182,7 @@ private fun NewEnvelopeForm(
                 ) {
                     if (name.isEmpty()) {
                         Text(
-                            text = "ex. Restaurants",
+                            text = labels.placeholder,
                             style = TextStyle(fontSize = 15.sp),
                             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                         )
@@ -188,21 +192,15 @@ private fun NewEnvelopeForm(
             },
         )
 
-        Spacer(modifier = Modifier.height(18.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
         // Icon picker
-        Text(
-            text = "ICÔNE",
-            style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 1.sp),
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        SheetFieldLabel("ICÔNE")
         Spacer(modifier = Modifier.height(6.dp))
         LazyVerticalGrid(
             columns = GridCells.Fixed(8),
             userScrollEnabled = false,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(88.dp),
+            modifier = Modifier.fillMaxWidth().height(88.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp),
             horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
@@ -212,15 +210,8 @@ private fun NewEnvelopeForm(
                     modifier = Modifier
                         .size(36.dp)
                         .clip(RoundedCornerShape(8.dp))
-                        .background(
-                            if (selected) primary.copy(alpha = 0.15f)
-                            else MaterialTheme.colorScheme.surfaceVariant
-                        )
-                        .border(
-                            width = if (selected) 1.5.dp else 1.dp,
-                            color = if (selected) primary else MaterialTheme.colorScheme.outline,
-                            shape = RoundedCornerShape(8.dp),
-                        )
+                        .background(if (selected) primary.copy(alpha = 0.15f) else MaterialTheme.colorScheme.surfaceVariant)
+                        .border(if (selected) 1.5.dp else 1.dp, if (selected) primary else MaterialTheme.colorScheme.outline, RoundedCornerShape(8.dp))
                         .clickable { selectedIconKey = key },
                     contentAlignment = Alignment.Center,
                 ) {
@@ -234,135 +225,163 @@ private fun NewEnvelopeForm(
             }
         }
 
-        Spacer(modifier = Modifier.height(18.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-        // Amount input
-        Text(
-            text = "MONTANT ALLOUÉ",
-            style = MaterialTheme.typography.labelSmall.copy(letterSpacing = 1.sp),
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        // Amount
+        SheetFieldLabel(labels.amountLabel.uppercase())
         Spacer(modifier = Modifier.height(6.dp))
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))
-                .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(12.dp))
-                .padding(horizontal = 14.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            BasicTextField(
-                value = amount,
-                onValueChange = { amount = it.filter { c -> c.isDigit() || c == '.' } },
-                textStyle = TextStyle(
-                    fontFamily = GeistMono,
-                    fontSize = 16.sp,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    textAlign = TextAlign.Start,
-                ),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                cursorBrush = SolidColor(primary),
-                singleLine = true,
-                modifier = Modifier.weight(1f),
-                decorationBox = { inner ->
-                    if (amount.isEmpty()) {
-                        Text(
-                            text = "0",
-                            style = TextStyle(
-                                fontFamily = GeistMono,
-                                fontSize = 16.sp,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f),
-                            ),
-                        )
-                    }
-                    inner()
-                },
-            )
-            Text(
-                text = "€",
-                style = MaterialTheme.typography.labelMedium.copy(
-                    fontFamily = GeistMono,
-                    fontSize = 14.sp,
-                ),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+        AmountInputRow(value = amount, onValueChange = { amount = it }, primary = primary)
+
+        // Optional goal (PERMANENT only)
+        if (labels.showGoal) {
+            Spacer(modifier = Modifier.height(16.dp))
+            SheetFieldLabel("OBJECTIF TOTAL (OPTIONNEL)")
+            Spacer(modifier = Modifier.height(6.dp))
+            AmountInputRow(value = goal, onValueChange = { goal = it }, primary = primary, placeholder = "Ex. 3 000")
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(22.dp))
 
-        Button(
-            onClick = {
-                val parsedAmount = amount.toDoubleOrNull() ?: 0.0
-                onSave(name.trim(), typeKey, selectedIconKey, parsedAmount)
-            },
-            enabled = canSave,
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(14.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-            ),
-            contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 14.dp),
-        ) {
-            Text(
-                text = "Créer l'enveloppe",
-                style = MaterialTheme.typography.bodyMedium.copy(
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 15.sp,
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Button(
+                onClick = onDismiss,
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(14.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    contentColor = MaterialTheme.colorScheme.onSurface,
                 ),
-            )
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 14.dp),
+            ) {
+                Text("Annuler", style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold, fontSize = 14.sp))
+            }
+            Button(
+                onClick = { onSave(name.trim(), type.name, selectedIconKey, amount.toDoubleOrNull() ?: 0.0) },
+                enabled = canSave,
+                modifier = Modifier.weight(2f),
+                shape = RoundedCornerShape(14.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                ),
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 14.dp),
+            ) {
+                Text("Créer l'enveloppe", style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold, fontSize = 14.sp))
+            }
         }
     }
 }
 
-/**
- * Redirect message for complex envelope types.
- *
- * Shown for SAVINGS/INVESTMENT/PERMANENT/FIXED types, instructing users
- * to create these envelope types from the dedicated Envelopes screen.
- *
- * @param onDismiss Callback invoked when the close button is clicked
- */
 @Composable
-private fun NewEnvelopeRedirect(onDismiss: () -> Unit) {
+private fun SheetFieldLabel(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.labelSmall.copy(
+            fontSize = 11.sp,
+            fontWeight = FontWeight.SemiBold,
+            letterSpacing = 1.2.sp,
+        ),
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+}
+
+@Composable
+private fun AmountInputRow(
+    value: String,
+    onValueChange: (String) -> Unit,
+    primary: androidx.compose.ui.graphics.Color,
+    placeholder: String = "0",
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp))
+            .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(12.dp))
+            .padding(horizontal = 14.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        BasicTextField(
+            value = value,
+            onValueChange = { onValueChange(it.filter { c -> c.isDigit() }) },
+            textStyle = TextStyle(fontFamily = GeistMono, fontSize = 18.sp, color = MaterialTheme.colorScheme.onSurface),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            cursorBrush = SolidColor(primary),
+            singleLine = true,
+            modifier = Modifier.weight(1f),
+            decorationBox = { inner ->
+                if (value.isEmpty()) {
+                    Text(
+                        text = placeholder,
+                        style = TextStyle(fontFamily = GeistMono, fontSize = 18.sp, color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)),
+                    )
+                }
+                inner()
+            },
+        )
+        Text(
+            text = "€",
+            style = MaterialTheme.typography.labelMedium.copy(fontFamily = GeistMono, fontSize = 15.sp),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+/** Shown for SAVINGS and INVESTMENT — these are managed as accounts in Patrimoine. */
+@Composable
+private fun NewEnvelopePatrimoineRedirect(onDismiss: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp)
+            .padding(horizontal = 20.dp)
             .padding(bottom = 48.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Icon(
-            imageVector = Lucide.PackageOpen,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(32.dp),
-        )
-        Spacer(modifier = Modifier.height(12.dp))
-        Text(
-            text = "Crée ce type d'enveloppe depuis l'écran Enveloppes",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = "Fermer",
-            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.clickable(onClick = onDismiss),
-        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(16.dp))
+                .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(16.dp))
+                .padding(18.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .background(MaterialTheme.finColors.savings.copy(alpha = 0.12f), RoundedCornerShape(10.dp)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    imageVector = Lucide.Wallet,
+                    contentDescription = null,
+                    tint = MaterialTheme.finColors.savings,
+                    modifier = Modifier.size(18.dp),
+                )
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Ouvrir un compte",
+                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium, fontSize = 14.sp),
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Les comptes d'épargne et d'investissement se gèrent depuis Patrimoine. Le versement mensuel apparaîtra ensuite ici.",
+                    style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp, lineHeight = 18.sp),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Button(
+                    onClick = onDismiss,
+                    shape = RoundedCornerShape(100.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                    ),
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 14.dp, vertical = 10.dp),
+                ) {
+                    Text("Aller dans Patrimoine →", style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold, fontSize = 13.sp))
+                }
+            }
+        }
     }
 }
 
-/**
- * Returns the localized label for an envelope type.
- *
- * @param type The [EnvelopeTypeEnum]
- * @return The localized label (e.g., "Variable", "Du mois")
- */
-private fun typeLabelFor(type: EnvelopeTypeEnum): String = when (type) {
-    EnvelopeTypeEnum.VARIABLE -> "Variable"
-    EnvelopeTypeEnum.MONTHLY -> "Du mois"
-    else -> type.name
-}

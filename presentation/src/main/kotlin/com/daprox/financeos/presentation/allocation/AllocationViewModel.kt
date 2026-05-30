@@ -20,13 +20,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.Calendar
 
 private val TYPE_LABELS = mapOf(
     EnvelopeTypeEnum.FIXED to "Fixes",
@@ -139,8 +140,35 @@ class AllocationViewModel(
         _retryTrigger
             .flatMapLatest {
                 observeCurrentMonth()
-                    .filterNotNull()
                     .flatMapLatest { month ->
+                        if (month == null) {
+                            // First launch — no month exists yet. Set currentMonthId from the
+                            // system clock so AllocateMonthUseCase can create the record on save.
+                            // Use a live combine so newly created envelopes appear immediately.
+                            currentMonthId = todayMonthId()
+                            return@flatMapLatest combine(
+                                observeActiveEnvelopes(),
+                                observeMonthAllocations(currentMonthId),
+                            ) { envelopes, allocations ->
+                                val allocMap = allocations.associateBy { it.envelopeId }
+                                val uiEnvelopes = envelopes.map { env ->
+                                    AllocationEnvelopeUiState(
+                                        id = env.id,
+                                        name = env.name,
+                                        icon = iconKeyToImageVector(env.iconKey),
+                                        type = env.type.toPresentation(),
+                                        amount = allocMap[env.id]?.allocated?.toLong()?.toString() ?: "0",
+                                    )
+                                }
+                                val groups = uiEnvelopes.toGroups()
+                                AllocationUiState(
+                                    isLoading = false,
+                                    isFirstMonth = true,
+                                    groups = groups,
+                                    remaining = computeRemaining("", groups),
+                                )
+                            }
+                        }
                         currentMonthId = month.id
                         combine(
                             observeActiveEnvelopes(),
@@ -196,7 +224,7 @@ class AllocationViewModel(
                         current.copy(
                             isLoading = newState.isLoading,
                             isError = newState.isError,
-                            income = newState.income,
+                            income = if (newState.income.isBlank()) current.income else newState.income,
                             groups = mergedGroups,
                             remaining = computeRemaining(current.income, mergedGroups),
                         )
@@ -356,5 +384,12 @@ class AllocationViewModel(
                 }
             }
         }
+    }
+
+    private fun todayMonthId(): String {
+        val cal = Calendar.getInstance()
+        val year = cal.get(Calendar.YEAR)
+        val month = (cal.get(Calendar.MONTH) + 1).toString().padStart(2, '0')
+        return "$year-$month"
     }
 }

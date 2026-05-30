@@ -104,13 +104,34 @@ import kotlin.math.abs
  * @param type The envelope type to get the label for
  * @return The localized add button label, or null if the type doesn't support quick creation
  */
-private fun addButtonLabel(type: EnvelopeTypeEnum?): String? = when (type) {
+private fun addButtonLabel(type: EnvelopeTypeEnum): String = when (type) {
+    EnvelopeTypeEnum.FIXED -> "+ Nouvelle charge fixe"
     EnvelopeTypeEnum.VARIABLE -> "+ Ajouter une catégorie"
     EnvelopeTypeEnum.MONTHLY -> "+ Nouvelle dépense du mois"
+    EnvelopeTypeEnum.PERMANENT -> "+ Nouvel objectif"
     EnvelopeTypeEnum.SAVINGS -> "+ Nouveau livret"
     EnvelopeTypeEnum.INVESTMENT -> "+ Nouveau placement"
-    else -> null
+    else -> "+ Nouvelle enveloppe"
 }
+
+private fun groupLabel(type: EnvelopeTypeEnum): String = when (type) {
+    EnvelopeTypeEnum.FIXED -> "Fixes"
+    EnvelopeTypeEnum.VARIABLE -> "Variables"
+    EnvelopeTypeEnum.MONTHLY -> "Du mois"
+    EnvelopeTypeEnum.PERMANENT -> "Permanentes"
+    EnvelopeTypeEnum.SAVINGS -> "Épargne"
+    EnvelopeTypeEnum.INVESTMENT -> "Investissement"
+    else -> type.name
+}
+
+private val ALL_GROUP_TYPES = listOf(
+    EnvelopeTypeEnum.FIXED,
+    EnvelopeTypeEnum.VARIABLE,
+    EnvelopeTypeEnum.MONTHLY,
+    EnvelopeTypeEnum.PERMANENT,
+    EnvelopeTypeEnum.SAVINGS,
+    EnvelopeTypeEnum.INVESTMENT,
+)
 
 /**
  * Root composable for the Allocation screen.
@@ -176,6 +197,12 @@ fun AllocationScreen(
         }
     }
 
+    // 2-step flow for first month (income → crée), 3-step for recurring (income → template → ajuste)
+    val steps = if (state.isFirstMonth) listOf("income", "adjust") else listOf("income", "template", "adjust")
+    val currentStepName = steps.getOrElse(state.step) { "income" }
+    val totalSteps = steps.size
+    val isAdjustStep = currentStepName == "adjust"
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -183,12 +210,13 @@ fun AllocationScreen(
             AllocationTopBar(
                 monthLabel = state.monthLabel,
                 step = state.step,
+                totalSteps = totalSteps,
                 onBack = { onAction(AllocationUiAction.OnBack) },
             )
         },
         bottomBar = {
             AllocationFooter(
-                step = state.step,
+                isAdjustStep = isAdjustStep,
                 remaining = state.remaining,
                 incomeBlank = state.income.isBlank(),
                 onNext = { onAction(AllocationUiAction.OnNext) },
@@ -207,17 +235,25 @@ fun AllocationScreen(
                     .padding(innerPadding)
                     .verticalScroll(rememberScrollState()),
             ) {
-                when (state.step) {
-                    0 -> StepIncome(
+                when (currentStepName) {
+                    "income" -> StepIncome(
                         income = state.income,
+                        isFirstMonth = state.isFirstMonth,
+                        stepIndex = state.step,
+                        totalSteps = totalSteps,
                         onIncomeChanged = { onAction(AllocationUiAction.OnIncomeChanged(it)) },
                     )
-                    1 -> StepTemplate(
+                    "template" -> StepTemplate(
                         selected = state.selectedTemplate,
+                        stepIndex = state.step,
+                        totalSteps = totalSteps,
                         onSelect = { onAction(AllocationUiAction.OnTemplateSelected(it)) },
                     )
-                    2 -> StepAdjust(
+                    "adjust" -> StepAdjust(
                         groups = state.groups,
+                        isFirstMonth = state.isFirstMonth,
+                        stepIndex = state.step,
+                        totalSteps = totalSteps,
                         onAmountChanged = { id, amt -> onAction(AllocationUiAction.OnEnvelopeAmountChanged(id, amt)) },
                         onEnvelopeDeleted = { env -> onAction(AllocationUiAction.OnEnvelopeDeleted(env)) },
                         onAddEnvelopeClick = { typeKey -> onAction(AllocationUiAction.OnAddEnvelopeClick(typeKey)) },
@@ -277,6 +313,7 @@ private fun AllocationScreenSkeleton(modifier: Modifier = Modifier) {
 private fun AllocationTopBar(
     monthLabel: String,
     step: Int,
+    totalSteps: Int,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -311,7 +348,7 @@ private fun AllocationTopBar(
             textAlign = TextAlign.Center,
         )
 
-        StepIndicator(step = step)
+        StepIndicator(step = step, total = totalSteps)
     }
 }
 
@@ -324,13 +361,13 @@ private fun AllocationTopBar(
  * @param modifier Optional modifier for layout customization
  */
 @Composable
-private fun StepIndicator(step: Int, modifier: Modifier = Modifier) {
+private fun StepIndicator(step: Int, total: Int, modifier: Modifier = Modifier) {
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        (0..2).forEach { i ->
+        (0 until total).forEach { i ->
             val w by animateDpAsState(
                 targetValue = if (i == step) 20.dp else 6.dp,
                 animationSpec = tween(durationMillis = 240),
@@ -362,6 +399,9 @@ private fun StepIndicator(step: Int, modifier: Modifier = Modifier) {
 @Composable
 private fun StepIncome(
     income: String,
+    isFirstMonth: Boolean,
+    stepIndex: Int,
+    totalSteps: Int,
     onIncomeChanged: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -371,7 +411,7 @@ private fun StepIncome(
     Column(modifier = modifier.padding(horizontal = 20.dp, vertical = 8.dp)) {
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "Étape 1 sur 3",
+            text = "Étape ${stepIndex + 1} sur $totalSteps",
             style = MaterialTheme.typography.bodySmall.copy(fontSize = 13.sp),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -463,6 +503,21 @@ private fun StepIncome(
                 }
             }
         }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Text(
+            text = if (isFirstMonth)
+                "Tu créeras tes premières enveloppes à l'étape suivante.\nAucune donnée n'est pré-remplie — tu pars de zéro."
+            else if (totalSteps == 3)
+                "Tu choisiras ta base d'allocation à l'étape suivante.\nTu pourras ensuite ajuster chaque enveloppe."
+            else
+                "Ton allocation est pré-remplie depuis le mois précédent.\nTu pourras ajuster ou retirer des enveloppes à l'étape suivante.",
+            style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp, lineHeight = 18.sp),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth(),
+        )
     }
 }
 
@@ -482,6 +537,8 @@ private fun StepIncome(
 @Composable
 private fun StepTemplate(
     selected: TemplateTypeEnum,
+    stepIndex: Int,
+    totalSteps: Int,
     onSelect: (TemplateTypeEnum) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -493,7 +550,7 @@ private fun StepTemplate(
     )
 
     val options = listOf(
-        TemplateOption(TemplateTypeEnum.PREVIOUS, "Mois précédent", "Avril 2026 · recommandé", "Conseillé"),
+        TemplateOption(TemplateTypeEnum.PREVIOUS, "Mois précédent", "Mois précédent · recommandé", "Conseillé"),
         TemplateOption(TemplateTypeEnum.PAST, "Un mois passé", "Choisir n'importe quel mois"),
         TemplateOption(TemplateTypeEnum.DEFAULT, "Template par défaut", "Ta config sauvegardée"),
         TemplateOption(TemplateTypeEnum.SCRATCH, "From scratch", "Tout à zéro"),
@@ -502,7 +559,7 @@ private fun StepTemplate(
     Column(modifier = modifier.padding(horizontal = 20.dp, vertical = 8.dp)) {
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "Étape 2 sur 3",
+            text = "Étape ${stepIndex + 1} sur $totalSteps",
             style = MaterialTheme.typography.bodySmall.copy(fontSize = 13.sp),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -615,21 +672,31 @@ private fun StepTemplate(
 @Composable
 private fun StepAdjust(
     groups: List<AllocationEnvelopeGroup>,
+    isFirstMonth: Boolean,
+    stepIndex: Int,
+    totalSteps: Int,
     onAmountChanged: (String, String) -> Unit,
     onEnvelopeDeleted: (AllocationEnvelopeUiState) -> Unit,
     onAddEnvelopeClick: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val expandedGroups = remember(groups.map { it.label }) {
-        mutableStateMapOf<String, Boolean>().apply {
-            groups.forEach { g -> put(g.label, g.label in setOf("Variables", "Du mois")) }
+    // Build a flat map from type → envelopes for fast lookup
+    val envelopesByType: Map<EnvelopeTypeEnum, List<AllocationEnvelopeUiState>> =
+        groups.flatMap { it.envelopes }.groupBy { it.type }
+
+    // First month → all groups open so every AddEnvelopeRow is visible.
+    // Recurring → only "Du mois" open by default.
+    val expandedMap = remember {
+        mutableStateMapOf<EnvelopeTypeEnum, Boolean>().apply {
+            ALL_GROUP_TYPES.forEach { t -> put(t, isFirstMonth || t == EnvelopeTypeEnum.MONTHLY) }
         }
     }
+    val allExpanded = ALL_GROUP_TYPES.all { expandedMap[it] == true }
 
     Column(modifier = modifier.padding(horizontal = 20.dp, vertical = 8.dp)) {
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "Étape 3 sur 3",
+            text = "Étape ${stepIndex + 1} sur $totalSteps",
             style = MaterialTheme.typography.bodySmall.copy(fontSize = 13.sp),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -640,7 +707,7 @@ private fun StepAdjust(
             verticalAlignment = Alignment.Bottom,
         ) {
             Text(
-                text = "Ajuste tes enveloppes",
+                text = if (isFirstMonth) "Crée tes enveloppes" else "Ajuste tes enveloppes",
                 style = MaterialTheme.typography.titleLarge.copy(
                     fontWeight = FontWeight.SemiBold,
                     fontSize = 22.sp,
@@ -648,29 +715,38 @@ private fun StepAdjust(
                 ),
                 color = MaterialTheme.colorScheme.onSurface,
             )
-            val allExpanded = groups.isNotEmpty() && groups.all { expandedGroups[it.label] == true }
             Text(
                 text = if (allExpanded) "Tout replier" else "Tout déplier",
                 style = MaterialTheme.typography.labelMedium.copy(fontSize = 13.sp),
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier
-                    .clickable { groups.forEach { expandedGroups[it.label] = !allExpanded } }
+                    .clickable { ALL_GROUP_TYPES.forEach { expandedMap[it] = !allExpanded } }
                     .padding(start = 8.dp, bottom = 2.dp),
             )
         }
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = if (isFirstMonth)
+                "Ajoute tes premières enveloppes pour répartir ton revenu. Commence par tes charges fixes (loyer, abonnements)."
+            else
+                "Ajuste les montants ou retire une enveloppe de ce mois.",
+            style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp, lineHeight = 17.sp),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
 
-        groups.forEach { group ->
-            val expanded = expandedGroups[group.label] ?: false
-            val groupTotal = group.envelopes.sumOf { it.amount.toLongOrNull() ?: 0L }
+        ALL_GROUP_TYPES.forEach { type ->
+            val envelopes = envelopesByType[type] ?: emptyList()
+            val expanded = expandedMap[type] ?: false
+            val groupTotal = envelopes.sumOf { it.amount.toLongOrNull() ?: 0L }
 
             Spacer(modifier = Modifier.height(18.dp))
 
             CollapsableGroupHeader(
-                label = group.label,
-                count = group.envelopes.size,
+                label = groupLabel(type),
+                count = envelopes.size,
                 total = groupTotal,
                 expanded = expanded,
-                onToggle = { expandedGroups[group.label] = !expanded },
+                onToggle = { expandedMap[type] = !expanded },
             )
 
             AnimatedVisibility(
@@ -684,22 +760,17 @@ private fun StepAdjust(
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                     modifier = Modifier.padding(top = 8.dp),
                 ) {
-                    group.envelopes.forEach { envelope ->
+                    envelopes.forEach { envelope ->
                         SwipeableAdjustRow(
                             envelope = envelope,
                             onAmountChanged = { onAmountChanged(envelope.id, it) },
                             onDelete = { onEnvelopeDeleted(envelope) },
                         )
                     }
-                    // Only show the add button for types that support quick creation
-                    addButtonLabel(group.envelopes.firstOrNull()?.type)?.let { label ->
-                        val typeKey = group.envelopes.firstOrNull()?.type?.name ?: return@let
-                        Spacer(modifier = Modifier.height(4.dp))
-                        AddGroupButton(
-                            label = label,
-                            onClick = { onAddEnvelopeClick(typeKey) },
-                        )
-                    }
+                    AddGroupButton(
+                        label = addButtonLabel(type),
+                        onClick = { onAddEnvelopeClick(type.name) },
+                    )
                 }
             }
         }
@@ -984,7 +1055,7 @@ private fun AdjustRow(
  */
 @Composable
 private fun AllocationFooter(
-    step: Int,
+    isAdjustStep: Boolean,
     remaining: Double,
     incomeBlank: Boolean,
     onNext: () -> Unit,
@@ -1001,18 +1072,9 @@ private fun AllocationFooter(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surfaceContainer)
-            .drawBehind {
-                drawLine(
-                    color = outlineColor,
-                    start = Offset(0f, 0f),
-                    end = Offset(size.width, 0f),
-                    strokeWidth = 1.dp.toPx(),
-                )
-            }
-            .padding(start = 20.dp, end = 20.dp, top = 14.dp, bottom = 18.dp + navBarPadding),
+            .padding(start = 20.dp, end = 20.dp, top = 14.dp, bottom = 18.dp),
     ) {
-        if (step == 2) {
+        if (isAdjustStep) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -1038,7 +1100,7 @@ private fun AllocationFooter(
 
         Button(
             onClick = onNext,
-            enabled = !(step == 0 && incomeBlank),
+            enabled = if (isAdjustStep) remaining <= 0.0 else !incomeBlank,
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
             colors = ButtonDefaults.buttonColors(
@@ -1048,7 +1110,7 @@ private fun AllocationFooter(
             contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 16.dp),
         ) {
             Text(
-                text = if (step < 2) "Continuer" else "Valider l'allocation",
+                text = if (!isAdjustStep) "Continuer" else "Valider l'allocation",
                 style = MaterialTheme.typography.bodyMedium.copy(
                     fontWeight = FontWeight.Bold,
                     fontSize = 15.sp,

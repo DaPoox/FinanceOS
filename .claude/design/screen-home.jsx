@@ -1,6 +1,7 @@
 // screen-home.jsx — Finance OS — Home Dashboard
 
-function HomeScreen({ onOpenEnvelope, onOpenAllocation, onGoTo }) {
+function HomeScreen({ onOpenEnvelope, onOpenAllocation, onGoTo, monthLabel = 'Mai 2026' }) {
+  const shortMonth = monthLabel.split(' ')[0].toLowerCase();
   const nw = useCountUp(CURRENT.netWorth, { ms: 1100 });
   const dContrib = CURRENT.contribSavings + CURRENT.contribInvest + CURRENT.contribMarket;
 
@@ -22,7 +23,7 @@ function HomeScreen({ onOpenEnvelope, onOpenAllocation, onGoTo }) {
       <div style={{ padding: '8px 20px 4px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <div style={{ fontFamily: 'DM Sans', fontSize: 13, color: FOS.textDim }}>Bonjour, Théo</div>
-          <div style={{ fontFamily: 'DM Sans', fontSize: 18, fontWeight: 600, color: FOS.text }}>Mai 2026</div>
+          <div style={{ fontFamily: 'DM Sans', fontSize: 18, fontWeight: 600, color: FOS.text }}>{monthLabel}</div>
         </div>
         <div style={{
           width: 40, height: 40, borderRadius: 100,
@@ -114,7 +115,7 @@ function HomeScreen({ onOpenEnvelope, onOpenAllocation, onGoTo }) {
 
       {/* ───── Budget du mois ───── */}
       <div style={{ padding: '20px 20px 0' }}>
-        <SectionLabel right={<span>{eur(CURRENT.income)} de revenu</span>}>Budget mai</SectionLabel>
+        <SectionLabel right={<span>{eur(CURRENT.income)} de revenu</span>}>Budget {shortMonth}</SectionLabel>
         <Card style={{ marginTop: 8, padding: 18 }} onClick={() => onGoTo('budget')}>
           <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
             <div>

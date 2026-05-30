@@ -45,7 +45,7 @@ private fun DomainEnvelopeType.toPresentation(): EnvelopeTypeEnum = EnvelopeType
 private fun List<EnvelopeRowUiState>.toGroups(): List<BudgetEnvelopeGroup> =
     TYPE_LABELS.entries.mapNotNull { (type, label) ->
         val items = filter { it.type == type }
-        if (items.isEmpty()) null else BudgetEnvelopeGroup(label, items)
+        if (items.isEmpty()) null else BudgetEnvelopeGroup(label, items, type)
     }
 
 /**
@@ -192,6 +192,8 @@ class BudgetViewModel(
                     _retryTrigger.update { it + 1 }
                 }
                 is BudgetUiAction.OnFixesClick -> _events.send(BudgetUiEvent.NavigateToFixes)
+                is BudgetUiAction.OnAddEnvelopeClick ->
+                    _events.send(BudgetUiEvent.NavigateToAddEnvelope(action.type.name))
             }
         }
     }

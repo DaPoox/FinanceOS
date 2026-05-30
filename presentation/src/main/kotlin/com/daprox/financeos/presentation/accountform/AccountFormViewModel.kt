@@ -93,11 +93,12 @@ class AccountFormViewModel(
                 is AccountFormUiAction.OnSaveClick -> save()
 
                 is AccountFormUiAction.OnDeleteClick ->
-                    _events.send(AccountFormUiEvent.ShowDeleteDialog)
+                    _state.update { it.copy(showDeleteDialog = true) }
 
                 is AccountFormUiAction.OnDeleteConfirmed -> deleteConfirmed()
 
-                is AccountFormUiAction.OnDeleteDismissed -> Unit
+                is AccountFormUiAction.OnDeleteDismissed ->
+                    _state.update { it.copy(showDeleteDialog = false) }
 
                 is AccountFormUiAction.OnBackClick ->
                     _events.send(AccountFormUiEvent.NavigateBack)

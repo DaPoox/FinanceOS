@@ -1,6 +1,7 @@
 package com.daprox.financeos.presentation.budget
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -16,6 +17,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
@@ -80,6 +86,7 @@ fun BudgetScreenRoot(
     onNavigateToAllocation: () -> Unit = {},
     onNavigateToEnvelopeDetail: (String) -> Unit = {},
     onNavigateToFixes: () -> Unit = {},
+    onNavigateToAddEnvelope: (String) -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -88,6 +95,7 @@ fun BudgetScreenRoot(
             is BudgetUiEvent.NavigateToAllocation -> onNavigateToAllocation()
             is BudgetUiEvent.NavigateToEnvelopeDetail -> onNavigateToEnvelopeDetail(event.id)
             is BudgetUiEvent.NavigateToFixes -> onNavigateToFixes()
+            is BudgetUiEvent.NavigateToAddEnvelope -> onNavigateToAddEnvelope(event.presetType)
         }
     }
 
@@ -204,6 +212,15 @@ fun BudgetScreen(
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 3.dp),
                         )
                     }
+
+                    item(key = "add_${group.type.name}") {
+                        AddEnvelopeRow(
+                            label = addLabelFor(group.type),
+                            prominent = group.type == EnvelopeTypeEnum.MONTHLY,
+                            onClick = { onAction(BudgetUiAction.OnAddEnvelopeClick(group.type)) },
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 3.dp),
+                        )
+                    }
                 }
 
                 item { Spacer(modifier = Modifier.height(8.dp)) }
@@ -233,6 +250,61 @@ private fun BudgetScreenSkeleton(contentPadding: PaddingValues) {
             item { ShimmerBox(modifier = Modifier.fillMaxWidth().height(56.dp).padding(horizontal = 16.dp)) }
         }
     }
+}
+
+@Composable
+private fun AddEnvelopeRow(
+    label: String,
+    prominent: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val borderColor = if (prominent)
+        MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
+    else
+        MaterialTheme.colorScheme.outlineVariant
+    val textColor = if (prominent)
+        MaterialTheme.colorScheme.primary
+    else
+        MaterialTheme.colorScheme.onSurfaceVariant
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .drawBehind {
+                drawRoundRect(
+                    color = borderColor,
+                    style = Stroke(
+                        width = 1.dp.toPx(),
+                        pathEffect = PathEffect.dashPathEffect(floatArrayOf(8.dp.toPx(), 6.dp.toPx()), 0f),
+                    ),
+                    cornerRadius = CornerRadius(16.dp.toPx()),
+                )
+            }
+            .clip(RoundedCornerShape(16.dp))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 14.dp, vertical = 12.dp),
+        contentAlignment = Alignment.CenterStart,
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodySmall.copy(
+                fontWeight = FontWeight.Medium,
+                fontSize = 13.sp,
+                letterSpacing = 0.2.sp,
+            ),
+            color = textColor,
+        )
+    }
+}
+
+private fun addLabelFor(type: EnvelopeTypeEnum): String = when (type) {
+    EnvelopeTypeEnum.VARIABLE -> "+ Ajouter une catégorie"
+    EnvelopeTypeEnum.MONTHLY -> "+ Nouvelle dépense du mois"
+    EnvelopeTypeEnum.PERMANENT -> "+ Nouvel objectif"
+    EnvelopeTypeEnum.SAVINGS -> "+ Ajouter un livret"
+    EnvelopeTypeEnum.INVESTMENT -> "+ Nouveau placement"
+    else -> "+ Nouvelle enveloppe"
 }
 
 @Composable
@@ -365,12 +437,11 @@ private fun BudgetScreenPreview() {
                     totalAllocated = envelopes.sumOf { it.allocated },
                 ),
                 groups = listOf(
-                    BudgetEnvelopeGroup("Fixes", envelopes.filter { it.type == EnvelopeTypeEnum.FIXED }),
-                    BudgetEnvelopeGroup("Variables", envelopes.filter { it.type == EnvelopeTypeEnum.VARIABLE }),
-                    BudgetEnvelopeGroup("Du mois", envelopes.filter { it.type == EnvelopeTypeEnum.MONTHLY }),
-                    BudgetEnvelopeGroup("Permanentes", envelopes.filter { it.type == EnvelopeTypeEnum.PERMANENT }),
-                    BudgetEnvelopeGroup("Épargne", envelopes.filter { it.type == EnvelopeTypeEnum.SAVINGS }),
-                    BudgetEnvelopeGroup("Investissement", envelopes.filter { it.type == EnvelopeTypeEnum.INVESTMENT }),
+                    BudgetEnvelopeGroup("Variables", envelopes.filter { it.type == EnvelopeTypeEnum.VARIABLE }, EnvelopeTypeEnum.VARIABLE),
+                    BudgetEnvelopeGroup("Du mois", envelopes.filter { it.type == EnvelopeTypeEnum.MONTHLY }, EnvelopeTypeEnum.MONTHLY),
+                    BudgetEnvelopeGroup("Permanentes", envelopes.filter { it.type == EnvelopeTypeEnum.PERMANENT }, EnvelopeTypeEnum.PERMANENT),
+                    BudgetEnvelopeGroup("Épargne", envelopes.filter { it.type == EnvelopeTypeEnum.SAVINGS }, EnvelopeTypeEnum.SAVINGS),
+                    BudgetEnvelopeGroup("Investissement", envelopes.filter { it.type == EnvelopeTypeEnum.INVESTMENT }, EnvelopeTypeEnum.INVESTMENT),
                 ),
                 expenseEnvelopes = envelopes.map { EnvelopeChipUiState(it.id, it.name, it.icon) },
             ),

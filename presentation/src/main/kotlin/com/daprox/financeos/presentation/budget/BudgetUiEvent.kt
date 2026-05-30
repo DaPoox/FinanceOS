@@ -12,4 +12,7 @@ sealed interface BudgetUiEvent {
 
     /** Navigate to fixed charges detail/management screen */
     data object NavigateToFixes : BudgetUiEvent
+
+    /** Navigate to envelope form in create mode with a preset type */
+    data class NavigateToAddEnvelope(val presetType: String) : BudgetUiEvent
 }

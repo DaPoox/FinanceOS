@@ -17,6 +17,7 @@ import androidx.compose.runtime.Stable
  * @param remaining The unallocated amount (income - sum of envelope amounts)
  * @param isSaving Whether the allocation is currently being saved to the database
  * @param lastRemovedEnvelope The envelope that was swipe-deleted; non-null while the undo snackbar is showing
+ * @param isFirstMonth True when no month exists yet (virgin app); drives 2-step flow and "Crée tes enveloppes" wording
  * @param isNewEnvelopeSheetVisible Whether the new envelope creation bottom sheet is visible
  * @param newEnvelopePresetType The envelope type key to pre-select in the new envelope sheet (e.g., "VARIABLE")
  */
@@ -24,6 +25,7 @@ import androidx.compose.runtime.Stable
 data class AllocationUiState(
     val isLoading: Boolean = true,
     val isError: Boolean = false,
+    val isFirstMonth: Boolean = false,
     val step: Int = 0,
     val monthLabel: String = "Mai 2026",
     val income: String = "4200",

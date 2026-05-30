@@ -83,7 +83,6 @@ fun AccountFormScreenRoot(
     ObserveAsEvents(viewModel.events) { event ->
         when (event) {
             is AccountFormUiEvent.NavigateBack -> onNavigateBack()
-            is AccountFormUiEvent.ShowDeleteDialog -> Unit
         }
     }
 
@@ -287,13 +286,27 @@ fun AccountFormScreen(
         }
     }
 
-    // Delete confirmation dialog
-    if (state.accountId != null) {
-        // We show it lazily on OnDeleteClick via event; here we handle it with a flag approach
-        // The dialog is triggered by the ShowDeleteDialog event — for simplicity use a state flag
-        // Since we used an event, the dialog visibility must be lifted. We skip the dialog here
-        // as it is already handled via AccountFormUiEvent.ShowDeleteDialog → shows at call site.
-        // In practice, pass a showDialog flag through UiState for a clean approach.
+    if (state.showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { onAction(AccountFormUiAction.OnDeleteDismissed) },
+            title = { Text("Supprimer le compte ?") },
+            text = { Text("Cette action est irréversible. Le compte et son historique seront supprimés.") },
+            confirmButton = {
+                TextButton(onClick = { onAction(AccountFormUiAction.OnDeleteConfirmed) }) {
+                    Text(
+                        text = "Supprimer",
+                        color = MaterialTheme.colorScheme.error,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { onAction(AccountFormUiAction.OnDeleteDismissed) }) {
+                    Text("Annuler")
+                }
+            },
+            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+        )
     }
 }
 
