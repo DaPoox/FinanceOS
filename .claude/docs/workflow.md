@@ -5,6 +5,34 @@ Never skip to execution without completing analysis and confirmation.
 
 ---
 
+## Non-Negotiable Rules (learned from bugs)
+
+These apply to every task, no exceptions.
+
+### Before writing a single line of code
+- **Read the full JSX/HTML spec** for the screen or component being touched. The spec is the source of truth — never assume behavior.
+- **If a UI/UX task has no matching spec in the design files, stop immediately.** Do not invent or assume the design. State exactly what is missing ("I don't see `[component/behavior]` in any JSX file") and wait for direction before writing any code.
+- **Read the relevant ViewModel top-to-bottom** before modifying it. Trace the full data flow: action → state update → DB write → flow re-emission → UI update. A missing link anywhere breaks the feature silently.
+- **Check what already exists.** `grep` for the pattern, use case, or composable before creating a new one. Duplication is a bug waiting to happen.
+
+### Scope
+- **One ticket per session.** No fixing unrelated bugs mid-ticket. If a bug is found during execution, log it and finish the current ticket first.
+- **Max ~10 files touched per session.** If the plan requires more, split the ticket before starting.
+- **Never ship a screen that isn't fully wired.** Dead code, stub dialogs, and TODO comments are bugs — remove them or implement them before committing.
+
+### Data flow checklist (every ViewModel change)
+- [ ] Does the flow stay alive after the initial emission? (`flowOf` completes immediately — use `combine` or `flatMapLatest` for live data)
+- [ ] Does the merge/reduce handler preserve user-entered state (income, amounts) when DB re-emits?
+- [ ] Does deleting something update the DB, not just the local UI state?
+- [ ] Does the Koin module pass all new constructor parameters?
+
+### Verification before reporting done
+- [ ] Build passes (`./gradlew assembleDebug`)
+- [ ] **Full flow tested mentally:** create → navigate away → come back → state is correct
+- [ ] No dead code left behind
+
+---
+
 ## Design Implementation Workflow
 
 Used when building UI from HTML/JSX design files. Component by component — never full screens at once.

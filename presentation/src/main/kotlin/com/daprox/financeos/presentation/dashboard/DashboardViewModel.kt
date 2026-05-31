@@ -3,9 +3,11 @@ package com.daprox.financeos.presentation.dashboard
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.daprox.financeos.core.Result
 import com.daprox.financeos.core.extensions.frenchAmount
 import com.daprox.financeos.domain.model.EnvelopeTypeEnum as DomainEnvelopeType
 import com.daprox.financeos.domain.model.MonthStatusEnum as DomainMonthStatus
+import com.daprox.financeos.domain.usecase.AddTransactionUseCase
 import com.daprox.financeos.domain.usecase.ObserveAccountsUseCase
 import com.daprox.financeos.domain.usecase.ObserveActiveEnvelopesUseCase
 import com.daprox.financeos.domain.usecase.ObserveCurrentMonthUseCase
@@ -24,6 +26,7 @@ import com.daprox.financeos.presentation.dashboard.component.recentmonthssection
 import com.daprox.financeos.presentation.dashboard.component.recentmonthssection.RecentMonthUiState
 import com.daprox.financeos.presentation.dashboard.component.sparklinecard.SparklineCardUiState
 import com.daprox.financeos.presentation.dashboard.component.sparklinecard.SparklineTrendEnum
+import com.daprox.financeos.presentation.expense.EnvelopeChipUiState
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -75,8 +78,10 @@ class DashboardViewModel(
     private val observeMonthTransactions: ObserveMonthTransactionsUseCase,
     private val observeAccounts: ObserveAccountsUseCase,
     private val observeMonths: ObserveMonthsUseCase,
+    private val addTransaction: AddTransactionUseCase,
 ) : ViewModel() {
 
+    private var currentMonthId = ""
     private val _retryTrigger = MutableStateFlow(0)
 
     private val _state = MutableStateFlow(DashboardUiState())
@@ -93,6 +98,7 @@ class DashboardViewModel(
                     .flatMapLatest { month ->
                         // If no month data is found, display the empty state immediately
                         if (month == null) return@flatMapLatest flowOf(DashboardUiState(isLoading = false, isEmpty = true))
+                        currentMonthId = month.id
                         combine(
                             observeActiveEnvelopes(),
                             observeMonthAllocations(month.id),
@@ -219,6 +225,9 @@ class DashboardViewModel(
                                     trend = SparklineTrendEnum.POSITIVE,
                                 ),
                                 recentMonths = recentMonths,
+                                expenseEnvelopes = envelopes.map { env ->
+                                    EnvelopeChipUiState(env.id, env.name, iconKeyToImageVector(env.iconKey))
+                                },
                             )
                         }
                     }
@@ -228,7 +237,15 @@ class DashboardViewModel(
                         emit(DashboardUiState(isLoading = false, isError = true))
                     }
             }
-            .onEach { _state.value = it }
+            .onEach { newState ->
+                // Preserve transient UI state (expense sheet, saving indicator) on data refresh
+                _state.update { current ->
+                    newState.copy(
+                        isExpenseSheetVisible = current.isExpenseSheetVisible,
+                        isSaving = current.isSaving,
+                    )
+                }
+            }
             // Keep the flow alive as long as the ViewModel is active
             .launchIn(viewModelScope)
     }
@@ -249,6 +266,15 @@ class DashboardViewModel(
                 is DashboardUiAction.OnRetry -> {
                     _state.update { it.copy(isLoading = true, isError = false) }
                     _retryTrigger.update { it + 1 }
+                }
+                is DashboardUiAction.OnAddExpenseClick -> _state.update { it.copy(isExpenseSheetVisible = true) }
+                is DashboardUiAction.OnExpenseDismiss -> _state.update { it.copy(isExpenseSheetVisible = false) }
+                is DashboardUiAction.OnExpenseSave -> {
+                    _state.update { it.copy(isSaving = true) }
+                    when (addTransaction(action.envelopeId, currentMonthId, action.amount, action.note)) {
+                        is Result.Success -> _state.update { it.copy(isSaving = false, isExpenseSheetVisible = false) }
+                        is Result.Error -> _state.update { it.copy(isSaving = false) }
+                    }
                 }
             }
         }

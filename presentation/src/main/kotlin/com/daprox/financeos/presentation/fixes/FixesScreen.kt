@@ -24,6 +24,8 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -44,10 +46,14 @@ import com.composables.icons.lucide.ArrowLeft
 import com.composables.icons.lucide.House
 import com.composables.icons.lucide.Lock
 import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.Plus
 import com.composables.icons.lucide.Zap
 import com.daprox.financeos.core.extensions.frenchAmount
+import com.daprox.financeos.presentation.allocation.newenvelope.NewEnvelopeSheet
 import com.daprox.financeos.presentation.core.ObserveAsEvents
 import com.daprox.financeos.presentation.core.designsystem.FinanceOSTheme
+import com.daprox.financeos.presentation.core.designsystem.coloredShadow
+import com.daprox.financeos.presentation.dashboard.component.envelopeminigrid.EnvelopeTypeEnum
 import com.daprox.financeos.presentation.core.designsystem.GeistMono
 import com.daprox.financeos.presentation.core.designsystem.component.EmptyStateView
 import com.daprox.financeos.presentation.core.designsystem.component.ErrorStateView
@@ -102,7 +108,35 @@ fun FixesScreen(
 ) {
     val navBarPadding = WindowInsets.navigationBars.asPaddingValues()
 
-    Scaffold(containerColor = MaterialTheme.colorScheme.background) { innerPadding ->
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
+        floatingActionButton = {
+            Box(
+                modifier = Modifier
+                    .background(
+                        color = MaterialTheme.colorScheme.background,
+                        shape = RoundedCornerShape(22.dp),
+                    )
+                    .padding(6.dp),
+            ) {
+                FloatingActionButton(
+                    onClick = { onAction(FixesUiAction.OnAddEnvelopeClick) },
+                    modifier = Modifier.coloredShadow(
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                        borderRadius = 16.dp,
+                        blurRadius = 24.dp,
+                        offsetY = 8.dp,
+                    ),
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary,
+                    shape = RoundedCornerShape(16.dp),
+                    elevation = FloatingActionButtonDefaults.elevation(0.dp, 0.dp, 0.dp, 0.dp),
+                ) {
+                    Icon(imageVector = Lucide.Plus, contentDescription = "Nouvelle charge fixe")
+                }
+            }
+        },
+    ) { innerPadding ->
         val listPadding = PaddingValues(
             top = innerPadding.calculateTopPadding(),
             bottom = innerPadding.calculateBottomPadding() + navBarPadding.calculateBottomPadding() + 8.dp,
@@ -157,6 +191,16 @@ fun FixesScreen(
                 item { Spacer(modifier = Modifier.height(8.dp)) }
             }
         }
+    }
+
+    if (state.isNewEnvelopeSheetVisible) {
+        NewEnvelopeSheet(
+            presetTypeKey = EnvelopeTypeEnum.FIXED.name,
+            onDismiss = { onAction(FixesUiAction.OnNewEnvelopeDismiss) },
+            onSave = { name, typeKey, iconKey, amount ->
+                onAction(FixesUiAction.OnNewEnvelopeSaved(name, typeKey, iconKey, amount))
+            },
+        )
     }
 }
 

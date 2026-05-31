@@ -28,10 +28,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.composables.icons.lucide.House
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.ShoppingCart
 import com.composables.icons.lucide.TrendingUp
-import com.composables.icons.lucide.House
 import com.composables.icons.lucide.Wallet
 import com.daprox.financeos.core.extensions.frenchAmount
 import com.daprox.financeos.presentation.core.designsystem.FinanceOSTheme
@@ -120,7 +120,7 @@ fun EnvelopeRow(
                     )
                     if (state.type == EnvelopeTypeEnum.MONTHLY) {
                         TypePill(
-                            label = "NEW",
+                            label = "PONCT.",
                             textColor = MaterialTheme.colorScheme.primary,
                             bgColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
                         )

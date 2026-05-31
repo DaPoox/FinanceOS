@@ -163,7 +163,8 @@ class EnvelopeDetailViewModel(
                 is EnvelopeDetailUiAction.OnBackClick ->
                     _events.send(EnvelopeDetailUiEvent.NavigateBack)
 
-                is EnvelopeDetailUiAction.OnModifierAllocationClick -> Unit
+                is EnvelopeDetailUiAction.OnModifierAllocationClick ->
+                    _events.send(EnvelopeDetailUiEvent.NavigateToEditEnvelope(id))
 
                 is EnvelopeDetailUiAction.OnRetry -> {
                     _state.update { it.copy(isLoading = true, isError = false) }

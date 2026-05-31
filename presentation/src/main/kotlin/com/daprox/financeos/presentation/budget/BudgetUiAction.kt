@@ -13,6 +13,8 @@ import com.daprox.financeos.presentation.dashboard.component.envelopeminigrid.En
  * @property OnRetry retry data load after error
  * @property OnFixesClick fixed charges card or header clicked
  * @property OnAddEnvelopeClick add envelope row tapped in a group, includes the preset type
+ * @property OnNewEnvelopeDismiss new envelope sheet dismissed
+ * @property OnNewEnvelopeSaved save new envelope from the sheet
  */
 sealed interface BudgetUiAction {
     data object OnAllouerClick : BudgetUiAction
@@ -23,4 +25,11 @@ sealed interface BudgetUiAction {
     data object OnRetry : BudgetUiAction
     data object OnFixesClick : BudgetUiAction
     data class OnAddEnvelopeClick(val type: EnvelopeTypeEnum) : BudgetUiAction
+    data object OnNewEnvelopeDismiss : BudgetUiAction
+    data class OnNewEnvelopeSaved(
+        val name: String,
+        val typeKey: String,
+        val iconKey: String,
+        val amount: Double,
+    ) : BudgetUiAction
 }

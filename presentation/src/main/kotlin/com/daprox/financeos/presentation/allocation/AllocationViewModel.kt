@@ -5,10 +5,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.daprox.financeos.core.Result
 import com.daprox.financeos.domain.model.Envelope
-import com.daprox.financeos.domain.model.EnvelopeTypeEnum as DomainEnvelopeType
 import com.daprox.financeos.domain.model.MonthAllocation
 import com.daprox.financeos.domain.usecase.AddEnvelopeToMonthUseCase
 import com.daprox.financeos.domain.usecase.AllocateMonthUseCase
+import com.daprox.financeos.domain.usecase.ArchiveEnvelopeUseCase
 import com.daprox.financeos.domain.usecase.CopyAllocationFromMonthUseCase
 import com.daprox.financeos.domain.usecase.ObserveActiveEnvelopesUseCase
 import com.daprox.financeos.domain.usecase.ObserveCurrentMonthUseCase
@@ -21,18 +21,18 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.Calendar
+import com.daprox.financeos.domain.model.EnvelopeTypeEnum as DomainEnvelopeType
 
 private val TYPE_LABELS = mapOf(
     EnvelopeTypeEnum.FIXED to "Fixes",
     EnvelopeTypeEnum.VARIABLE to "Variables",
-    EnvelopeTypeEnum.MONTHLY to "Du mois",
+    EnvelopeTypeEnum.MONTHLY to "Ponctuelles",
     EnvelopeTypeEnum.PERMANENT to "Permanentes",
     EnvelopeTypeEnum.SAVINGS to "Épargne",
     EnvelopeTypeEnum.INVESTMENT to "Investissement",
@@ -100,7 +100,7 @@ private fun colorHexForType(type: DomainEnvelopeType): String = when (type) {
  * Manages the allocation workflow:
  * - Step 0: Monthly income input
  * - Step 1: Template selection (Previous month, Past month, Default, From scratch)
- * - Step 2: Envelope amount adjustment
+ * - Step 2: Envelope amount allocation
  *
  * Features:
  * - Swipe-to-delete envelope support with undo snackbar
@@ -125,9 +125,14 @@ class AllocationViewModel(
     private val allocateMonth: AllocateMonthUseCase,
     private val copyAllocation: CopyAllocationFromMonthUseCase,
     private val addEnvelopeToMonth: AddEnvelopeToMonthUseCase,
+    private val archiveEnvelope: ArchiveEnvelopeUseCase,
 ) : ViewModel() {
 
     private var currentMonthId = ""
+    // IDs of envelopes created during this allocation session via NewEnvelopeSheet.
+    private val newlyCreatedIds = mutableSetOf<String>()
+    // Envelopes confirmed-deleted this session — filtered from all DB re-emissions.
+    private val excludedIds = mutableSetOf<String>()
     private val _retryTrigger = MutableStateFlow(0)
 
     private val _state = MutableStateFlow(AllocationUiState())
@@ -217,7 +222,7 @@ class AllocationViewModel(
                         val mergedGroups = newState.groups.map { group ->
                             group.copy(
                                 envelopes = group.envelopes
-                                    .filter { it.id != removedId }
+                                    .filter { it.id != removedId && it.id !in excludedIds }
                                     .map { env -> env.copy(amount = userAmounts[env.id] ?: env.amount) },
                             )
                         }.filter { it.envelopes.isNotEmpty() }
@@ -320,18 +325,33 @@ class AllocationViewModel(
                     _retryTrigger.update { it + 1 }
                 }
 
-                // Remove envelope locally; the undo snackbar gives the user a chance to restore it
-                is AllocationUiAction.OnEnvelopeDeleted ->
-                    _state.update { state ->
-                        val newGroups = state.groups.map { group ->
-                            group.copy(envelopes = group.envelopes.filter { it.id != action.envelope.id })
-                        }.filter { it.envelopes.isNotEmpty() }
-                        state.copy(
-                            groups = newGroups,
-                            remaining = computeRemaining(state.income, newGroups),
-                            lastRemovedEnvelope = action.envelope,
-                        )
+                is AllocationUiAction.OnEnvelopeDeleted -> {
+                    val id = action.envelope.id
+                    if (id in newlyCreatedIds) {
+                        // Created this session — delete from DB immediately, no undo snackbar.
+                        archiveEnvelope(id)
+                        newlyCreatedIds.remove(id)
+                        excludedIds.add(id)
+                        _state.update { state ->
+                            val newGroups = state.groups.map { group ->
+                                group.copy(envelopes = group.envelopes.filter { it.id != id })
+                            }.filter { it.envelopes.isNotEmpty() }
+                            state.copy(groups = newGroups, remaining = computeRemaining(state.income, newGroups))
+                        }
+                    } else {
+                        // Pre-existing envelope — local exclusion + undo snackbar.
+                        _state.update { state ->
+                            val newGroups = state.groups.map { group ->
+                                group.copy(envelopes = group.envelopes.filter { it.id != id })
+                            }.filter { it.envelopes.isNotEmpty() }
+                            state.copy(
+                                groups = newGroups,
+                                remaining = computeRemaining(state.income, newGroups),
+                                lastRemovedEnvelope = action.envelope,
+                            )
+                        }
                     }
+                }
 
                 // Re-insert the envelope into its correct group
                 is AllocationUiAction.OnEnvelopeRestored -> {
@@ -357,8 +377,11 @@ class AllocationViewModel(
                     }
                 }
 
-                is AllocationUiAction.OnClearRemovedEnvelope ->
+                is AllocationUiAction.OnClearRemovedEnvelope -> {
+                    val removed = _state.value.lastRemovedEnvelope
+                    if (removed != null) excludedIds.add(removed.id)
                     _state.update { it.copy(lastRemovedEnvelope = null) }
+                }
 
                 is AllocationUiAction.OnAddEnvelopeClick ->
                     _state.update { it.copy(isNewEnvelopeSheetVisible = true, newEnvelopePresetType = action.typeKey) }
@@ -371,8 +394,10 @@ class AllocationViewModel(
                     _state.update { it.copy(isNewEnvelopeSheetVisible = false, newEnvelopePresetType = null) }
                     val domainType = runCatching { DomainEnvelopeType.valueOf(action.typeKey) }.getOrNull()
                         ?: DomainEnvelopeType.VARIABLE
+                    val newId = java.util.UUID.randomUUID().toString()
+                    newlyCreatedIds.add(newId)
                     val envelope = Envelope(
-                        id = "",
+                        id = newId,
                         name = action.name,
                         type = domainType,
                         iconKey = action.iconKey,
@@ -380,7 +405,6 @@ class AllocationViewModel(
                         isActive = true,
                     )
                     addEnvelopeToMonth(envelope, currentMonthId, action.amount)
-                    // DB flow emits; merge fix will pick up the new envelope with its saved amount
                 }
             }
         }

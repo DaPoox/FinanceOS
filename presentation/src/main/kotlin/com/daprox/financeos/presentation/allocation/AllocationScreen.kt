@@ -61,7 +61,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
@@ -82,8 +81,8 @@ import com.composables.icons.lucide.House
 import com.composables.icons.lucide.Lucide
 import com.composables.icons.lucide.Plane
 import com.composables.icons.lucide.ShoppingCart
-import com.composables.icons.lucide.TrendingUp
 import com.composables.icons.lucide.Trash2
+import com.composables.icons.lucide.TrendingUp
 import com.composables.icons.lucide.Utensils
 import com.composables.icons.lucide.Wallet
 import com.daprox.financeos.core.extensions.frenchAmount
@@ -106,8 +105,8 @@ import kotlin.math.abs
  */
 private fun addButtonLabel(type: EnvelopeTypeEnum): String = when (type) {
     EnvelopeTypeEnum.FIXED -> "+ Nouvelle charge fixe"
-    EnvelopeTypeEnum.VARIABLE -> "+ Ajouter une catégorie"
-    EnvelopeTypeEnum.MONTHLY -> "+ Nouvelle dépense du mois"
+    EnvelopeTypeEnum.VARIABLE -> "+ Nouvelle enveloppe variable"
+    EnvelopeTypeEnum.MONTHLY -> "+ Budget ponctuel"
     EnvelopeTypeEnum.PERMANENT -> "+ Nouvel objectif"
     EnvelopeTypeEnum.SAVINGS -> "+ Nouveau livret"
     EnvelopeTypeEnum.INVESTMENT -> "+ Nouveau placement"
@@ -117,7 +116,7 @@ private fun addButtonLabel(type: EnvelopeTypeEnum): String = when (type) {
 private fun groupLabel(type: EnvelopeTypeEnum): String = when (type) {
     EnvelopeTypeEnum.FIXED -> "Fixes"
     EnvelopeTypeEnum.VARIABLE -> "Variables"
-    EnvelopeTypeEnum.MONTHLY -> "Du mois"
+    EnvelopeTypeEnum.MONTHLY -> "Ponctuelles"
     EnvelopeTypeEnum.PERMANENT -> "Permanentes"
     EnvelopeTypeEnum.SAVINGS -> "Épargne"
     EnvelopeTypeEnum.INVESTMENT -> "Investissement"
@@ -165,7 +164,7 @@ fun AllocationScreenRoot(
  * A three-step wizard for monthly budget allocation:
  * - Step 0: Income input
  * - Step 1: Template selection (Previous month, Past month, Default, From scratch)
- * - Step 2: Envelope amount adjustment with swipe-to-delete undo support
+ * - Step 2: Envelope amount allocation with swipe-to-delete undo support
  *
  * Displays loading skeleton, error state, or the current step's content.
  * Shows undo snackbar when an envelope is swipe-deleted.
@@ -187,7 +186,7 @@ fun AllocationScreen(
     LaunchedEffect(state.lastRemovedEnvelope) {
         val removed = state.lastRemovedEnvelope ?: return@LaunchedEffect
         val result = snackbarHostState.showSnackbar(
-            message = "\"${removed.name}\" supprimé",
+            message = "\"${removed.name}\" retirée de ce mois",
             actionLabel = "Annuler",
             duration = SnackbarDuration.Short,
         )
@@ -197,11 +196,11 @@ fun AllocationScreen(
         }
     }
 
-    // 2-step flow for first month (income → crée), 3-step for recurring (income → template → ajuste)
-    val steps = if (state.isFirstMonth) listOf("income", "adjust") else listOf("income", "template", "adjust")
+    // 2-step flow for first month (income → crée), 3-step for recurring (income → template → alloue)
+    val steps = if (state.isFirstMonth) listOf("income", "allocation") else listOf("income", "template", "allocation")
     val currentStepName = steps.getOrElse(state.step) { "income" }
     val totalSteps = steps.size
-    val isAdjustStep = currentStepName == "adjust"
+    val isAllocationStep = currentStepName == "allocation"
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -216,7 +215,7 @@ fun AllocationScreen(
         },
         bottomBar = {
             AllocationFooter(
-                isAdjustStep = isAdjustStep,
+                isAllocationStep = isAllocationStep,
                 remaining = state.remaining,
                 incomeBlank = state.income.isBlank(),
                 onNext = { onAction(AllocationUiAction.OnNext) },
@@ -249,7 +248,7 @@ fun AllocationScreen(
                         totalSteps = totalSteps,
                         onSelect = { onAction(AllocationUiAction.OnTemplateSelected(it)) },
                     )
-                    "adjust" -> StepAdjust(
+                    "allocation" -> StepAllocation(
                         groups = state.groups,
                         isFirstMonth = state.isFirstMonth,
                         stepIndex = state.step,
@@ -552,8 +551,8 @@ private fun StepTemplate(
     val options = listOf(
         TemplateOption(TemplateTypeEnum.PREVIOUS, "Mois précédent", "Mois précédent · recommandé", "Conseillé"),
         TemplateOption(TemplateTypeEnum.PAST, "Un mois passé", "Choisir n'importe quel mois"),
-        TemplateOption(TemplateTypeEnum.DEFAULT, "Template par défaut", "Ta config sauvegardée"),
-        TemplateOption(TemplateTypeEnum.SCRATCH, "From scratch", "Tout à zéro"),
+        TemplateOption(TemplateTypeEnum.DEFAULT, "Modèle par défaut", "Ta config sauvegardée"),
+        TemplateOption(TemplateTypeEnum.SCRATCH, "Partir de zéro", "Tout à zéro"),
     )
 
     Column(modifier = modifier.padding(horizontal = 20.dp, vertical = 8.dp)) {
@@ -654,7 +653,7 @@ private fun StepTemplate(
 }
 
 /**
- * Step 3: Envelope adjustment screen.
+ * Step 3: Envelope allocation screen.
  *
  * Displays envelopes grouped by type with collapsible sections. Users can:
  * - Edit envelope amounts
@@ -670,7 +669,7 @@ private fun StepTemplate(
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun StepAdjust(
+private fun StepAllocation(
     groups: List<AllocationEnvelopeGroup>,
     isFirstMonth: Boolean,
     stepIndex: Int,
@@ -761,7 +760,7 @@ private fun StepAdjust(
                     modifier = Modifier.padding(top = 8.dp),
                 ) {
                     envelopes.forEach { envelope ->
-                        SwipeableAdjustRow(
+                        SwipeableAllocationRow(
                             envelope = envelope,
                             onAmountChanged = { onAmountChanged(envelope.id, it) },
                             onDelete = { onEnvelopeDeleted(envelope) },
@@ -778,12 +777,12 @@ private fun StepAdjust(
 }
 
 /**
- * AdjustRow wrapped in SwipeToDismissBox. Swiping left reveals a red delete background.
+ * AllocationRow wrapped in SwipeToDismissBox. Swiping left reveals a red delete background.
  * The item is removed via [onDelete]; the snackbar in AllocationScreen offers undo.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun SwipeableAdjustRow(
+private fun SwipeableAllocationRow(
     envelope: AllocationEnvelopeUiState,
     onAmountChanged: (String) -> Unit,
     onDelete: () -> Unit,
@@ -821,7 +820,7 @@ private fun SwipeableAdjustRow(
             }
         },
     ) {
-        AdjustRow(
+        AllocationRow(
             envelope = envelope,
             onAmountChanged = onAmountChanged,
             onDelete = onDelete,
@@ -940,7 +939,7 @@ private fun AddGroupButton(
 }
 
 /**
- * A single envelope row in the adjustment step.
+ * A single envelope row in the allocation step.
  *
  * Displays the envelope icon, name, allocated amount input field, and a delete button.
  * The row is contained in a surface with border.
@@ -951,7 +950,7 @@ private fun AddGroupButton(
  * @param modifier Optional modifier for layout customization
  */
 @Composable
-private fun AdjustRow(
+private fun AllocationRow(
     envelope: AllocationEnvelopeUiState,
     onAmountChanged: (String) -> Unit,
     onDelete: () -> Unit,
@@ -1055,7 +1054,7 @@ private fun AdjustRow(
  */
 @Composable
 private fun AllocationFooter(
-    isAdjustStep: Boolean,
+    isAllocationStep: Boolean,
     remaining: Double,
     incomeBlank: Boolean,
     onNext: () -> Unit,
@@ -1074,7 +1073,7 @@ private fun AllocationFooter(
             .fillMaxWidth()
             .padding(start = 20.dp, end = 20.dp, top = 14.dp, bottom = 18.dp),
     ) {
-        if (isAdjustStep) {
+        if (isAllocationStep) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -1100,7 +1099,7 @@ private fun AllocationFooter(
 
         Button(
             onClick = onNext,
-            enabled = if (isAdjustStep) remaining <= 0.0 else !incomeBlank,
+            enabled = if (isAllocationStep) remaining <= 0.0 else !incomeBlank,
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
             colors = ButtonDefaults.buttonColors(
@@ -1110,7 +1109,7 @@ private fun AllocationFooter(
             contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 16.dp),
         ) {
             Text(
-                text = if (!isAdjustStep) "Continuer" else "Valider l'allocation",
+                text = if (!isAllocationStep) "Continuer" else "Valider l'allocation",
                 style = MaterialTheme.typography.bodyMedium.copy(
                     fontWeight = FontWeight.Bold,
                     fontSize = 15.sp,
@@ -1161,7 +1160,7 @@ private fun PreviewStep3() {
             ),
         ),
         AllocationEnvelopeGroup(
-            label = "Du mois",
+            label = "Ponctuelles",
             envelopes = listOf(
                 AllocationEnvelopeUiState("voyage", "Voyage été", Lucide.Plane, EnvelopeTypeEnum.MONTHLY, "400"),
             ),

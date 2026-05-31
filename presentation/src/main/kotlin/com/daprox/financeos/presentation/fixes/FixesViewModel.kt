@@ -3,7 +3,9 @@ package com.daprox.financeos.presentation.fixes
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.daprox.financeos.domain.model.Envelope
 import com.daprox.financeos.domain.model.EnvelopeTypeEnum as DomainEnvelopeType
+import com.daprox.financeos.domain.usecase.AddEnvelopeToMonthUseCase
 import com.daprox.financeos.domain.usecase.ObserveActiveEnvelopesUseCase
 import com.daprox.financeos.domain.usecase.ObserveCurrentMonthUseCase
 import com.daprox.financeos.domain.usecase.ObserveMonthAllocationsUseCase
@@ -27,6 +29,15 @@ import kotlinx.coroutines.launch
 
 private fun DomainEnvelopeType.toPresentation(): EnvelopeTypeEnum = EnvelopeTypeEnum.valueOf(name)
 
+private fun colorHexForType(type: DomainEnvelopeType): String = when (type) {
+    DomainEnvelopeType.FIXED -> "#4a5568"
+    DomainEnvelopeType.VARIABLE -> "#e8eef5"
+    DomainEnvelopeType.MONTHLY -> "#fb923c"
+    DomainEnvelopeType.PERMANENT -> "#22c55e"
+    DomainEnvelopeType.SAVINGS -> "#7eb8f7"
+    DomainEnvelopeType.INVESTMENT -> "#a78bfa"
+}
+
 /**
  * ViewModel for the Fixes screen.
  *
@@ -45,14 +56,17 @@ private fun DomainEnvelopeType.toPresentation(): EnvelopeTypeEnum = EnvelopeType
  * @param observeActiveEnvelopes UseCase to observe all active envelopes
  * @param observeMonthAllocations UseCase to observe allocations for the current month
  * @param observeMonthTransactions UseCase to observe transactions for the current month
+ * @param addEnvelopeToMonth UseCase to create a new envelope and allocate funds for the current month
  */
 class FixesViewModel(
     private val observeCurrentMonth: ObserveCurrentMonthUseCase,
     private val observeActiveEnvelopes: ObserveActiveEnvelopesUseCase,
     private val observeMonthAllocations: ObserveMonthAllocationsUseCase,
     private val observeMonthTransactions: ObserveMonthTransactionsUseCase,
+    private val addEnvelopeToMonth: AddEnvelopeToMonthUseCase,
 ) : ViewModel() {
 
+    private var currentMonthId = ""
     private val _retryTrigger = MutableStateFlow(0)
 
     private val _state = MutableStateFlow(FixesUiState())
@@ -67,6 +81,7 @@ class FixesViewModel(
                 observeCurrentMonth()
                     .filterNotNull()
                     .flatMapLatest { month ->
+                        currentMonthId = month.id
                         combine(
                             // Only FIXED envelopes
                             observeActiveEnvelopes().map { list ->
@@ -112,7 +127,12 @@ class FixesViewModel(
                         emit(FixesUiState(isLoading = false, isError = true))
                     }
             }
-            .onEach { _state.value = it }
+            .onEach { newState ->
+                // Preserve transient UI state (new envelope sheet) on data refresh
+                _state.update { current ->
+                    newState.copy(isNewEnvelopeSheetVisible = current.isNewEnvelopeSheetVisible)
+                }
+            }
             .launchIn(viewModelScope)
     }
 
@@ -132,6 +152,24 @@ class FixesViewModel(
                 is FixesUiAction.OnRetry -> {
                     _state.update { it.copy(isLoading = true, isError = false) }
                     _retryTrigger.update { it + 1 }
+                }
+                is FixesUiAction.OnAddEnvelopeClick ->
+                    _state.update { it.copy(isNewEnvelopeSheetVisible = true) }
+                is FixesUiAction.OnNewEnvelopeDismiss ->
+                    _state.update { it.copy(isNewEnvelopeSheetVisible = false) }
+                is FixesUiAction.OnNewEnvelopeSaved -> {
+                    _state.update { it.copy(isNewEnvelopeSheetVisible = false) }
+                    val domainType = runCatching { DomainEnvelopeType.valueOf(action.typeKey) }.getOrNull()
+                        ?: DomainEnvelopeType.FIXED
+                    val envelope = Envelope(
+                        id = java.util.UUID.randomUUID().toString(),
+                        name = action.name,
+                        type = domainType,
+                        iconKey = action.iconKey,
+                        colorHex = colorHexForType(domainType),
+                        isActive = true,
+                    )
+                    addEnvelopeToMonth(envelope, currentMonthId, action.amount)
                 }
             }
         }

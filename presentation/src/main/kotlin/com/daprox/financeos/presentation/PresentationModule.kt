@@ -32,9 +32,9 @@ import org.koin.dsl.module
  * - **FixesViewModel**: Fixed charges tracking screen
  */
 val presentationModule = module {
-    viewModel { DashboardViewModel(get(), get(), get(), get(), get(), get()) }
-    viewModel { BudgetViewModel(get(), get(), get(), get(), get()) }
-    viewModel { AllocationViewModel(get(), get(), get(), get(), get(), get()) }
+    viewModel { DashboardViewModel(get(), get(), get(), get(), get(), get(), get()) }
+    viewModel { BudgetViewModel(get(), get(), get(), get(), get(), get()) }
+    viewModel { AllocationViewModel(get(), get(), get(), get(), get(), get(), get()) }
     viewModel { (id: String) -> EnvelopeDetailViewModel(id, get(), get(), get(), get(), get()) }
     viewModel { PatrimoineViewModel(get()) }
     viewModel { HistoryViewModel(get()) }
@@ -42,5 +42,5 @@ val presentationModule = module {
     viewModel { (envelopeId: String?, presetTypeKey: String?) ->
         EnvelopeFormViewModel(envelopeId, presetTypeKey, get(), get(), get())
     }
-    viewModel { FixesViewModel(get(), get(), get(), get()) }
+    viewModel { FixesViewModel(get(), get(), get(), get(), get()) }
 }

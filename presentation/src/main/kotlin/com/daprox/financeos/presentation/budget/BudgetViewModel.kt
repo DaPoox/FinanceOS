@@ -5,6 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.daprox.financeos.domain.model.EnvelopeTypeEnum as DomainEnvelopeType
 import com.daprox.financeos.core.Result
+import com.daprox.financeos.domain.model.Envelope
+import com.daprox.financeos.domain.usecase.AddEnvelopeToMonthUseCase
 import com.daprox.financeos.domain.usecase.AddTransactionUseCase
 import com.daprox.financeos.domain.usecase.ObserveActiveEnvelopesUseCase
 import com.daprox.financeos.domain.usecase.ObserveCurrentMonthUseCase
@@ -42,6 +44,15 @@ private val TYPE_LABELS = mapOf(
 
 private fun DomainEnvelopeType.toPresentation(): EnvelopeTypeEnum = EnvelopeTypeEnum.valueOf(name)
 
+private fun colorHexForType(type: DomainEnvelopeType): String = when (type) {
+    DomainEnvelopeType.FIXED -> "#4a5568"
+    DomainEnvelopeType.VARIABLE -> "#e8eef5"
+    DomainEnvelopeType.MONTHLY -> "#fb923c"
+    DomainEnvelopeType.PERMANENT -> "#22c55e"
+    DomainEnvelopeType.SAVINGS -> "#7eb8f7"
+    DomainEnvelopeType.INVESTMENT -> "#a78bfa"
+}
+
 private fun List<EnvelopeRowUiState>.toGroups(): List<BudgetEnvelopeGroup> =
     TYPE_LABELS.entries.mapNotNull { (type, label) ->
         val items = filter { it.type == type }
@@ -72,6 +83,7 @@ class BudgetViewModel(
     private val observeMonthAllocations: ObserveMonthAllocationsUseCase,
     private val observeMonthTransactions: ObserveMonthTransactionsUseCase,
     private val addTransaction: AddTransactionUseCase,
+    private val addEnvelopeToMonth: AddEnvelopeToMonthUseCase,
 ) : ViewModel() {
 
     private var currentMonthId = ""
@@ -157,11 +169,13 @@ class BudgetViewModel(
                     }
             }
             .onEach { newState ->
-                // Preserve transient UI state (expense sheet, saving indicator) on data refresh
+                // Preserve transient UI state (expense sheet, saving indicator, envelope sheet) on data refresh
                 _state.update { current ->
                     newState.copy(
                         isExpenseSheetVisible = current.isExpenseSheetVisible,
                         isSaving = current.isSaving,
+                        isNewEnvelopeSheetVisible = current.isNewEnvelopeSheetVisible,
+                        newEnvelopePresetType = current.newEnvelopePresetType,
                     )
                 }
             }
@@ -193,7 +207,23 @@ class BudgetViewModel(
                 }
                 is BudgetUiAction.OnFixesClick -> _events.send(BudgetUiEvent.NavigateToFixes)
                 is BudgetUiAction.OnAddEnvelopeClick ->
-                    _events.send(BudgetUiEvent.NavigateToAddEnvelope(action.type.name))
+                    _state.update { it.copy(isNewEnvelopeSheetVisible = true, newEnvelopePresetType = action.type.name) }
+                is BudgetUiAction.OnNewEnvelopeDismiss ->
+                    _state.update { it.copy(isNewEnvelopeSheetVisible = false, newEnvelopePresetType = null) }
+                is BudgetUiAction.OnNewEnvelopeSaved -> {
+                    _state.update { it.copy(isNewEnvelopeSheetVisible = false, newEnvelopePresetType = null) }
+                    val domainType = runCatching { DomainEnvelopeType.valueOf(action.typeKey) }.getOrNull()
+                        ?: DomainEnvelopeType.VARIABLE
+                    val envelope = Envelope(
+                        id = java.util.UUID.randomUUID().toString(),
+                        name = action.name,
+                        type = domainType,
+                        iconKey = action.iconKey,
+                        colorHex = colorHexForType(domainType),
+                        isActive = true,
+                    )
+                    addEnvelopeToMonth(envelope, currentMonthId, action.amount)
+                }
             }
         }
     }

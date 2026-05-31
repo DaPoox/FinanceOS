@@ -13,6 +13,7 @@ import androidx.compose.runtime.Stable
  * @param totalAllocated Sum of allocated amounts for all fixed charges
  * @param totalSpent Sum of spent amounts for all fixed charges
  * @param charges List of [FixesChargeUiState]s for each fixed envelope
+ * @param isNewEnvelopeSheetVisible whether the new envelope creation sheet is visible
  */
 @Stable
 data class FixesUiState(
@@ -22,4 +23,5 @@ data class FixesUiState(
     val totalAllocated: Double = 0.0,
     val totalSpent: Double = 0.0,
     val charges: List<FixesChargeUiState> = emptyList(),
+    val isNewEnvelopeSheetVisible: Boolean = false,
 )

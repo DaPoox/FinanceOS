@@ -7,6 +7,7 @@ import com.daprox.financeos.presentation.dashboard.component.insightcard.Insight
 import com.daprox.financeos.presentation.dashboard.component.networthhero.NetWorthHeroUiState
 import com.daprox.financeos.presentation.dashboard.component.recentmonthssection.RecentMonthUiState
 import com.daprox.financeos.presentation.dashboard.component.sparklinecard.SparklineCardUiState
+import com.daprox.financeos.presentation.expense.EnvelopeChipUiState
 
 /**
  * UI state for the Dashboard screen.
@@ -20,6 +21,9 @@ import com.daprox.financeos.presentation.dashboard.component.sparklinecard.Spark
  * @property envelopes top 4 expense envelopes for quick view
  * @property sparkline net worth trend over 6 months
  * @property recentMonths 2 most recent months with status and contribution
+ * @property expenseEnvelopes all envelopes for expense sheet dropdown
+ * @property isExpenseSheetVisible whether expense add-form bottom sheet is visible
+ * @property isSaving whether transaction is being saved
  */
 @Stable
 data class DashboardUiState(
@@ -32,4 +36,7 @@ data class DashboardUiState(
     val envelopes: List<EnvelopeMiniUiState> = emptyList(),
     val sparkline: SparklineCardUiState? = null,
     val recentMonths: List<RecentMonthUiState> = emptyList(),
+    val expenseEnvelopes: List<EnvelopeChipUiState> = emptyList(),
+    val isExpenseSheetVisible: Boolean = false,
+    val isSaving: Boolean = false,
 )

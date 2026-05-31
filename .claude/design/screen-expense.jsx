@@ -1,10 +1,12 @@
 // screen-expense.jsx — Finance OS — Bottom sheet for expense entry
 
-function ExpenseSheet({ open, onClose, onSave }) {
-  const [amount, setAmount] = React.useState('');
-  const [envelope, setEnvelope] = React.useState('groceries');
+function ExpenseSheet({ open, onClose, onSave, demoConfirmed = false, demoAmount = '', demoEnvelope = 'groceries' }) {
+  // demo* props let the flow-diagram render a frozen state (e.g. the post-validate
+  // confirmation). Defaults reproduce the original live behaviour exactly.
+  const [amount, setAmount] = React.useState(demoConfirmed ? (demoAmount || '48') : '');
+  const [envelope, setEnvelope] = React.useState(demoEnvelope);
   const [note, setNote] = React.useState('');
-  const [confirmed, setConfirmed] = React.useState(false);
+  const [confirmed, setConfirmed] = React.useState(demoConfirmed);
 
   // when closed, reset after fade out
   React.useEffect(() => {

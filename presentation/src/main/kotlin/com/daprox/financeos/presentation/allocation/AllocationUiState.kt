@@ -9,7 +9,7 @@ import androidx.compose.runtime.Stable
  *
  * @param isLoading Whether data is being loaded from the database
  * @param isError Whether a loading or processing error occurred
- * @param step The current step: 0 (income), 1 (template), 2 (adjustment)
+ * @param step The current step: 0 (income), 1 (template), 2 (allocation)
  * @param monthLabel Localized month label (e.g., "Mai 2026")
  * @param income The monthly income entered by the user (numeric string)
  * @param selectedTemplate The selected template type for allocation copying

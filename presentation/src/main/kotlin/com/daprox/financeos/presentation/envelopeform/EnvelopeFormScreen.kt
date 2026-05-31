@@ -338,7 +338,7 @@ private data class EnvelopeTypeOption(
 private val ENVELOPE_TYPE_OPTIONS = listOf(
     EnvelopeTypeOption(EnvelopeTypeEnum.FIXED, "Fixe", "Même montant chaque mois — loyer, abonnements.", "#4a5568"),
     EnvelopeTypeOption(EnvelopeTypeEnum.VARIABLE, "Variable", "Budget ajustable — courses, restos, transport.", "#e8eef5"),
-    EnvelopeTypeOption(EnvelopeTypeEnum.MONTHLY, "Du mois", "One-shot pour ce mois seulement — voyage, déménagement.", "#fb923c"),
+    EnvelopeTypeOption(EnvelopeTypeEnum.MONTHLY, "Ponctuelle", "Budget unique pour ce mois — voyage, déménagement.", "#fb923c"),
     EnvelopeTypeOption(EnvelopeTypeEnum.PERMANENT, "Permanente", "Accumule mois après mois — vacances, cadeaux, projets.", "#22c55e"),
     EnvelopeTypeOption(EnvelopeTypeEnum.SAVINGS, "Épargne", "Livret réglementé avec plafond — Livret A, LDDS.", "#7eb8f7"),
     EnvelopeTypeOption(EnvelopeTypeEnum.INVESTMENT, "Investissement", "Portefeuille marché — PEA, CTO.", "#a78bfa"),

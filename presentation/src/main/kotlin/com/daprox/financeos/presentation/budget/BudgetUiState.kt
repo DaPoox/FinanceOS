@@ -18,6 +18,8 @@ import com.daprox.financeos.presentation.expense.EnvelopeChipUiState
  * @property expenseEnvelopes all envelopes for expense sheet dropdown
  * @property isExpenseSheetVisible whether expense add-form bottom sheet is visible
  * @property isSaving whether transaction is being saved
+ * @property isNewEnvelopeSheetVisible whether the new envelope creation sheet is visible
+ * @property newEnvelopePresetType envelope type key pre-selected in the new envelope sheet
  */
 @Stable
 data class BudgetUiState(
@@ -31,4 +33,6 @@ data class BudgetUiState(
     val expenseEnvelopes: List<EnvelopeChipUiState> = emptyList(),
     val isExpenseSheetVisible: Boolean = false,
     val isSaving: Boolean = false,
+    val isNewEnvelopeSheetVisible: Boolean = false,
+    val newEnvelopePresetType: String? = null,
 )

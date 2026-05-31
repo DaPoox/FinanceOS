@@ -33,8 +33,8 @@ function editsForTemplate(template) {
 //   monthLabel    — lowercased month being allocated (e.g. "juin 2026")
 //   previousMonth — lowercased month the carry-over comes from
 //   hasTemplate   — when true, inserts a template-picker step (3 steps total)
-function AllocationScreen({ onBack, onComplete, onAddEnvelope, monthLabel = 'mai 2026', previousMonth = 'avril 2026', hasTemplate = false, fromScratch = false }) {
-  const [step, setStep] = React.useState(0);
+function AllocationScreen({ onBack, onComplete, onAddEnvelope, monthLabel = 'mai 2026', previousMonth = 'avril 2026', hasTemplate = false, fromScratch = false, initialStep = 0 }) {
+  const [step, setStep] = React.useState(initialStep);
   // Virgin app → no income pre-filled; the user types their first salary.
   const [income, setIncome] = React.useState(fromScratch ? '' : '4200');
   const [template, setTemplate] = React.useState('previous');

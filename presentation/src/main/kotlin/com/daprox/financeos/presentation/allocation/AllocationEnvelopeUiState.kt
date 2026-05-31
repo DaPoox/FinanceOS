@@ -7,7 +7,7 @@ import com.daprox.financeos.presentation.dashboard.component.envelopeminigrid.En
  * UI model for an envelope in the Allocation screen's Step 3.
  *
  * Represents a single envelope with its allocated amount for the current month.
- * Used in both the adjustment list and the undo snackbar state.
+ * Used in both the allocation list and the undo snackbar state.
  *
  * @param id The envelope's unique identifier
  * @param name The envelope's display name

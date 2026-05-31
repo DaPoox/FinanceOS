@@ -38,7 +38,6 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.composables.icons.lucide.Lucide
@@ -46,8 +45,8 @@ import com.composables.icons.lucide.Wallet
 import com.composables.icons.lucide.X
 import com.daprox.financeos.presentation.core.designsystem.ENVELOPE_ICON_KEYS
 import com.daprox.financeos.presentation.core.designsystem.GeistMono
-import com.daprox.financeos.presentation.core.designsystem.iconKeyToImageVector
 import com.daprox.financeos.presentation.core.designsystem.finColors
+import com.daprox.financeos.presentation.core.designsystem.iconKeyToImageVector
 import com.daprox.financeos.presentation.dashboard.component.envelopeminigrid.EnvelopeTypeEnum
 
 // SAVINGS and INVESTMENT are account-based — redirect to Patrimoine instead of showing a form
@@ -65,14 +64,14 @@ private data class EnvelopeTypeLabels(
 
 private fun labelsFor(type: EnvelopeTypeEnum): EnvelopeTypeLabels = when (type) {
     EnvelopeTypeEnum.FIXED -> EnvelopeTypeLabels("Nouvelle charge fixe", "Mutuelle, Téléphone…", "Montant mensuel")
-    EnvelopeTypeEnum.VARIABLE -> EnvelopeTypeLabels("Nouvelle catégorie", "Loisirs, Pharmacie…", "Budget mensuel")
-    EnvelopeTypeEnum.MONTHLY -> EnvelopeTypeLabels("Nouvelle dépense du mois", "Vacances Lisbonne…", "Montant à allouer")
+    EnvelopeTypeEnum.VARIABLE -> EnvelopeTypeLabels("Nouvelle enveloppe variable", "Loisirs, Pharmacie…", "Budget mensuel")
+    EnvelopeTypeEnum.MONTHLY -> EnvelopeTypeLabels("Budget ponctuel", "Vacances Lisbonne…", "Montant à allouer")
     EnvelopeTypeEnum.PERMANENT -> EnvelopeTypeLabels("Nouvel objectif", "Voyage Japon, Vélo…", "Contribution mensuelle", showGoal = true)
     else -> EnvelopeTypeLabels("Nouvelle enveloppe", "", "Montant")
 }
 
 /**
- * Bottom sheet for creating a new envelope directly from the allocation adjustment step.
+ * Bottom sheet for creating a new envelope directly from the allocation step.
  *
  * Shows a full creation form for FIXED, VARIABLE, MONTHLY, and PERMANENT types.
  * SAVINGS and INVESTMENT redirect to Patrimoine (account-based flow).

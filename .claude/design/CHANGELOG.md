@@ -1,4 +1,4 @@
-Ll# Finance OS — Changelog
+# Finance OS — Changelog
 
 Mobile personal-finance prototype (412 × 892, dark mode, FR). Envelope budgeting,
 net-worth tracking, monthly allocation, manual expense capture.

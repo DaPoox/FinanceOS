@@ -17,11 +17,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
@@ -36,8 +31,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
-import com.daprox.financeos.presentation.core.designsystem.coloredShadow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -59,17 +58,16 @@ import com.daprox.financeos.presentation.budget.component.budgetglobalcard.Budge
 import com.daprox.financeos.presentation.budget.component.enveloperow.EnvelopeRow
 import com.daprox.financeos.presentation.budget.component.enveloperow.EnvelopeRowUiState
 import com.daprox.financeos.presentation.budget.component.fixessummary.FixesSummaryCard
-import com.daprox.financeos.presentation.budget.component.fixessummary.FixesSummaryChargeUiState
-import com.daprox.financeos.presentation.budget.component.fixessummary.FixesSummaryUiState
 import com.daprox.financeos.presentation.core.ObserveAsEvents
-
 import com.daprox.financeos.presentation.core.designsystem.FinanceOSTheme
 import com.daprox.financeos.presentation.core.designsystem.GeistMono
-import com.daprox.financeos.presentation.dashboard.component.envelopeminigrid.EnvelopeStatusEnum
-import com.daprox.financeos.presentation.dashboard.component.envelopeminigrid.EnvelopeTypeEnum
+import com.daprox.financeos.presentation.core.designsystem.coloredShadow
 import com.daprox.financeos.presentation.core.designsystem.component.EmptyStateView
 import com.daprox.financeos.presentation.core.designsystem.component.ErrorStateView
 import com.daprox.financeos.presentation.core.designsystem.component.ShimmerBox
+import com.daprox.financeos.presentation.dashboard.component.envelopeminigrid.EnvelopeStatusEnum
+import com.daprox.financeos.presentation.dashboard.component.envelopeminigrid.EnvelopeTypeEnum
+import com.daprox.financeos.presentation.allocation.newenvelope.NewEnvelopeSheet
 import com.daprox.financeos.presentation.expense.EnvelopeChipUiState
 import com.daprox.financeos.presentation.expense.ExpenseSheet
 import org.koin.androidx.compose.koinViewModel
@@ -86,7 +84,6 @@ fun BudgetScreenRoot(
     onNavigateToAllocation: () -> Unit = {},
     onNavigateToEnvelopeDetail: (String) -> Unit = {},
     onNavigateToFixes: () -> Unit = {},
-    onNavigateToAddEnvelope: (String) -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -95,7 +92,6 @@ fun BudgetScreenRoot(
             is BudgetUiEvent.NavigateToAllocation -> onNavigateToAllocation()
             is BudgetUiEvent.NavigateToEnvelopeDetail -> onNavigateToEnvelopeDetail(event.id)
             is BudgetUiEvent.NavigateToFixes -> onNavigateToFixes()
-            is BudgetUiEvent.NavigateToAddEnvelope -> onNavigateToAddEnvelope(event.presetType)
         }
     }
 
@@ -236,6 +232,16 @@ fun BudgetScreen(
             onSave = { amount, id, note -> onAction(BudgetUiAction.OnExpenseSave(amount, id, note)) },
         )
     }
+
+    if (state.isNewEnvelopeSheetVisible) {
+        NewEnvelopeSheet(
+            presetTypeKey = state.newEnvelopePresetType,
+            onDismiss = { onAction(BudgetUiAction.OnNewEnvelopeDismiss) },
+            onSave = { name, typeKey, iconKey, amount ->
+                onAction(BudgetUiAction.OnNewEnvelopeSaved(name, typeKey, iconKey, amount))
+            },
+        )
+    }
 }
 
 @Composable
@@ -299,8 +305,8 @@ private fun AddEnvelopeRow(
 }
 
 private fun addLabelFor(type: EnvelopeTypeEnum): String = when (type) {
-    EnvelopeTypeEnum.VARIABLE -> "+ Ajouter une catégorie"
-    EnvelopeTypeEnum.MONTHLY -> "+ Nouvelle dépense du mois"
+    EnvelopeTypeEnum.VARIABLE -> "+ Nouvelle enveloppe variable"
+    EnvelopeTypeEnum.MONTHLY -> "+ Budget ponctuel"
     EnvelopeTypeEnum.PERMANENT -> "+ Nouvel objectif"
     EnvelopeTypeEnum.SAVINGS -> "+ Ajouter un livret"
     EnvelopeTypeEnum.INVESTMENT -> "+ Nouveau placement"

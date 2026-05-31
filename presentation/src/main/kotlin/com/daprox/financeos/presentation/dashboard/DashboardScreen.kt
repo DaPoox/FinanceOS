@@ -1,6 +1,8 @@
 package com.daprox.financeos.presentation.dashboard
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -8,8 +10,18 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -21,11 +33,14 @@ import com.daprox.financeos.presentation.core.designsystem.component.ShimmerBox
 import com.composables.icons.lucide.Car
 import com.composables.icons.lucide.House
 import com.composables.icons.lucide.Lucide
+import com.composables.icons.lucide.Plus
 import com.composables.icons.lucide.ShoppingCart
 import com.composables.icons.lucide.Utensils
 import com.composables.icons.lucide.Wallet
 import com.daprox.financeos.presentation.core.ObserveAsEvents
 import com.daprox.financeos.presentation.core.designsystem.FinanceOSTheme
+import com.daprox.financeos.presentation.core.designsystem.coloredShadow
+import com.daprox.financeos.presentation.expense.ExpenseSheet
 import com.daprox.financeos.presentation.dashboard.component.budgetmonthcard.BudgetMonthCard
 import com.daprox.financeos.presentation.dashboard.component.budgetmonthcard.BudgetMonthCardUiState
 import com.daprox.financeos.presentation.dashboard.component.envelopeminigrid.EnvelopeMiniGrid
@@ -77,73 +92,122 @@ fun DashboardScreenRoot(
 /**
  * Dashboard screen displaying net worth, insights, budget, envelopes, and recent months.
  * Renders loading skeleton, error state, empty state, or full content based on state.
+ * Hosts the expense entry FAB and inline ExpenseSheet modal.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(
     state: DashboardUiState,
     onAction: (DashboardUiAction) -> Unit,
 ) {
     val navBarPadding = WindowInsets.navigationBars.asPaddingValues()
-    val contentPadding = PaddingValues(
-        start = 16.dp,
-        end = 16.dp,
-        top = 16.dp,
-        bottom = 16.dp + navBarPadding.calculateBottomPadding(),
-    )
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    when {
-        state.isLoading -> DashboardScreenSkeleton(contentPadding = contentPadding)
-        state.isError -> LazyColumn(contentPadding = contentPadding) {
-            item { ErrorStateView(onRetry = { onAction(DashboardUiAction.OnRetry) }) }
-        }
-        state.isEmpty -> LazyColumn(contentPadding = contentPadding) {
-            item {
-                EmptyStateView(
-                    icon = Lucide.Wallet,
-                    title = "Bienvenue sur Finance OS",
-                    subtitle = "Commence par allouer ton premier mois pour suivre ton budget.",
-                    ctaLabel = "Allouer le mois",
-                    onCta = { onAction(DashboardUiAction.OnAllocateBudgetClick) },
-                )
+    LaunchedEffect(state.isExpenseSheetVisible) {
+        if (state.isExpenseSheetVisible) sheetState.show() else sheetState.hide()
+    }
+
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
+        floatingActionButton = {
+            if (!state.isEmpty && !state.isLoading && !state.isError) {
+                Box(
+                    modifier = Modifier
+                        .background(
+                            color = MaterialTheme.colorScheme.background,
+                            shape = RoundedCornerShape(22.dp),
+                        )
+                        .padding(6.dp),
+                ) {
+                    FloatingActionButton(
+                        onClick = { onAction(DashboardUiAction.OnAddExpenseClick) },
+                        modifier = Modifier.coloredShadow(
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                            borderRadius = 16.dp,
+                            blurRadius = 24.dp,
+                            offsetY = 8.dp,
+                        ),
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                        shape = RoundedCornerShape(16.dp),
+                        elevation = FloatingActionButtonDefaults.elevation(0.dp, 0.dp, 0.dp, 0.dp),
+                    ) {
+                        Icon(imageVector = Lucide.Plus, contentDescription = "Nouvelle dépense")
+                    }
+                }
             }
-        }
-        else -> LazyColumn(
-            contentPadding = contentPadding,
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            item { NetWorthHeroCard(state = state.netWorthHero) }
+        },
+    ) { innerPadding ->
+        val contentPadding = PaddingValues(
+            start = 16.dp,
+            end = 16.dp,
+            top = innerPadding.calculateTopPadding() + 16.dp,
+            bottom = innerPadding.calculateBottomPadding() + navBarPadding.calculateBottomPadding() + 16.dp,
+        )
 
-            item { InsightCard(state = state.insight) }
-
-            item {
-                BudgetMonthCard(
-                    state = state.budgetMonth,
-                    onTap = { onAction(DashboardUiAction.OnBudgetMonthClick) },
-                    onAllocateTap = { onAction(DashboardUiAction.OnAllocateBudgetClick) },
-                )
+        when {
+            state.isLoading -> DashboardScreenSkeleton(contentPadding = contentPadding)
+            state.isError -> LazyColumn(contentPadding = contentPadding) {
+                item { ErrorStateView(onRetry = { onAction(DashboardUiAction.OnRetry) }) }
             }
-
-            if (state.envelopes.isNotEmpty()) {
+            state.isEmpty -> LazyColumn(contentPadding = contentPadding) {
                 item {
-                    EnvelopeMiniGrid(
-                        envelopes = state.envelopes,
-                        onEnvelopeClick = { id -> onAction(DashboardUiAction.OnEnvelopeClick(id)) },
-                        onSeeAllClick = { onAction(DashboardUiAction.OnSeeAllEnvelopesClick) },
+                    EmptyStateView(
+                        icon = Lucide.Wallet,
+                        title = "Bienvenue sur Finance OS",
+                        subtitle = "Commence par allouer ton premier mois pour suivre ton budget.",
+                        ctaLabel = "Allouer le mois",
+                        onCta = { onAction(DashboardUiAction.OnAllocateBudgetClick) },
                     )
                 }
             }
+            else -> LazyColumn(
+                contentPadding = contentPadding,
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                item { NetWorthHeroCard(state = state.netWorthHero) }
 
-            item { SparklineCard(state = state.sparkline) }
+                item { InsightCard(state = state.insight) }
 
-            if (state.recentMonths.isNotEmpty()) {
                 item {
-                    RecentMonthsSection(
-                        months = state.recentMonths,
-                        onMonthClick = { id -> onAction(DashboardUiAction.OnRecentMonthClick(id)) },
+                    BudgetMonthCard(
+                        state = state.budgetMonth,
+                        onTap = { onAction(DashboardUiAction.OnBudgetMonthClick) },
+                        onAllocateTap = { onAction(DashboardUiAction.OnAllocateBudgetClick) },
                     )
+                }
+
+                if (state.envelopes.isNotEmpty()) {
+                    item {
+                        EnvelopeMiniGrid(
+                            envelopes = state.envelopes,
+                            onEnvelopeClick = { id -> onAction(DashboardUiAction.OnEnvelopeClick(id)) },
+                            onSeeAllClick = { onAction(DashboardUiAction.OnSeeAllEnvelopesClick) },
+                        )
+                    }
+                }
+
+                item { SparklineCard(state = state.sparkline) }
+
+                if (state.recentMonths.isNotEmpty()) {
+                    item {
+                        RecentMonthsSection(
+                            months = state.recentMonths,
+                            onMonthClick = { id -> onAction(DashboardUiAction.OnRecentMonthClick(id)) },
+                        )
+                    }
                 }
             }
         }
+    }
+
+    if (state.isExpenseSheetVisible) {
+        ExpenseSheet(
+            envelopes = state.expenseEnvelopes,
+            sheetState = sheetState,
+            onDismiss = { onAction(DashboardUiAction.OnExpenseDismiss) },
+            onSave = { amount, id, note -> onAction(DashboardUiAction.OnExpenseSave(amount, id, note)) },
+        )
     }
 }
 
